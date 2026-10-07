@@ -21,6 +21,29 @@
     </div>
   </div>
 
+  <!-- INDEPENDENT FLOATING FOLLOWER NOTIFICATION (OUTSIDE THE CHAT MESSAGE OVERLAY) -->
+  <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto hidden select-none transition-all duration-300 transform -translate-y-8 opacity-0 max-w-[92vw]" id="followAlertBanner">
+    <div class="flex items-center space-x-2.5 px-4 py-2 bg-black/95 text-white border-2 border-white rounded-full shadow-[0_10px_35px_rgba(255,255,255,0.25)] backdrop-blur-xl">
+      <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white text-black shrink-0 font-bold shadow-md">
+        <svg class="w-4 h-4 text-black animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </div>
+      <div class="flex flex-col min-w-0 pr-1">
+        <div class="flex items-center space-x-1.5 truncate">
+          <span class="text-[8px] font-mono font-extrabold px-1.5 py-0.2 rounded bg-white text-black uppercase tracking-wider shrink-0">NEW FOLLOWER</span>
+          <span class="text-[11px] font-mono font-extrabold text-white truncate" id="followAlertUser">@user</span>
+        </div>
+        <span class="text-[9.5px] font-mono text-zinc-300 truncate" id="followAlertText">Just followed the live stream!</span>
+      </div>
+      <button class="ml-1 text-zinc-400 hover:text-white p-1 cursor-pointer flex items-center justify-center" id="dismissFollowAlertBtn" title="Dismiss">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <!-- VIEW 1: STREAMER CONTROL CENTER (Primary Screen for Mobile Streamers) -->
   <div class="relative w-full h-full flex flex-col justify-start overflow-y-auto bg-black p-4 z-20" id="controlCenterView">
     <div class="max-w-2xl w-full mx-auto space-y-3 pb-8">
@@ -457,17 +480,6 @@
             <span class="text-[9px] font-extrabold uppercase tracking-wide" id="giftAlertText">GIFT ALERT: New Gift Received!</span>
           </div>
           <span class="text-[8px] font-extrabold px-1 py-0.2 bg-black text-white rounded font-mono" id="giftAlertCoins">0 COINS</span>
-        </div>
-
-        <!-- PROMINENT LIVE FOLLOWER ALERT BANNER (Drops down when someone follows) -->
-        <div class="follow-alert-banner hidden px-2.5 py-1.5 bg-white text-black border-b-2 border-black font-mono flex items-center justify-between select-none shadow-xl transition-all" id="followAlertBanner">
-          <div class="flex items-center space-x-1.5 truncate">
-            <svg class="w-3.5 h-3.5 text-black shrink-0 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <span class="text-[10px] font-extrabold uppercase tracking-wide truncate text-black" id="followAlertText">NEW FOLLOWER: @user followed!</span>
-          </div>
-          <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 bg-black text-white rounded font-mono shrink-0 ml-1">FOLLOWER</span>
         </div>
 
         <!-- CHAT MESSAGES SCROLLABLE CONTAINER (MAXIMIZED DENSITY & VERTICAL HEIGHT) -->

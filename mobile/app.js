@@ -1927,7 +1927,24 @@
   }
 
   const followAlertBanner = document.getElementById('followAlertBanner');
+  const followAlertUser = document.getElementById('followAlertUser');
   const followAlertText = document.getElementById('followAlertText');
+  const dismissFollowAlertBtn = document.getElementById('dismissFollowAlertBtn');
+
+  function hideFollowAlertBanner() {
+    if (!followAlertBanner) return;
+    followAlertBanner.classList.add('-translate-y-8', 'opacity-0');
+    setTimeout(() => {
+      followAlertBanner.classList.add('hidden');
+    }, 300);
+  }
+
+  if (dismissFollowAlertBtn && followAlertBanner) {
+    dismissFollowAlertBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideFollowAlertBanner();
+    });
+  }
 
   function playFollowChime() {
     try {
@@ -1983,25 +2000,26 @@
       }
     }
 
-    // 3. Dropdown alert banner
-    if (followAlertBanner && followAlertText) {
-      followAlertText.textContent = `NEW FOLLOWER: @${cleanUser} just followed!`;
+    // 3. Independent floating follower notification outside chat overlay
+    if (followAlertBanner) {
+      if (followAlertUser) followAlertUser.textContent = `@${cleanUser}`;
+      if (followAlertText) followAlertText.textContent = `Just followed the live stream!`;
       followAlertBanner.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        followAlertBanner.classList.remove('-translate-y-8', 'opacity-0');
+      });
       clearTimeout(window.followAlertTimer);
       window.followAlertTimer = setTimeout(() => {
-        followAlertBanner.classList.add('hidden');
+        hideFollowAlertBanner();
       }, 5000);
     }
 
     // 4. Floating Toast Notification
     showToast(`NEW FOLLOWER: @${cleanUser}`);
 
-    // 5. Insert directly into live chat stream if not already added
-    const isAlreadyInChat = regularChats.some(
-      m => m.badge === 'FOLLOWER' && m.user.toLowerCase() === cleanUser.toLowerCase() && (Date.now() - (m._addedAt || 0) < 5000)
-    );
-    if (!isAlreadyInChat && typeof window.addChatMessage === 'function') {
-      window.addChatMessage(cleanUser, 'FOLLOWER', 'Started following the streamer!', false, null, 0);
+    // 5. Native Floating Overlay Pill outside chat window
+    if (window.AndroidNative && typeof window.AndroidNative.showNativeFollowerAlert === 'function') {
+      window.AndroidNative.showNativeFollowerAlert(cleanUser);
     }
 
     // 6. Update mini-ticker for landscape/minimized HUD
