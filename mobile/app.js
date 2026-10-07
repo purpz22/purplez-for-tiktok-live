@@ -2021,6 +2021,99 @@
     updateMiniTicker();
   };
 
+  // Glowing White Particle Background Engine
+  function initParticleCanvas() {
+    try {
+      const canvas = document.getElementById('particleCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      let width = 0;
+      let height = 0;
+      let particles = [];
+      let animId = null;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+      }
+
+      function createParticle(randomY = true) {
+        return {
+          x: Math.random() * width,
+          y: randomY ? Math.random() * height : height + Math.random() * 20,
+          radius: Math.random() * 1.0 + 0.8,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: -Math.random() * 0.4 - 0.15,
+          baseAlpha: Math.random() * 0.45 + 0.4,
+          pulseSpeed: Math.random() * 0.02 + 0.01,
+          pulseOffset: Math.random() * Math.PI * 2
+        };
+      }
+
+      function initParticles() {
+        resize();
+        particles = [];
+        const count = Math.max(35, Math.min(60, Math.floor((width * height) / 16000)));
+        for (let i = 0; i < count; i++) {
+          particles.push(createParticle(true));
+        }
+      }
+
+      let tick = 0;
+      function render() {
+        if (document.body.classList.contains('overlay-mode') || document.visibilityState === 'hidden') {
+          animId = requestAnimationFrame(render);
+          return;
+        }
+
+        ctx.clearRect(0, 0, width, height);
+        tick += 1;
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < -10) p.x = width + 10;
+          if (p.x > width + 10) p.x = -10;
+          if (p.y < -15) {
+            particles[i] = createParticle(false);
+            continue;
+          }
+
+          const currentAlpha = p.baseAlpha + Math.sin(tick * p.pulseSpeed + p.pulseOffset) * 0.25;
+          const clampedAlpha = Math.max(0.2, Math.min(0.95, currentAlpha));
+
+          ctx.save();
+          ctx.shadowBlur = 8 + p.radius * 3;
+          ctx.shadowColor = `rgba(255, 255, 255, ${clampedAlpha * 0.9})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${clampedAlpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        animId = requestAnimationFrame(render);
+      }
+
+      window.addEventListener('resize', resize);
+      initParticles();
+      render();
+    } catch (_) {}
+  }
+
+  initParticleCanvas();
+
   // Initial Setup
   handleOrientationChange();
   renderChatMessages();
