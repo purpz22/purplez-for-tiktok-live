@@ -1,10 +1,10 @@
 {
   "appName": "PurplezChat",
-  "version": "1.0.97",
-  "buildTime": 1791371442442,
-  "updatedAt": "2026-10-07T11:10:42.442Z",
+  "version": "1.0.7",
+  "buildTime": 1791371725154,
+  "updatedAt": "2026-10-07T11:15:25.154Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
-  "releaseNotes": "Mobile Over-The-Air update v1.0.97",
+  "releaseNotes": "Mobile Over-The-Air update v1.0.7",
   "bundleFiles": [
     {
       "relativePath": "index.html",
