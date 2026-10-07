@@ -151,9 +151,12 @@
       badgeText: badgeText,
       remainingTimeText: remainingTimeText,
       trialExpiresAt: session.trialExpiresAt,
-      licenseExpiresAt: session.licenseExpiresAt
+      licenseExpiresAt: session.licenseExpiresAt,
+      boundDeviceId: session.boundDeviceId || getDeviceId()
     };
   }
+
+  const CLOUD_AUTH_URL = 'https://tikfi.akiwren.site/api/auth.php';
 
   // Auth Client Interface
   const PurplezAuth = {
@@ -176,6 +179,7 @@
       const cleanEmail = email.trim().toLowerCase();
       const deviceId = getDeviceId();
       let firebaseUid = null;
+      let idToken = null;
 
       // 1. Direct Google Firebase Identity Signup
       try {
@@ -188,6 +192,22 @@
         const fbData = await fbRes.json();
         if (fbRes.ok && fbData.localId) {
           firebaseUid = fbData.localId;
+          idToken = fbData.idToken;
+
+          // Update Firebase profile with device id
+          try {
+            const updateUrl = `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+            await fetch(updateUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                idToken: idToken,
+                displayName: displayName || cleanEmail.split('@')[0],
+                photoUrl: 'device:' + deviceId,
+                returnSecureToken: true
+              })
+            });
+          } catch (_) {}
         } else if (fbData.error?.message === 'EMAIL_EXISTS') {
           throw new Error('This Gmail is already registered. Please sign in instead.');
         } else if (fbData.error?.message) {
@@ -198,22 +218,53 @@
         console.warn('[PurplezAuth] Firebase direct signup skipped:', fbErr.message);
       }
 
-      // 2. Sync with Studio Backend / Local Session
-      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
+      // 2. Primary Sync with 24/7 Cloud Auth Bridge (https://tikfi.akiwren.site/api/auth.php)
+      let syncedUser = null;
       try {
-        const res = await fetch(`${serverUrl}/api/auth/register`, {
+        const cloudRes = await fetch(`${CLOUD_AUTH_URL}?action=register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password, displayName, deviceId, firebaseUid })
+          body: JSON.stringify({
+            action: 'register',
+            email: cleanEmail,
+            displayName: displayName || cleanEmail.split('@')[0],
+            deviceId: deviceId,
+            firebaseUid: firebaseUid
+          })
         });
-        const data = await res.json();
-        if (res.ok && data.user) {
-          saveStoredSession(data.user);
-          return computeStatusFromSession(data.user);
+        if (cloudRes.ok) {
+          const cloudData = await cloudRes.json();
+          if (cloudData && cloudData.user) {
+            syncedUser = cloudData.user;
+          }
         }
-      } catch (_) {}
+      } catch (cErr) {
+        console.warn('[PurplezAuth] Cloud register sync note:', cErr.message);
+      }
 
-      // 3. Fallback Local Session
+      // 3. Optional local studio server sync if custom server configured
+      const localServer = localStorage.getItem('purplez_studio_server');
+      if (localServer) {
+        try {
+          const res = await fetch(`${localServer}/api/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cleanEmail, password, displayName, deviceId, firebaseUid })
+          });
+          const data = await res.json();
+          if (res.ok && data.user && !syncedUser) {
+            syncedUser = data.user;
+          }
+        } catch (_) {}
+      }
+
+      if (syncedUser) {
+        if (!syncedUser.boundDeviceId) syncedUser.boundDeviceId = deviceId;
+        saveStoredSession(syncedUser);
+        return computeStatusFromSession(syncedUser);
+      }
+
+      // 4. Fallback Local Session
       const now = Date.now();
       const localUser = {
         uid: firebaseUid || ('usr_local_' + Math.random().toString(36).substring(2, 8)),
@@ -243,6 +294,7 @@
       const cleanEmail = email.trim().toLowerCase();
       const deviceId = getDeviceId();
       let firebaseUid = null;
+      let idToken = null;
 
       // 1. Direct Google Firebase Identity Login
       try {
@@ -255,6 +307,21 @@
         const fbData = await fbRes.json();
         if (fbRes.ok && fbData.localId) {
           firebaseUid = fbData.localId;
+          idToken = fbData.idToken;
+
+          // Update Firebase profile with device id
+          try {
+            const updateUrl = `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+            await fetch(updateUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                idToken: idToken,
+                photoUrl: 'device:' + deviceId,
+                returnSecureToken: true
+              })
+            });
+          } catch (_) {}
         } else if (fbData.error?.message === 'EMAIL_NOT_FOUND') {
           throw new Error('No account found with this Gmail. Please sign up first.');
         } else if (fbData.error?.message === 'INVALID_PASSWORD' || fbData.error?.message === 'INVALID_LOGIN_CREDENTIALS') {
@@ -267,24 +334,56 @@
         console.warn('[PurplezAuth] Firebase direct login fallback:', fbErr.message);
       }
 
-      // 2. Sync with Studio Backend
-      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
+      // 2. Primary Sync with 24/7 Cloud Auth Bridge (https://tikfi.akiwren.site/api/auth.php)
+      let syncedUser = null;
       try {
-        const res = await fetch(`${serverUrl}/api/auth/login`, {
+        const cloudRes = await fetch(`${CLOUD_AUTH_URL}?action=login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password, deviceId })
+          body: JSON.stringify({
+            action: 'login',
+            email: cleanEmail,
+            deviceId: deviceId,
+            firebaseUid: firebaseUid
+          })
         });
-        const data = await res.json();
-        if (res.ok && data.user) {
-          saveStoredSession(data.user);
-          return computeStatusFromSession(data.user);
+        if (cloudRes.ok) {
+          const cloudData = await cloudRes.json();
+          if (cloudData && cloudData.user) {
+            syncedUser = cloudData.user;
+          }
         }
-      } catch (_) {}
+      } catch (cErr) {
+        console.warn('[PurplezAuth] Cloud login sync note:', cErr.message);
+      }
 
-      // 3. Fallback to existing stored local session if match
+      // 3. Optional local studio server sync
+      const localServer = localStorage.getItem('purplez_studio_server');
+      if (localServer) {
+        try {
+          const res = await fetch(`${localServer}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cleanEmail, password, deviceId })
+          });
+          const data = await res.json();
+          if (res.ok && data.user && !syncedUser) {
+            syncedUser = data.user;
+          }
+        } catch (_) {}
+      }
+
+      if (syncedUser) {
+        if (!syncedUser.boundDeviceId) syncedUser.boundDeviceId = deviceId;
+        saveStoredSession(syncedUser);
+        return computeStatusFromSession(syncedUser);
+      }
+
+      // 4. Fallback to existing stored local session if match
       const stored = getStoredSession();
       if (stored && stored.email.toLowerCase() === cleanEmail) {
+        stored.boundDeviceId = deviceId;
+        saveStoredSession(stored);
         return computeStatusFromSession(stored);
       }
 
@@ -344,10 +443,10 @@
       }
 
       const deviceId = getDeviceId();
-      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
 
+      // 1. Try Cloud Auth Bridge first
       try {
-        const res = await fetch(`${serverUrl}/api/auth/status?email=${encodeURIComponent(stored.email)}&deviceId=${encodeURIComponent(deviceId)}`);
+        const res = await fetch(`${CLOUD_AUTH_URL}?action=status&email=${encodeURIComponent(stored.email)}&deviceId=${encodeURIComponent(deviceId)}`);
         if (res.ok) {
           const remoteStatus = await res.json();
           if (remoteStatus.authenticated) {
@@ -356,11 +455,33 @@
             stored.role = remoteStatus.role;
             stored.trialExpiresAt = remoteStatus.trialExpiresAt;
             stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
-            stored.boundDeviceId = remoteStatus.boundDeviceId;
+            stored.boundDeviceId = remoteStatus.boundDeviceId || deviceId;
             saveStoredSession(stored);
+            return computeStatusFromSession(stored);
           }
         }
       } catch (_) {}
+
+      // 2. Try Local Studio Server if configured
+      const localServer = localStorage.getItem('purplez_studio_server');
+      if (localServer) {
+        try {
+          const res = await fetch(`${localServer}/api/auth/status?email=${encodeURIComponent(stored.email)}&deviceId=${encodeURIComponent(deviceId)}`);
+          if (res.ok) {
+            const remoteStatus = await res.json();
+            if (remoteStatus.authenticated) {
+              stored.status = remoteStatus.status;
+              stored.plan = remoteStatus.plan;
+              stored.role = remoteStatus.role;
+              stored.trialExpiresAt = remoteStatus.trialExpiresAt;
+              stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
+              stored.boundDeviceId = remoteStatus.boundDeviceId || deviceId;
+              saveStoredSession(stored);
+              return computeStatusFromSession(stored);
+            }
+          }
+        } catch (_) {}
+      }
 
       return computeStatusFromSession(stored);
     },
