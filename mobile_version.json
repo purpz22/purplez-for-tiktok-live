@@ -1,32 +1,32 @@
 {
   "appName": "purplez for tiktok live",
   "version": "1.0.0",
-  "buildTime": 1791349071474,
-  "updatedAt": "2026-10-07T04:57:51.474Z",
-  "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
+  "buildTime": 1791349110571,
+  "updatedAt": "2026-10-07T04:58:30.571Z",
+  "domain": "raw.githubusercontent.com/purpz22/akiwren-releases/main",
   "releaseNotes": "Mobile Over-The-Air update v1.0.0",
   "bundleFiles": [
     {
       "relativePath": "index.html",
-      "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/index.html",
+      "url": "https://raw.githubusercontent.com/purpz22/akiwren-releases/main/mobile/index.html",
       "hash": "f717b90adc3bea120cc8e4b8386e05a9",
       "size": 31400
     },
     {
       "relativePath": "app.js",
-      "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/app.js",
+      "url": "https://raw.githubusercontent.com/purpz22/akiwren-releases/main/mobile/app.js",
       "hash": "01f5ce2750c829be725b2bc2fb0609bf",
       "size": 78618
     },
     {
       "relativePath": "styles.css",
-      "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/styles.css",
+      "url": "https://raw.githubusercontent.com/purpz22/akiwren-releases/main/mobile/styles.css",
       "hash": "d11b875dc77383a9a9a527a06e2e109f",
       "size": 13725
     },
     {
       "relativePath": "socket.io.min.js",
-      "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/socket.io.min.js",
+      "url": "https://raw.githubusercontent.com/purpz22/akiwren-releases/main/mobile/socket.io.min.js",
       "hash": "18fe7fa6fee528971aadc9084c94b1f0",
       "size": 46822
     }
@@ -34,7 +34,7 @@
   "nativeApk": {
     "versionCode": 2,
     "versionName": "1.0.1",
-    "url": "https://github.com/purpz22/purplez-for-tiktok-live/releases/latest/download/purplez-for-tiktok-live.apk",
+    "url": "https://github.com/purpz22/akiwren-releases/releases/latest/download/purplez-for-tiktok-live.apk",
     "hash": "f9066c6d7c4c0a00f88cd9daf627eb0a",
     "size": 5467500,
     "releaseNotes": "purplez for tiktok live v1.0.1 native Android release"
