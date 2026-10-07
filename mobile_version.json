@@ -1,10 +1,10 @@
 {
   "appName": "purplez for tiktok live",
-  "version": "1.0.0",
-  "buildTime": 1791350615429,
-  "updatedAt": "2026-10-07T05:23:35.429Z",
+  "version": "1.0.1",
+  "buildTime": 1791350994694,
+  "updatedAt": "2026-10-07T05:29:54.694Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
-  "releaseNotes": "Mobile Over-The-Air update v1.0.0",
+  "releaseNotes": "Mobile Over-The-Air update v1.0.1",
   "bundleFiles": [
     {
       "relativePath": "index.html",
@@ -21,8 +21,8 @@
     {
       "relativePath": "styles.css",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/styles.css",
-      "hash": "d11b875dc77383a9a9a527a06e2e109f",
-      "size": 13725
+      "hash": "355b94c9ab7cd39ab56fc1c5a0881d40",
+      "size": 19155
     },
     {
       "relativePath": "socket.io.min.js",
