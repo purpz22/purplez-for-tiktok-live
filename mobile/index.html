@@ -412,6 +412,17 @@
           <span class="text-[8px] font-extrabold px-1 py-0.2 bg-black text-white rounded font-mono" id="giftAlertCoins">0 COINS</span>
         </div>
 
+        <!-- PROMINENT LIVE FOLLOWER ALERT BANNER (Drops down when someone follows) -->
+        <div class="follow-alert-banner hidden px-2.5 py-1 bg-zinc-900/95 text-white border-b border-zinc-700 font-mono flex items-center justify-between select-none" id="followAlertBanner">
+          <div class="flex items-center space-x-1.5 truncate">
+            <svg class="w-3 h-3 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span class="text-[9px] font-extrabold uppercase tracking-wide truncate" id="followAlertText">NEW FOLLOWER: @user followed!</span>
+          </div>
+          <span class="text-[8px] font-extrabold px-1 py-0.2 bg-white text-black rounded font-mono shrink-0">FOLLOWER</span>
+        </div>
+
         <!-- CHAT MESSAGES SCROLLABLE CONTAINER (MAXIMIZED DENSITY & VERTICAL HEIGHT) -->
         <div class="flex-1 overflow-y-auto p-1.5 space-y-1 font-sans relative" id="chatMessagesContainer" onpointerdown="event.stopPropagation()">
           <!-- Populated dynamically by JS -->
@@ -481,13 +492,39 @@
           <input type="password" id="authPasswordInput" placeholder="Enter secure password" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
         </div>
 
+        <div class="flex justify-between items-center text-[10px] pt-0.5">
+          <span class="text-zinc-500">Forgot your credentials?</span>
+          <button type="button" class="text-zinc-400 hover:text-white underline cursor-pointer" id="forgotPasswordBtn">
+            Forgot password?
+          </button>
+        </div>
+
         <div class="text-[10.5px] text-red-400 font-bold hidden" id="authErrorText"></div>
       </div>
 
       <!-- Submit Button -->
-      <div>
+      <div id="authSubmitContainer">
         <button class="w-full py-2.5 bg-white hover:bg-zinc-200 text-black rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg" id="authSubmitBtn">
           SIGN IN WITH GMAIL
+        </button>
+      </div>
+
+      <!-- Forgot Password View (Hidden by default) -->
+      <div class="space-y-3 hidden" id="forgotPasswordView">
+        <div class="text-xs text-zinc-300 leading-relaxed">
+          Enter your registered Gmail address. We will send an official Google password reset link directly to your inbox.
+        </div>
+        <div>
+          <label class="text-[10px] text-zinc-400 block mb-1 uppercase">GMAIL ADDRESS (@gmail.com)</label>
+          <input type="email" id="forgotEmailInput" placeholder="your_streamer@gmail.com" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
+        </div>
+        <div class="text-[10.5px] text-red-400 font-bold hidden" id="forgotErrorText"></div>
+        <div class="text-[10.5px] text-green-400 font-bold hidden" id="forgotSuccessText"></div>
+        <button class="w-full py-2.5 bg-white hover:bg-zinc-200 text-black rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg" id="sendResetBtn">
+          SEND PASSWORD RESET LINK
+        </button>
+        <button type="button" class="w-full py-2 bg-transparent text-zinc-400 hover:text-white text-xs text-center cursor-pointer" id="backToSignInBtn">
+          Back to Sign In
         </button>
       </div>
 

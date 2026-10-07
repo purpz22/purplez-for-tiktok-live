@@ -1855,6 +1855,32 @@
     }, 4000);
   }
 
+  const followAlertBanner = document.getElementById('followAlertBanner');
+  const followAlertText = document.getElementById('followAlertText');
+
+  function triggerFollowAlert(followerName, nickname, avatarUrl) {
+    if (!followAlertBanner || !followAlertText) return;
+
+    const cleanUser = (followerName || 'Viewer').replace(/^@+/, '');
+    followAlertText.textContent = `NEW FOLLOWER: @${cleanUser} just followed!`;
+    followAlertBanner.classList.remove('hidden');
+
+    if (window.AndroidNative && typeof window.AndroidNative.triggerHapticFeedback === 'function') {
+      window.AndroidNative.triggerHapticFeedback(80);
+    }
+
+    clearTimeout(window.followAlertTimer);
+    window.followAlertTimer = setTimeout(() => {
+      followAlertBanner.classList.add('hidden');
+    }, 4500);
+
+    // Update mini-ticker for landscape/minimized HUD
+    if (window.AndroidNative && window.AndroidNative.updateLatestChat) {
+      window.AndroidNative.updateLatestChat(cleanUser, 'Started following the streamer!', 'FOLLOWER', new Date().toLocaleTimeString(), false);
+    }
+  }
+  window.triggerFollowAlert = triggerFollowAlert;
+
   function updateTotalGiftsDisplay() {
     if (!totalGiftsValue) return;
     if (totalGiftCoins >= 1000) {
@@ -2235,6 +2261,69 @@
         tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
         if (authSubmitBtn) authSubmitBtn.textContent = 'CREATE GMAIL ACCOUNT';
         if (authErrorText) authErrorText.classList.add('hidden');
+      });
+    }
+
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const backToSignInBtn = document.getElementById('backToSignInBtn');
+    const sendResetBtn = document.getElementById('sendResetBtn');
+    const forgotPasswordView = document.getElementById('forgotPasswordView');
+    const forgotEmailInput = document.getElementById('forgotEmailInput');
+    const forgotErrorText = document.getElementById('forgotErrorText');
+    const forgotSuccessText = document.getElementById('forgotSuccessText');
+    const authSubmitContainer = document.getElementById('authSubmitContainer');
+
+    if (forgotPasswordBtn && forgotPasswordView) {
+      forgotPasswordBtn.addEventListener('click', () => {
+        forgotPasswordView.classList.remove('hidden');
+        if (authSubmitContainer) authSubmitContainer.classList.add('hidden');
+        if (authErrorText) authErrorText.classList.add('hidden');
+        if (forgotErrorText) forgotErrorText.classList.add('hidden');
+        if (forgotSuccessText) forgotSuccessText.classList.add('hidden');
+        if (forgotEmailInput && authEmailInput) forgotEmailInput.value = authEmailInput.value;
+      });
+    }
+
+    if (backToSignInBtn && forgotPasswordView) {
+      backToSignInBtn.addEventListener('click', () => {
+        forgotPasswordView.classList.add('hidden');
+        if (authSubmitContainer) authSubmitContainer.classList.remove('hidden');
+      });
+    }
+
+    if (sendResetBtn) {
+      sendResetBtn.addEventListener('click', async () => {
+        const email = (forgotEmailInput ? forgotEmailInput.value : '').trim();
+        if (forgotErrorText) forgotErrorText.classList.add('hidden');
+        if (forgotSuccessText) forgotSuccessText.classList.add('hidden');
+
+        if (!window.PurplezAuth || !window.PurplezAuth.isValidGmail(email)) {
+          if (forgotErrorText) {
+            forgotErrorText.textContent = 'Please enter a valid Gmail address (@gmail.com).';
+            forgotErrorText.classList.remove('hidden');
+          }
+          return;
+        }
+
+        sendResetBtn.disabled = true;
+        sendResetBtn.textContent = 'SENDING...';
+
+        try {
+          const res = await window.PurplezAuth.sendPasswordReset(email);
+          if (forgotSuccessText) {
+            forgotSuccessText.textContent = res.message || 'Password reset link sent to your Gmail inbox.';
+            forgotSuccessText.classList.remove('hidden');
+          }
+          showToast('Reset email sent! Check your inbox.');
+        } catch (err) {
+          if (forgotErrorText) {
+            forgotErrorText.textContent = err.message || 'Failed to send password reset email.';
+            forgotErrorText.classList.remove('hidden');
+          }
+        } finally {
+          sendResetBtn.disabled = false;
+          sendResetBtn.textContent = 'SEND PASSWORD RESET LINK';
+        }
       });
     }
 

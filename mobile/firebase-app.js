@@ -5,6 +5,16 @@
 
   const STORAGE_KEY = 'purplez_auth_session';
 
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyCqLUN6tbb8LQjHiHh2YwtaJeutpZRogAw",
+    authDomain: "purplez-chat.firebaseapp.com",
+    projectId: "purplez-chat",
+    storageBucket: "purplez-chat.firebasestorage.app",
+    messagingSenderId: "196719665391",
+    appId: "1:196719665391:web:15b19f578e44ba3c37fb1a",
+    measurementId: "G-C0B3T5V9GX"
+  };
+
   function isValidGmail(email) {
     if (!email || typeof email !== 'string') return false;
     const clean = email.trim().toLowerCase();
@@ -163,40 +173,63 @@
         throw new Error('Password must be at least 6 characters long.');
       }
 
+      const cleanEmail = email.trim().toLowerCase();
       const deviceId = getDeviceId();
-      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
+      let firebaseUid = null;
 
+      // 1. Direct Google Firebase Identity Signup
+      try {
+        const fbUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+        const fbRes = await fetch(fbUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password: password, returnSecureToken: true })
+        });
+        const fbData = await fbRes.json();
+        if (fbRes.ok && fbData.localId) {
+          firebaseUid = fbData.localId;
+        } else if (fbData.error?.message === 'EMAIL_EXISTS') {
+          throw new Error('This Gmail is already registered. Please sign in instead.');
+        } else if (fbData.error?.message) {
+          console.warn('[PurplezAuth] Firebase signup note:', fbData.error.message);
+        }
+      } catch (fbErr) {
+        if (fbErr.message.includes('already registered')) throw fbErr;
+        console.warn('[PurplezAuth] Firebase direct signup skipped:', fbErr.message);
+      }
+
+      // 2. Sync with Studio Backend / Local Session
+      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
       try {
         const res = await fetch(`${serverUrl}/api/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, displayName, deviceId })
+          body: JSON.stringify({ email: cleanEmail, password, displayName, deviceId, firebaseUid })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Registration failed');
+        if (res.ok && data.user) {
+          saveStoredSession(data.user);
+          return computeStatusFromSession(data.user);
+        }
+      } catch (_) {}
 
-        saveStoredSession(data.user);
-        return computeStatusFromSession(data.user);
-      } catch (err) {
-        // Offline / Standalone Fallback Trial Simulation
-        console.warn('[PurplezAuth] Remote register failed, using local offline session:', err.message);
-        const now = Date.now();
-        const localUser = {
-          uid: 'usr_local_' + Math.random().toString(36).substring(2, 8),
-          email: email.trim().toLowerCase(),
-          displayName: displayName || email.split('@')[0],
-          role: 'user',
-          status: 'trial',
-          plan: 'trial',
-          trialHours: 48,
-          trialExpiresAt: now + (48 * 3600 * 1000),
-          licenseExpiresAt: null,
-          boundDeviceId: deviceId,
-          createdAt: now
-        };
-        saveStoredSession(localUser);
-        return computeStatusFromSession(localUser);
-      }
+      // 3. Fallback Local Session
+      const now = Date.now();
+      const localUser = {
+        uid: firebaseUid || ('usr_local_' + Math.random().toString(36).substring(2, 8)),
+        email: cleanEmail,
+        displayName: displayName || cleanEmail.split('@')[0],
+        role: 'user',
+        status: 'trial',
+        plan: 'trial',
+        trialHours: 48,
+        trialExpiresAt: now + (48 * 3600 * 1000),
+        licenseExpiresAt: null,
+        boundDeviceId: deviceId,
+        createdAt: now
+      };
+      saveStoredSession(localUser);
+      return computeStatusFromSession(localUser);
     },
 
     login: async function(email, password) {
@@ -207,28 +240,101 @@
         throw new Error('Please enter your password.');
       }
 
+      const cleanEmail = email.trim().toLowerCase();
       const deviceId = getDeviceId();
-      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
+      let firebaseUid = null;
 
+      // 1. Direct Google Firebase Identity Login
+      try {
+        const fbUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+        const fbRes = await fetch(fbUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password: password, returnSecureToken: true })
+        });
+        const fbData = await fbRes.json();
+        if (fbRes.ok && fbData.localId) {
+          firebaseUid = fbData.localId;
+        } else if (fbData.error?.message === 'EMAIL_NOT_FOUND') {
+          throw new Error('No account found with this Gmail. Please sign up first.');
+        } else if (fbData.error?.message === 'INVALID_PASSWORD' || fbData.error?.message === 'INVALID_LOGIN_CREDENTIALS') {
+          throw new Error('Incorrect password. Please try again or click Forgot Password.');
+        }
+      } catch (fbErr) {
+        if (fbErr.message.includes('No account found') || fbErr.message.includes('Incorrect password')) {
+          throw fbErr;
+        }
+        console.warn('[PurplezAuth] Firebase direct login fallback:', fbErr.message);
+      }
+
+      // 2. Sync with Studio Backend
+      const serverUrl = localStorage.getItem('purplez_studio_server') || 'http://127.0.0.1:3333';
       try {
         const res = await fetch(`${serverUrl}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, deviceId })
+          body: JSON.stringify({ email: cleanEmail, password, deviceId })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Login failed');
-
-        saveStoredSession(data.user);
-        return computeStatusFromSession(data.user);
-      } catch (err) {
-        // If local offline session exists with matching email
-        const stored = getStoredSession();
-        if (stored && stored.email.toLowerCase() === email.trim().toLowerCase()) {
-          return computeStatusFromSession(stored);
+        if (res.ok && data.user) {
+          saveStoredSession(data.user);
+          return computeStatusFromSession(data.user);
         }
-        throw new Error(err.message || 'Login failed. Please check your credentials or connection.');
+      } catch (_) {}
+
+      // 3. Fallback to existing stored local session if match
+      const stored = getStoredSession();
+      if (stored && stored.email.toLowerCase() === cleanEmail) {
+        return computeStatusFromSession(stored);
       }
+
+      // If Firebase login succeeded but local didn't exist yet, create active trial session
+      if (firebaseUid) {
+        const now = Date.now();
+        const authedUser = {
+          uid: firebaseUid,
+          email: cleanEmail,
+          displayName: cleanEmail.split('@')[0],
+          role: 'user',
+          status: 'trial',
+          plan: 'trial',
+          trialHours: 48,
+          trialExpiresAt: now + (48 * 3600 * 1000),
+          licenseExpiresAt: null,
+          boundDeviceId: deviceId,
+          createdAt: now
+        };
+        saveStoredSession(authedUser);
+        return computeStatusFromSession(authedUser);
+      }
+
+      throw new Error('Login failed. Please verify your Gmail and password.');
+    },
+
+    sendPasswordReset: async function(email) {
+      if (!isValidGmail(email)) {
+        throw new Error('Please enter a valid Gmail address (@gmail.com).');
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+      const fbUrl = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+
+      const res = await fetch(fbUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestType: 'PASSWORD_RESET', email: cleanEmail })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || 'Failed to send password reset email.');
+      }
+
+      return {
+        success: true,
+        email: cleanEmail,
+        message: 'Password reset link sent to your Gmail inbox. Please check your email.'
+      };
     },
 
     refreshStatus: async function() {
