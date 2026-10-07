@@ -45,6 +45,11 @@
           </div>
         </div>
         <div class="flex items-center space-x-2">
+          <button class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700 hover:border-zinc-500 font-mono text-[10px] text-zinc-300 cursor-pointer transition-colors" id="accountStatusPill" title="Account & Subscription Status">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400" id="authStatusDot"></span>
+            <span class="font-bold text-white uppercase" id="authPlanBadge">TRIAL</span>
+            <span class="text-zinc-400" id="authRemainingTimeText">48h left</span>
+          </button>
           <span class="text-[9px] font-mono border border-zinc-800 px-2 py-1 rounded bg-zinc-950 text-zinc-400 uppercase" id="deviceOrientationBadge">LANDSCAPE</span>
         </div>
       </div>
@@ -447,6 +452,122 @@
 
   </div>
 
+  <!-- MODAL 1: AUTHENTICATION (SIGN IN / REGISTER WITH REAL GMAIL) -->
+  <div class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden" id="authModal">
+    <div class="w-full max-w-sm bg-zinc-950 border border-zinc-700 rounded-2xl p-5 shadow-2xl flex flex-col space-y-4 font-mono">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-6 h-6 rounded bg-white text-black flex items-center justify-center font-bold text-xs">P</div>
+          <span class="text-xs font-bold text-white uppercase tracking-wider">PURPLEZCHAT ACCOUNT</span>
+        </div>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-xs font-bold">
+        <button class="flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer" id="tabSignIn">SIGN IN</button>
+        <button class="flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer" id="tabSignUp">REGISTER GMAIL</button>
+      </div>
+
+      <!-- Form Inputs -->
+      <div class="space-y-3">
+        <div>
+          <label class="text-[10px] text-zinc-400 block mb-1 uppercase">REAL GMAIL ADDRESS (@gmail.com)</label>
+          <input type="email" id="authEmailInput" placeholder="your_streamer@gmail.com" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
+          <span class="text-[9.5px] text-zinc-500 mt-1 block">Must be a valid @gmail.com or @googlemail.com account.</span>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-zinc-400 block mb-1 uppercase">PASSWORD (MIN 6 CHARS)</label>
+          <input type="password" id="authPasswordInput" placeholder="Enter secure password" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
+        </div>
+
+        <div class="text-[10.5px] text-red-400 font-bold hidden" id="authErrorText"></div>
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button class="w-full py-2.5 bg-white hover:bg-zinc-200 text-black rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg" id="authSubmitBtn">
+          SIGN IN WITH GMAIL
+        </button>
+      </div>
+
+      <div class="text-[9.5px] text-zinc-500 text-center leading-tight">
+        New accounts receive an automatic 48-hour free trial with full access. One trial per physical device.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: ACCOUNT & SUBSCRIPTION DETAILS -->
+  <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden" id="accountDetailsModal">
+    <div class="w-full max-w-sm bg-zinc-950 border border-zinc-700 rounded-2xl p-5 shadow-2xl flex flex-col space-y-4 font-mono">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <span class="text-xs font-bold text-white uppercase tracking-wider">MY ACCOUNT DETAILS</span>
+        <button class="text-zinc-400 hover:text-white text-lg p-1" id="closeAccountModalBtn">&times;</button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="flex justify-between border-b border-zinc-900 pb-1.5">
+          <span class="text-zinc-500">GMAIL:</span>
+          <span class="text-white font-bold truncate max-w-[190px]" id="accountDetailEmail">user@gmail.com</span>
+        </div>
+        <div class="flex justify-between border-b border-zinc-900 pb-1.5">
+          <span class="text-zinc-500">PLAN TIER:</span>
+          <span class="text-white font-bold uppercase" id="accountDetailPlan">TRIAL</span>
+        </div>
+        <div class="flex justify-between border-b border-zinc-900 pb-1.5">
+          <span class="text-zinc-500">TIME REMAINING:</span>
+          <span class="text-blue-400 font-bold" id="accountDetailRemaining">48h left</span>
+        </div>
+        <div class="flex justify-between border-b border-zinc-900 pb-1.5">
+          <span class="text-zinc-500">DEVICE BINDING:</span>
+          <span class="text-zinc-400 text-[10px] truncate max-w-[170px]" id="accountDetailDevice">Bound</span>
+        </div>
+      </div>
+
+      <div class="pt-2 flex space-x-2">
+        <button class="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-300 hover:text-white text-xs font-bold uppercase cursor-pointer" id="refreshAccountStatusBtn">
+          SYNC STATUS
+        </button>
+        <button class="py-2 px-3 bg-red-950/40 hover:bg-red-900/50 border border-red-800/60 rounded-xl text-red-400 hover:text-red-300 text-xs font-bold uppercase cursor-pointer" id="signOutBtn">
+          SIGN OUT
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: PAYWALL / ACCESS EXPIRED -->
+  <div class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 hidden" id="paywallModal">
+    <div class="w-full max-w-sm bg-zinc-950 border-2 border-zinc-700 rounded-2xl p-5 shadow-2xl flex flex-col space-y-4 font-mono text-center">
+      <div class="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center mx-auto text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-width="2"></path>
+        </svg>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">ACCESS EXPIRED</h3>
+        <p class="text-xs text-zinc-400 mt-1 leading-relaxed">
+          Your free trial or subscription has ended. Contact the admin to renew Weekly or Monthly access.
+        </p>
+      </div>
+
+      <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-3 text-left space-y-1.5 text-xs">
+        <div class="text-[10px] text-zinc-500 uppercase font-bold">HOW TO SUBSCRIBE:</div>
+        <div class="text-zinc-300">1. Send payment via <b>GCash / PayPal / Bank</b>.</div>
+        <div class="text-zinc-300">2. Provide your Gmail to the admin.</div>
+        <div class="text-zinc-300">3. Admin activates Weekly or Monthly access instantly!</div>
+      </div>
+
+      <div class="flex space-x-2">
+        <button class="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-xs uppercase rounded-xl transition-all cursor-pointer" id="paywallSyncBtn">
+          CHECK ACCESS / SYNC
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="firebase-app.js"></script>
   <script src="socket.io.min.js"></script>
   <script src="app.js"></script>
 </body>

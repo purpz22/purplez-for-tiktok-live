@@ -491,6 +491,18 @@
           updateControlCenterUI();
         }
       } else {
+        const auth = window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : { isAccessAllowed: true, authenticated: true };
+        if (!auth.authenticated) {
+          if (authModal) authModal.classList.remove('hidden');
+          showToast('Please sign in with your Gmail first');
+          return;
+        }
+        if (!auth.isAccessAllowed) {
+          if (paywallModal) paywallModal.classList.remove('hidden');
+          showToast('Active subscription or trial required');
+          return;
+        }
+
         if (!hasOverlayPermission && window.AndroidNative && window.AndroidNative.isOverlayPermissionGranted) {
           hasOverlayPermission = window.AndroidNative.isOverlayPermissionGranted();
         }
@@ -862,6 +874,18 @@
   }
 
   async function connectDirectTikTokLive(username) {
+    const auth = window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : { isAccessAllowed: true, authenticated: true };
+    if (!auth.authenticated) {
+      if (authModal) authModal.classList.remove('hidden');
+      showToast('Please sign in with your Gmail first');
+      return;
+    }
+    if (!auth.isAccessAllowed) {
+      if (paywallModal) paywallModal.classList.remove('hidden');
+      showToast('Active subscription or trial required');
+      return;
+    }
+
     const clean = (username || '').trim().replace(/^@+/, '');
     if (!clean) {
       showToast('Please enter your TikTok username');
@@ -2122,6 +2146,215 @@
   }
 
   initParticleCanvas();
+
+  // ==========================================
+  // PURPLEZCHAT AUTHENTICATION & PAYWALL CONTROLLER
+  // ==========================================
+  const authModal = document.getElementById('authModal');
+  const tabSignIn = document.getElementById('tabSignIn');
+  const tabSignUp = document.getElementById('tabSignUp');
+  const authEmailInput = document.getElementById('authEmailInput');
+  const authPasswordInput = document.getElementById('authPasswordInput');
+  const authErrorText = document.getElementById('authErrorText');
+  const authSubmitBtn = document.getElementById('authSubmitBtn');
+
+  const accountStatusPill = document.getElementById('accountStatusPill');
+  const authStatusDot = document.getElementById('authStatusDot');
+  const authPlanBadge = document.getElementById('authPlanBadge');
+  const authRemainingTimeText = document.getElementById('authRemainingTimeText');
+
+  const accountDetailsModal = document.getElementById('accountDetailsModal');
+  const accountDetailEmail = document.getElementById('accountDetailEmail');
+  const accountDetailPlan = document.getElementById('accountDetailPlan');
+  const accountDetailRemaining = document.getElementById('accountDetailRemaining');
+  const accountDetailDevice = document.getElementById('accountDetailDevice');
+  const closeAccountModalBtn = document.getElementById('closeAccountModalBtn');
+  const refreshAccountStatusBtn = document.getElementById('refreshAccountStatusBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+
+  const paywallModal = document.getElementById('paywallModal');
+  const paywallSyncBtn = document.getElementById('paywallSyncBtn');
+
+  let currentAuthMode = 'signin';
+  let cachedAuthStatus = null;
+
+  function updateAuthUI(status) {
+    cachedAuthStatus = status;
+
+    if (!status || !status.authenticated) {
+      if (authPlanBadge) authPlanBadge.textContent = 'SIGN IN';
+      if (authRemainingTimeText) authRemainingTimeText.textContent = '';
+      if (authStatusDot) authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-zinc-600';
+      if (authModal && !isOverlayMode) authModal.classList.remove('hidden');
+      return;
+    }
+
+    if (authModal) authModal.classList.add('hidden');
+
+    // Update Status Pill
+    if (authPlanBadge) authPlanBadge.textContent = status.badgeText || (status.plan ? status.plan.toUpperCase() : 'PRO');
+    if (authRemainingTimeText) authRemainingTimeText.textContent = status.remainingTimeText || '';
+
+    if (authStatusDot) {
+      if (status.role === 'admin' || status.status === 'pro') {
+        authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-purple-400';
+      } else if (status.status === 'trial') {
+        authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-blue-400';
+      } else {
+        authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-red-400';
+      }
+    }
+
+    // Update Details Modal
+    if (accountDetailEmail) accountDetailEmail.textContent = status.email || '';
+    if (accountDetailPlan) accountDetailPlan.textContent = (status.plan || 'NONE').toUpperCase();
+    if (accountDetailRemaining) accountDetailRemaining.textContent = status.remainingTimeText || 'Expired';
+    if (accountDetailDevice) accountDetailDevice.textContent = status.boundDeviceId || 'This Device';
+
+    // Show Paywall if access is not allowed
+    if (!status.isAccessAllowed && !isOverlayMode) {
+      if (paywallModal) paywallModal.classList.remove('hidden');
+    } else {
+      if (paywallModal) paywallModal.classList.add('hidden');
+    }
+  }
+
+  function setupAuthEventListeners() {
+    if (tabSignIn && tabSignUp) {
+      tabSignIn.addEventListener('click', () => {
+        currentAuthMode = 'signin';
+        tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
+        tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
+        if (authSubmitBtn) authSubmitBtn.textContent = 'SIGN IN WITH GMAIL';
+        if (authErrorText) authErrorText.classList.add('hidden');
+      });
+
+      tabSignUp.addEventListener('click', () => {
+        currentAuthMode = 'signup';
+        tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
+        tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
+        if (authSubmitBtn) authSubmitBtn.textContent = 'CREATE GMAIL ACCOUNT';
+        if (authErrorText) authErrorText.classList.add('hidden');
+      });
+    }
+
+    if (authSubmitBtn) {
+      authSubmitBtn.addEventListener('click', async () => {
+        const email = (authEmailInput ? authEmailInput.value : '').trim();
+        const pass = (authPasswordInput ? authPasswordInput.value : '').trim();
+
+        if (authErrorText) authErrorText.classList.add('hidden');
+
+        if (!window.PurplezAuth || !window.PurplezAuth.isValidGmail(email)) {
+          if (authErrorText) {
+            authErrorText.textContent = 'Please enter a valid Gmail address (@gmail.com).';
+            authErrorText.classList.remove('hidden');
+          }
+          return;
+        }
+
+        if (!pass || pass.length < 6) {
+          if (authErrorText) {
+            authErrorText.textContent = 'Password must be at least 6 characters.';
+            authErrorText.classList.remove('hidden');
+          }
+          return;
+        }
+
+        authSubmitBtn.disabled = true;
+        authSubmitBtn.textContent = 'CONNECTING...';
+
+        try {
+          let status;
+          if (currentAuthMode === 'signup') {
+            status = await window.PurplezAuth.register(email, pass);
+            showToast('Account created! 48h Free Trial activated.');
+          } else {
+            status = await window.PurplezAuth.login(email, pass);
+            showToast('Signed in successfully.');
+          }
+          updateAuthUI(status);
+        } catch (err) {
+          if (authErrorText) {
+            authErrorText.textContent = err.message || 'Authentication failed.';
+            authErrorText.classList.remove('hidden');
+          }
+        } finally {
+          authSubmitBtn.disabled = false;
+          authSubmitBtn.textContent = currentAuthMode === 'signup' ? 'CREATE GMAIL ACCOUNT' : 'SIGN IN WITH GMAIL';
+        }
+      });
+    }
+
+    if (accountStatusPill) {
+      accountStatusPill.addEventListener('click', () => {
+        if (!cachedAuthStatus || !cachedAuthStatus.authenticated) {
+          if (authModal) authModal.classList.remove('hidden');
+        } else {
+          if (accountDetailsModal) accountDetailsModal.classList.remove('hidden');
+        }
+      });
+    }
+
+    if (closeAccountModalBtn) {
+      closeAccountModalBtn.addEventListener('click', () => {
+        if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
+      });
+    }
+
+    if (refreshAccountStatusBtn) {
+      refreshAccountStatusBtn.addEventListener('click', async () => {
+        showToast('Syncing status with server...');
+        if (window.PurplezAuth) {
+          const status = await window.PurplezAuth.refreshStatus();
+          updateAuthUI(status);
+          showToast(`Synced: ${status.badgeText} (${status.remainingTimeText})`);
+        }
+      });
+    }
+
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => {
+        if (window.PurplezAuth) {
+          window.PurplezAuth.logout();
+          if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
+          updateAuthUI(window.PurplezAuth.getCurrentStatus());
+          showToast('Signed out of PurplezChat');
+        }
+      });
+    }
+
+    if (paywallSyncBtn) {
+      paywallSyncBtn.addEventListener('click', async () => {
+        paywallSyncBtn.disabled = true;
+        paywallSyncBtn.textContent = 'CHECKING STATUS...';
+        try {
+          if (window.PurplezAuth) {
+            const status = await window.PurplezAuth.refreshStatus();
+            updateAuthUI(status);
+            if (status.isAccessAllowed) {
+              showToast('Access renewed! Welcome back.');
+            } else {
+              showToast('Account is still expired. Contact admin to renew.');
+            }
+          }
+        } finally {
+          paywallSyncBtn.disabled = false;
+          paywallSyncBtn.textContent = 'CHECK ACCESS / SYNC';
+        }
+      });
+    }
+  }
+
+  // Initialize Auth
+  setupAuthEventListeners();
+  if (window.PurplezAuth) {
+    updateAuthUI(window.PurplezAuth.getCurrentStatus());
+    // Background status sync every 15s to catch real-time admin upgrades
+    setInterval(() => {
+      window.PurplezAuth.refreshStatus().then(updateAuthUI).catch(() => {});
+    }, 15000);
+  }
 
   // Initial Setup
   handleOrientationChange();

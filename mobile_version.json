@@ -1,22 +1,22 @@
 {
   "appName": "PurplezChat",
   "version": "1.0.3",
-  "buildTime": 1791352254468,
-  "updatedAt": "2026-10-07T05:50:54.468Z",
+  "buildTime": 1791360400809,
+  "updatedAt": "2026-10-07T08:06:40.809Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
   "releaseNotes": "Mobile Over-The-Air update v1.0.3",
   "bundleFiles": [
     {
       "relativePath": "index.html",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/index.html",
-      "hash": "64335bec99d29818c89b4e9cca4d758c",
-      "size": 31537
+      "hash": "22fd91618ec4a6e482bf3518d9223de0",
+      "size": 38762
     },
     {
       "relativePath": "app.js",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/app.js",
-      "hash": "c03879b4ba39c1cc20f6fd7111d6c8c4",
-      "size": 81743
+      "hash": "7f51deb3ddd5d7b1f5fa6808457baaf2",
+      "size": 91339
     },
     {
       "relativePath": "styles.css",
@@ -29,6 +29,12 @@
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/socket.io.min.js",
       "hash": "18fe7fa6fee528971aadc9084c94b1f0",
       "size": 46822
+    },
+    {
+      "relativePath": "firebase-app.js",
+      "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/firebase-app.js",
+      "hash": "e5d46e2935e4be806c4783f43de6f503",
+      "size": 8864
     }
   ],
   "nativeApk": {

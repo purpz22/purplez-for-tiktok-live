@@ -8,4 +8,4 @@ Official Over-The-Air (OTA) and native release distribution endpoint for Purplez
 - **Latest APK**: `https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/purplez-for-tiktok-live.apk`
 
 Version: v1.0.3
-Last Updated: 2026-10-07T05:50:54.468Z
+Last Updated: 2026-10-07T08:06:40.809Z
