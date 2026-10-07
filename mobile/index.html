@@ -21,29 +21,6 @@
     </div>
   </div>
 
-  <!-- INDEPENDENT FLOATING FOLLOWER NOTIFICATION (OUTSIDE THE CHAT MESSAGE OVERLAY) -->
-  <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto hidden select-none transition-all duration-300 transform -translate-y-8 opacity-0 max-w-[92vw]" id="followAlertBanner">
-    <div class="flex items-center space-x-2.5 px-4 py-2 bg-black/95 text-white border-2 border-white rounded-full shadow-[0_10px_35px_rgba(255,255,255,0.25)] backdrop-blur-xl">
-      <div class="flex items-center justify-center w-7 h-7 rounded-full bg-white text-black shrink-0 font-bold shadow-md">
-        <svg class="w-4 h-4 text-black animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-        </svg>
-      </div>
-      <div class="flex flex-col min-w-0 pr-1">
-        <div class="flex items-center space-x-1.5 truncate">
-          <span class="text-[8px] font-mono font-extrabold px-1.5 py-0.2 rounded bg-white text-black uppercase tracking-wider shrink-0">NEW FOLLOWER</span>
-          <span class="text-[11px] font-mono font-extrabold text-white truncate" id="followAlertUser">@user</span>
-        </div>
-        <span class="text-[9.5px] font-mono text-zinc-300 truncate" id="followAlertText">Just followed the live stream!</span>
-      </div>
-      <button class="ml-1 text-zinc-400 hover:text-white p-1 cursor-pointer flex items-center justify-center" id="dismissFollowAlertBtn" title="Dismiss">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-  </div>
-
   <!-- VIEW 1: STREAMER CONTROL CENTER (Primary Screen for Mobile Streamers) -->
   <div class="relative w-full h-full flex flex-col justify-start overflow-y-auto bg-black p-4 z-20" id="controlCenterView">
     <div class="max-w-2xl w-full mx-auto space-y-3 pb-8">
@@ -142,6 +119,44 @@
         <button class="control-btn-primary py-3 text-sm font-mono tracking-wider font-extrabold" id="mainLaunchOverlayBtn">
           LAUNCH FLOATING OVERLAY
         </button>
+      </div>
+
+      <!-- FOLLOWER NOTIFICATION SOUND SETTINGS -->
+      <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="followSoundSettingsCard">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">FOLLOW NOTIFICATION SOUND</span>
+          <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="currentSoundBadge">BLUP (DEFAULT)</span>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] font-mono text-zinc-400 uppercase">NOTIFICATION AUDIO TONE</label>
+          <select id="followSoundSelect" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-white focus:outline-none">
+            <option value="blup">Default (Blup - blup.mp3)</option>
+            <option value="crystal">Crystal Chime (Synthesized)</option>
+            <option value="pop">Bubble Pop (Synthesized)</option>
+            <option value="custom">Custom Audio File...</option>
+          </select>
+        </div>
+        <div class="hidden space-y-1.5" id="customSoundUploadRow">
+          <input type="file" id="customSoundFileInput" accept="audio/*" class="hidden" />
+          <button type="button" class="w-full py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-dashed border-zinc-600 hover:border-white rounded-xl text-xs font-mono text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer transition-all" id="chooseSoundFileBtn">
+            <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+            </svg>
+            <span id="chosenSoundFileName">CHOOSE AUDIO FILE (.MP3 / .WAV)</span>
+          </button>
+        </div>
+        <div class="flex items-center space-x-2 pt-1">
+          <button type="button" class="flex-1 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95" id="testFollowSoundBtn">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>TEST SOUND</span>
+          </button>
+          <button type="button" class="py-2 px-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg font-mono text-xs cursor-pointer" id="resetFollowSoundBtn" title="Reset to Default Blup">
+            RESET
+          </button>
+        </div>
       </div>
 
       <!-- TEST LIVE NOTIFICATIONS -->
@@ -358,6 +373,20 @@
                 <button class="py-1 text-[10px] font-mono rounded bg-white text-black font-bold border border-white cursor-pointer" id="sizeDefaultBtn">Medium</button>
                 <button class="py-1 text-[10px] font-mono rounded bg-zinc-900 text-zinc-400 border border-zinc-800 cursor-pointer" id="sizeLargeBtn">Large</button>
               </div>
+            </div>
+
+            <!-- Follow Notification Sound Section -->
+            <div class="space-y-1.5 pt-2 border-t border-zinc-800 mb-2.5">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-zinc-400 uppercase text-[11px]">Follow Sound</span>
+                <span class="text-white font-bold text-[10px]" id="dropdownSoundBadge">BLUP</span>
+              </div>
+              <select id="dropdownSoundSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1 text-[11px] text-white font-mono focus:border-white focus:outline-none">
+                <option value="blup">Default (Blup)</option>
+                <option value="crystal">Crystal Chime</option>
+                <option value="pop">Bubble Pop</option>
+                <option value="custom">Custom Audio File...</option>
+              </select>
             </div>
 
             <!-- Test Live Alerts Section -->

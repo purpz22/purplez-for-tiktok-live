@@ -1926,24 +1926,43 @@
     }, 4000);
   }
 
-  const followAlertBanner = document.getElementById('followAlertBanner');
-  const followAlertUser = document.getElementById('followAlertUser');
-  const followAlertText = document.getElementById('followAlertText');
-  const dismissFollowAlertBtn = document.getElementById('dismissFollowAlertBtn');
+  // ==========================================
+  // FOLLOWER NOTIFICATION SOUND & ALERT ENGINE
+  // ==========================================
+  let cachedBlupAudio = null;
 
-  function hideFollowAlertBanner() {
-    if (!followAlertBanner) return;
-    followAlertBanner.classList.add('-translate-y-8', 'opacity-0');
-    setTimeout(() => {
-      followAlertBanner.classList.add('hidden');
-    }, 300);
+  function getFollowSoundConfig() {
+    return {
+      type: localStorage.getItem('purplez_follow_sound_type') || 'blup',
+      customData: localStorage.getItem('purplez_follow_sound_custom_data') || '',
+      customName: localStorage.getItem('purplez_follow_sound_custom_name') || ''
+    };
   }
 
-  if (dismissFollowAlertBtn && followAlertBanner) {
-    dismissFollowAlertBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      hideFollowAlertBanner();
-    });
+  function playBubblePopSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!window._followAudioCtx) {
+        window._followAudioCtx = new AudioCtx();
+      }
+      const ctx = window._followAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(840, now + 0.08);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } catch (_) {}
   }
 
   function playFollowChime() {
@@ -1962,8 +1981,8 @@
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(880, now); // A5
-      osc1.frequency.exponentialRampToValueAtTime(1318.51, now + 0.12); // E6
+      osc1.frequency.setValueAtTime(880, now);
+      osc1.frequency.exponentialRampToValueAtTime(1318.51, now + 0.12);
       gain1.gain.setValueAtTime(0.35, now);
       gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
       osc1.connect(gain1);
@@ -1974,7 +1993,7 @@
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(1760, now + 0.1); // A6
+      osc2.frequency.setValueAtTime(1760, now + 0.1);
       gain2.gain.setValueAtTime(0.25, now + 0.1);
       gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
       osc2.connect(gain2);
@@ -1984,12 +2003,187 @@
     } catch (_) {}
   }
 
+  function playFollowNotificationSound() {
+    const config = getFollowSoundConfig();
+
+    if (config.type === 'custom' && config.customData) {
+      try {
+        const audio = new Audio(config.customData);
+        audio.volume = 1.0;
+        const p = audio.play();
+        if (p !== undefined) {
+          p.catch(() => playFollowChime());
+        }
+        return;
+      } catch (_) {
+        playFollowChime();
+        return;
+      }
+    }
+
+    if (config.type === 'crystal') {
+      playFollowChime();
+      return;
+    }
+
+    if (config.type === 'pop') {
+      playBubblePopSound();
+      return;
+    }
+
+    // Default: 'blup'
+    // 1. Play native Android raw resource sound if available
+    if (window.AndroidNative && typeof window.AndroidNative.playNotificationSound === 'function') {
+      try {
+        window.AndroidNative.playNotificationSound('blup');
+        return;
+      } catch (_) {}
+    }
+
+    // 2. Play bundled blup.mp3 via HTML5 Audio
+    try {
+      if (!cachedBlupAudio) {
+        cachedBlupAudio = new Audio('blup.mp3');
+      }
+      cachedBlupAudio.currentTime = 0;
+      cachedBlupAudio.volume = 1.0;
+      const playPromise = cachedBlupAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          playFollowChime();
+        });
+      }
+    } catch (_) {
+      playFollowChime();
+    }
+  }
+
+  function syncFollowSoundUi() {
+    const config = getFollowSoundConfig();
+    const select = document.getElementById('followSoundSelect');
+    const dropdownSelect = document.getElementById('dropdownSoundSelect');
+    const uploadRow = document.getElementById('customSoundUploadRow');
+    const chosenNameSpan = document.getElementById('chosenSoundFileName');
+    const currentSoundBadge = document.getElementById('currentSoundBadge');
+    const dropdownSoundBadge = document.getElementById('dropdownSoundBadge');
+
+    if (select) select.value = config.type;
+    if (dropdownSelect) dropdownSelect.value = config.type;
+
+    if (uploadRow) {
+      if (config.type === 'custom') {
+        uploadRow.classList.remove('hidden');
+      } else {
+        uploadRow.classList.add('hidden');
+      }
+    }
+
+    let badgeText = 'BLUP (DEFAULT)';
+    if (config.type === 'crystal') badgeText = 'CRYSTAL';
+    else if (config.type === 'pop') badgeText = 'BUBBLE POP';
+    else if (config.type === 'custom') {
+      badgeText = config.customName ? config.customName.toUpperCase().slice(0, 16) : 'CUSTOM FILE';
+    }
+
+    if (currentSoundBadge) currentSoundBadge.textContent = badgeText;
+    if (dropdownSoundBadge) dropdownSoundBadge.textContent = badgeText;
+    if (chosenNameSpan) {
+      chosenNameSpan.textContent = config.customName ? config.customName : 'CHOOSE AUDIO FILE (.MP3 / .WAV)';
+    }
+  }
+
+  function setupFollowSoundControls() {
+    const select = document.getElementById('followSoundSelect');
+    const dropdownSelect = document.getElementById('dropdownSoundSelect');
+    const customSoundFileInput = document.getElementById('customSoundFileInput');
+    const chooseSoundFileBtn = document.getElementById('chooseSoundFileBtn');
+    const testFollowSoundBtn = document.getElementById('testFollowSoundBtn');
+    const resetFollowSoundBtn = document.getElementById('resetFollowSoundBtn');
+
+    function handleTypeChange(val) {
+      localStorage.setItem('purplez_follow_sound_type', val);
+      syncFollowSoundUi();
+      if (val === 'custom') {
+        const config = getFollowSoundConfig();
+        if (!config.customData && customSoundFileInput) {
+          customSoundFileInput.click();
+        } else {
+          playFollowNotificationSound();
+        }
+      } else {
+        playFollowNotificationSound();
+      }
+    }
+
+    if (select) {
+      select.addEventListener('change', () => handleTypeChange(select.value));
+    }
+    if (dropdownSelect) {
+      dropdownSelect.addEventListener('change', () => handleTypeChange(dropdownSelect.value));
+    }
+    if (chooseSoundFileBtn && customSoundFileInput) {
+      chooseSoundFileBtn.addEventListener('click', () => customSoundFileInput.click());
+    }
+    if (customSoundFileInput) {
+      customSoundFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        // Size guard: 5MB maximum
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Audio file is too large. Please select a sound file under 5MB.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            const dataUrl = evt.target.result;
+            localStorage.setItem('purplez_follow_sound_type', 'custom');
+            localStorage.setItem('purplez_follow_sound_custom_data', dataUrl);
+            localStorage.setItem('purplez_follow_sound_custom_name', file.name);
+            syncFollowSoundUi();
+            playFollowNotificationSound();
+          } catch (err) {
+            console.error('Failed to save custom audio:', err);
+            alert('Failed to save audio file into app storage.');
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    if (testFollowSoundBtn) {
+      testFollowSoundBtn.addEventListener('click', () => {
+        playFollowNotificationSound();
+      });
+    }
+    if (resetFollowSoundBtn) {
+      resetFollowSoundBtn.addEventListener('click', () => {
+        localStorage.setItem('purplez_follow_sound_type', 'blup');
+        localStorage.removeItem('purplez_follow_sound_custom_data');
+        localStorage.removeItem('purplez_follow_sound_custom_name');
+        if (customSoundFileInput) customSoundFileInput.value = '';
+        syncFollowSoundUi();
+        playFollowNotificationSound();
+      });
+    }
+
+    syncFollowSoundUi();
+  }
+
+  // Initialize sound settings after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFollowSoundControls);
+  } else {
+    setupFollowSoundControls();
+  }
+
   function triggerFollowAlert(followerName, nickname, avatarUrl) {
     const cleanUser = (followerName || nickname || 'Viewer').replace(/^@+/, '').trim();
     if (!cleanUser) return;
 
-    // 1. Play crystal audio chime
-    playFollowChime();
+    // 1. Play follower notification sound (Default blup.mp3 or streamer-selected sound)
+    playFollowNotificationSound();
 
     // 2. Physical haptic vibration
     if (window.AndroidNative) {
@@ -2000,29 +2194,12 @@
       }
     }
 
-    // 3. Independent floating follower notification outside chat overlay
-    if (followAlertBanner) {
-      if (followAlertUser) followAlertUser.textContent = `@${cleanUser}`;
-      if (followAlertText) followAlertText.textContent = `Just followed the live stream!`;
-      followAlertBanner.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        followAlertBanner.classList.remove('-translate-y-8', 'opacity-0');
-      });
-      clearTimeout(window.followAlertTimer);
-      window.followAlertTimer = setTimeout(() => {
-        hideFollowAlertBanner();
-      }, 5000);
-    }
-
-    // 4. Floating Toast Notification
-    showToast(`NEW FOLLOWER: @${cleanUser}`);
-
-    // 5. Native Floating Overlay Pill outside chat window
+    // 3. Primary Follower Notification: Native System Floating Pill outside chat window
     if (window.AndroidNative && typeof window.AndroidNative.showNativeFollowerAlert === 'function') {
       window.AndroidNative.showNativeFollowerAlert(cleanUser);
     }
 
-    // 6. Update mini-ticker for landscape/minimized HUD
+    // 4. Update mini-ticker for landscape/minimized HUD
     if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
       window.AndroidNative.updateLatestChat(cleanUser, 'Started following the streamer!', 'FOLLOWER', new Date().toLocaleTimeString(), false);
     }

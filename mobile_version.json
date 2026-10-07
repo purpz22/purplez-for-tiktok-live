@@ -1,22 +1,22 @@
 {
   "appName": "PurplezChat",
-  "version": "1.0.8",
-  "buildTime": 1791366995991,
-  "updatedAt": "2026-10-07T09:56:35.991Z",
+  "version": "1.0.9",
+  "buildTime": 1791368476397,
+  "updatedAt": "2026-10-07T10:21:16.397Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
-  "releaseNotes": "Mobile Over-The-Air update v1.0.8",
+  "releaseNotes": "Mobile Over-The-Air update v1.0.9",
   "bundleFiles": [
     {
       "relativePath": "index.html",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/index.html",
-      "hash": "43ca25579ea5e44b473983041e73313e",
-      "size": 46252
+      "hash": "85d4b8b69e91f9dc747083be1a35bb8e",
+      "size": 48573
     },
     {
       "relativePath": "app.js",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/app.js",
-      "hash": "5fae4f0034e434f6087101432a6646c3",
-      "size": 101521
+      "hash": "d3b16591b64ed42def5427c038977efd",
+      "size": 107507
     },
     {
       "relativePath": "styles.css",
@@ -35,14 +35,20 @@
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/firebase-app.js",
       "hash": "6607603943625184404c9b789376dfb5",
       "size": 13033
+    },
+    {
+      "relativePath": "blup.mp3",
+      "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/blup.mp3",
+      "hash": "0954c40a5da13165a33c13dc0fa7e1cf",
+      "size": 17434
     }
   ],
   "nativeApk": {
-    "versionCode": 4,
-    "versionName": "1.0.5",
+    "versionCode": 5,
+    "versionName": "1.0.6",
     "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/purplez-for-tiktok-live.apk",
-    "hash": "bf2cc041d22ec864a3ed582c4900da80",
-    "size": 5483361,
-    "releaseNotes": "PurplezChat v1.0.5 native Android release"
+    "hash": "d6464814db2da7e57f79a03261fec17b",
+    "size": 5520558,
+    "releaseNotes": "PurplezChat v1.0.6 native Android release"
   }
 }
