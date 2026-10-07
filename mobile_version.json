@@ -1,8 +1,8 @@
 {
   "appName": "purplez for tiktok live",
   "version": "1.0.0",
-  "buildTime": 1791349114914,
-  "updatedAt": "2026-10-07T04:58:34.914Z",
+  "buildTime": 1791350217117,
+  "updatedAt": "2026-10-07T05:16:57.117Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
   "releaseNotes": "Mobile Over-The-Air update v1.0.0",
   "bundleFiles": [
@@ -34,7 +34,7 @@
   "nativeApk": {
     "versionCode": 2,
     "versionName": "1.0.1",
-    "url": "https://github.com/purpz22/purplez-for-tiktok-live/releases/latest/download/purplez-for-tiktok-live.apk",
+    "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/purplez-for-tiktok-live.apk",
     "hash": "f9066c6d7c4c0a00f88cd9daf627eb0a",
     "size": 5467500,
     "releaseNotes": "purplez for tiktok live v1.0.1 native Android release"
