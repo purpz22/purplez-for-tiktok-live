@@ -1,4 +1,4 @@
-// purplez for tiktok live - Streamer Control Center & Floating HUD Logic
+// PurplezChat - Streamer Control Center & Floating HUD Logic
 
 (function() {
   'use strict';
@@ -197,11 +197,20 @@
 
   if (otaReloadBtn) {
     otaReloadBtn.addEventListener('click', () => {
+      showToast('Reloading HUD...');
       if (window.AndroidNative && typeof window.AndroidNative.reloadApp === 'function') {
-        window.AndroidNative.reloadApp();
-      } else {
-        window.location.reload();
+        try {
+          window.AndroidNative.reloadApp();
+        } catch (_) {}
       }
+      setTimeout(() => {
+        try {
+          const base = window.location.href.split('?')[0];
+          window.location.replace(`${base}?_r=${Date.now()}`);
+        } catch (_) {
+          window.location.reload();
+        }
+      }, 150);
     });
   }
 
