@@ -7,5 +7,5 @@ Official Over-The-Air (OTA) and native release distribution endpoint for Purplez
 - **Web HUD**: `https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/index.html`
 - **Latest APK**: `https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/purplez-for-tiktok-live.apk`
 
-Version: v1.0.10
-Last Updated: 2026-10-07T10:57:57.197Z
+Version: v1.0.97
+Last Updated: 2026-10-07T11:10:42.442Z
