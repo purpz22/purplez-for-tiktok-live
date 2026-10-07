@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html class="h-full" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>purplez for tiktok live</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="h-full w-full bg-black text-white antialiased overflow-hidden select-none">
+
+  <!-- TOAST NOTIFICATION: Copied to Clipboard / System Status -->
+  <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform -translate-y-16 opacity-0 pointer-events-none" id="copyToast">
+    <div class="bg-white text-black text-xs font-bold px-4 py-2 rounded-full shadow-2xl flex items-center space-x-2 border-2 border-black font-mono">
+      <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+      </svg>
+      <span id="toastMessage">Chat Copied to Clipboard</span>
+    </div>
+  </div>
+
+  <!-- VIEW 1: STREAMER CONTROL CENTER (Primary Screen for Mobile Streamers) -->
+  <div class="relative w-full h-full flex flex-col justify-start overflow-y-auto bg-black p-4 z-20" id="controlCenterView">
+    <div class="max-w-2xl w-full mx-auto space-y-3 pb-8">
+
+      <!-- App Header -->
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center justify-center w-11 h-11 bg-black rounded-xl border-2 border-white shadow-xl overflow-hidden" id="appHeaderLogo">
+            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <path d="M28 22H58C67 22 74 29 74 38C74 47 67 54 58 54H44V78H28V22Z" fill="white"></path>
+              <circle cx="44" cy="38" fill="black" r="7"></circle>
+              <circle cx="76" cy="74" fill="white" r="6"></circle>
+              <path d="M62 74C62 66.5 67.5 61 75 61" stroke="white" stroke-linecap="round" stroke-width="4"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-base font-bold font-mono tracking-wider uppercase text-white">purplez</h1>
+              <span class="bg-white text-black text-[9px] font-extrabold px-1.5 py-0.2 rounded font-mono">LIVE STUDIO</span>
+            </div>
+            <p class="text-xs text-zinc-400 font-mono">for tiktok live - Floating HUD</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[9px] font-mono border border-zinc-800 px-2 py-1 rounded bg-zinc-950 text-zinc-400 uppercase" id="deviceOrientationBadge">LANDSCAPE</span>
+        </div>
+      </div>
+
+      <!-- DIRECT TIKTOK LIVE CONNECTOR (STANDALONE - NO PC REQUIRED) -->
+      <div class="control-card space-y-2.5 border-2 border-white bg-zinc-950">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">TIKTOK LIVE CONNECTOR (IN-APP)</span>
+          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300" id="currentAccountTag">NOT SET</span>
+        </div>
+
+        <!-- TikTok Username Field -->
+        <div class="space-y-1">
+          <label class="text-[10px] font-mono text-zinc-400 uppercase">TIKTOK USERNAME (@)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">@</span>
+            <input type="text" id="streamerUsernameInput" placeholder="your_tiktok_username" class="w-full bg-black border border-zinc-700 rounded-xl pl-8 pr-3 py-2 text-sm text-white font-mono focus:border-white focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Connect Action with Animated Loading Spinner -->
+        <div class="pt-1 flex items-center space-x-2">
+          <button class="control-btn-primary flex-1 py-2.5 text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer" id="saveStreamerUsernameBtn">
+            <!-- Animated Loading Spinner (Hidden by default) -->
+            <svg class="hidden animate-spin w-3.5 h-3.5 text-black shrink-0" id="connectSpinner" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="saveStreamerBtnText">CONNECT TO TIKTOK LIVE</span>
+          </button>
+        </div>
+
+        <!-- Strict Live Status Display (Only says connected when 100% verified) -->
+        <div class="flex flex-col space-y-1 pt-1 border-t border-zinc-900">
+          <div class="flex items-center space-x-2 text-[10px] font-mono">
+            <span class="w-2 h-2 rounded-full bg-zinc-600 shrink-0 transition-colors" id="usernameDot"></span>
+            <span class="font-bold text-zinc-300" id="usernameStatusText">NOT CONNECTED</span>
+          </div>
+          <div class="text-[9px] font-mono text-zinc-500 pl-4 leading-tight" id="usernameDetailText">
+            Enter your TikTok username and tap CONNECT TO TIKTOK LIVE.
+          </div>
+        </div>
+      </div>
+
+      <!-- STATUS & FLOATING OVERLAY CONTROLLER CARD -->
+      <div class="control-card space-y-3 border-2 border-zinc-700 bg-zinc-950">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">FLOATING OVERLAY CONTROL</span>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-zinc-600" id="overlayStatusDot"></span>
+            <span class="text-xs font-mono font-bold uppercase text-zinc-400" id="overlayStatusText">INACTIVE</span>
+          </div>
+        </div>
+
+        <!-- Permission Banner -->
+        <div class="p-3 rounded-xl border border-zinc-800 bg-black flex flex-col space-y-2" id="permissionCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-zinc-300 uppercase">SYSTEM OVERLAY PERMISSION</span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded" id="permStatusBadge">CHECKING...</span>
+          </div>
+          <button class="control-btn-secondary text-xs font-mono py-1.5 text-white bg-zinc-900 border-zinc-700 hidden" id="grantPermissionBtn">
+            GRANT "DISPLAY OVER OTHER APPS" PERMISSION
+          </button>
+        </div>
+
+        <!-- Main Launcher Button -->
+        <button class="control-btn-primary py-3 text-sm font-mono tracking-wider font-extrabold" id="mainLaunchOverlayBtn">
+          LAUNCH FLOATING OVERLAY
+        </button>
+      </div>
+
+      <!-- APP CONTROLS -->
+      <div>
+        <button class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-xl text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer font-mono text-xs font-bold uppercase tracking-wider transition-all" id="closeAppBtn">
+          <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span>CLOSE APP</span>
+        </button>
+      </div>
+
+      <!-- OVER-THE-AIR (OTA) HOT UPDATES -->
+      <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.0.0</span>
+        </div>
+        <div class="flex items-center justify-between text-xs font-mono">
+          <span class="text-zinc-400">STATUS:</span>
+          <span class="text-zinc-200 font-bold uppercase" id="otaStatusText">APP IS UP TO DATE</span>
+        </div>
+        <div class="flex space-x-2">
+          <button class="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-zinc-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer" id="otaCheckBtn">
+            CHECK FOR UPDATES
+          </button>
+          <button class="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-zinc-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer" id="otaReloadBtn" title="Reload Web HUD">
+            RELOAD HUD
+          </button>
+        </div>
+
+        <!-- Native APK Update Banner (Shown when native Android code or services change) -->
+        <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.0.2</span>
+          </div>
+          <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
+            Native Android update available.
+          </div>
+          <div class="w-full bg-zinc-950 rounded-full h-1.5 overflow-hidden border border-zinc-800 hidden" id="apkProgressBarContainer">
+            <div class="bg-white h-1.5 transition-all duration-200" id="apkProgressBar" style="width: 0%"></div>
+          </div>
+          <div class="flex flex-col space-y-1.5">
+            <button class="w-full py-2 bg-white hover:bg-zinc-200 text-black rounded-lg font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer" id="downloadApkBtn">
+              DOWNLOAD &amp; INSTALL APK
+            </button>
+            <button class="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer hidden" id="installPermSettingsBtn">
+              ENABLE "INSTALL UNKNOWN APPS" PERMISSION
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STREAMER QUICK START GUIDE -->
+      <div class="control-card space-y-2 bg-zinc-950">
+        <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">STREAMER QUICK START GUIDE</span>
+        <div class="space-y-1.5 text-xs font-mono text-zinc-300">
+          <div class="flex items-start space-x-2">
+            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">1</span>
+            <span>Enter your TikTok @username above and tap CONNECT.</span>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">2</span>
+            <span>Grant "Display over other apps" permission if prompted.</span>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">3</span>
+            <span>Tap <strong class="text-white">LAUNCH FLOATING OVERLAY</strong>. A draggable logo bubble will appear.</span>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">4</span>
+            <span>Switch to TikTok Live or your game in landscape mode.</span>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">5</span>
+            <span>Tap the logo bubble to expand or collapse the live chat HUD.</span>
+          </div>
+          <div class="flex items-start space-x-2">
+            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">6</span>
+            <span>Tap any message row to instantly <strong class="text-white">copy to clipboard</strong> with highlight.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIEW 2: IN-APP LIVE PREVIEW & FLOATING HUD SIMULATOR -->
+  <div class="relative w-full h-full flex flex-col justify-between overflow-hidden bg-zinc-950 hidden z-10" id="inAppPreviewView">
+
+    <!-- Background Stream Simulation -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-30" id="backgroundStreamCanvas">
+      <div class="absolute inset-0 opacity-60"></div>
+      <div class="absolute top-3 left-4 right-4 flex justify-between items-center text-xs text-zinc-400">
+        <div class="flex items-center space-x-2 bg-black/70 px-2.5 py-1 rounded-full border border-zinc-800">
+          <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+          <span class="font-bold text-white tracking-wider font-mono">LIVE</span>
+          <span class="text-zinc-500">|</span>
+          <span class="font-mono text-zinc-300" id="previewViewerCount">14.2K viewers</span>
+        </div>
+        <div class="flex items-center space-x-3 bg-black/70 px-3 py-1 rounded-full border border-zinc-800 font-mono text-[11px]">
+          <span id="previewStreamerTag">@streamer</span>
+          <span class="text-zinc-500">60 FPS</span>
+          <span class="text-white border border-zinc-700 px-1.5 py-0.5 rounded text-[10px]" id="orientationTag">LANDSCAPE</span>
+        </div>
+      </div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="border border-zinc-800 rounded-2xl w-full flex flex-col items-center justify-center p-6 text-center opacity-20" style="max-width: 80%; height: 60%;">
+          <svg class="w-11 h-11 text-zinc-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+          <span class="font-mono text-xs text-zinc-500">TIKTOK LIVE STREAM CANVAS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING CHAT OVERLAY SYSTEM -->
+    <div class="relative z-30 w-full h-full p-2 flex flex-col justify-start pointer-events-none" id="overlayViewport">
+
+      <!-- Top Bar: Floating Logo & Controls -->
+      <div class="flex items-center justify-between w-full pointer-events-auto mb-1.5" id="previewTopBar">
+        <div class="relative flex items-center space-x-2">
+          <!-- Back to Control Center Button -->
+          <button class="flex items-center space-x-1 px-2.5 py-1 bg-black rounded-lg border border-zinc-700 text-xs font-mono font-bold text-white cursor-pointer" id="backToControlCenterBtn">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>CONTROLS</span>
+          </button>
+
+          <!-- Logo Bubble Button (Toggles chat visibility in preview) -->
+          <button class="relative flex items-center justify-center w-9 h-9 bg-black rounded-xl border-2 border-white shadow-xl cursor-pointer overflow-hidden p-0" id="logoToggleBtn" title="Toggle chat visibility">
+            <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 z-10">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+            </span>
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <path d="M28 22H58C67 22 74 29 74 38C74 47 67 54 58 54H44V78H28V22Z" fill="white"></path>
+              <circle cx="44" cy="38" fill="black" r="7"></circle>
+              <circle cx="76" cy="74" fill="white" r="6"></circle>
+              <path d="M62 74C62 66.5 67.5 61 75 61" stroke="white" stroke-linecap="round" stroke-width="4"></path>
+            </svg>
+          </button>
+
+          <!-- Settings Button -->
+          <button class="flex items-center justify-center w-8 h-8 rounded-lg bg-black border border-zinc-700 text-zinc-300 transition-all shadow-lg cursor-pointer" id="settingsToggleBtn" title="Settings">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+
+          <!-- SLEEK SETTINGS DROPDOWN -->
+          <div class="hidden absolute top-11 left-0 z-50 w-72 bg-black/95 backdrop-blur-xl border-2 border-white rounded-2xl shadow-2xl p-3.5 transition-all duration-150" id="settingsDropdown">
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-800 mb-2.5">
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">OVERLAY SETTINGS</span>
+              <button class="text-zinc-400 text-xs p-1 cursor-pointer" id="closeSettingsBtn">X</button>
+            </div>
+
+            <!-- Transparency Section -->
+            <div class="space-y-1.5 mb-2.5">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-zinc-400 uppercase text-[11px]">Opacity</span>
+                <span class="text-white font-bold" id="transparencyValue">85%</span>
+              </div>
+              <input class="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer" id="transparencySlider" max="100" min="20" type="range" value="85" />
+              <div class="flex items-center justify-between gap-1 pt-1">
+                <button class="flex-1 py-1 text-[10px] font-mono rounded bg-zinc-900 border border-zinc-800 text-zinc-300 opacity-preset-btn cursor-pointer" data-val="50">50%</button>
+                <button class="flex-1 py-1 text-[10px] font-mono rounded bg-zinc-900 border border-zinc-800 text-zinc-300 opacity-preset-btn cursor-pointer" data-val="75">75%</button>
+                <button class="flex-1 py-1 text-[10px] font-mono rounded bg-zinc-900 border border-zinc-800 text-zinc-300 opacity-preset-btn cursor-pointer" data-val="85">85%</button>
+                <button class="flex-1 py-1 text-[10px] font-mono rounded bg-zinc-900 border border-zinc-800 text-zinc-300 opacity-preset-btn cursor-pointer" data-val="100">100%</button>
+              </div>
+            </div>
+
+            <!-- Window Size Presets -->
+            <div class="space-y-1.5 pt-2 border-t border-zinc-800 mb-2.5">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-zinc-400 uppercase text-[11px]">Window Size</span>
+                <span class="text-zinc-500 text-[9px]">PRESETS</span>
+              </div>
+              <div class="grid grid-cols-3 gap-1">
+                <button class="py-1 text-[10px] font-mono rounded bg-zinc-900 text-zinc-400 border border-zinc-800 cursor-pointer" id="sizeCompactBtn">Small</button>
+                <button class="py-1 text-[10px] font-mono rounded bg-white text-black font-bold border border-white cursor-pointer" id="sizeDefaultBtn">Medium</button>
+                <button class="py-1 text-[10px] font-mono rounded bg-zinc-900 text-zinc-400 border border-zinc-800 cursor-pointer" id="sizeLargeBtn">Large</button>
+              </div>
+            </div>
+
+            <!-- Native Floating Overlay Action -->
+            <div class="pt-2 border-t border-zinc-800 space-y-1.5">
+              <button class="w-full py-1.5 px-3 text-xs font-mono font-bold rounded bg-white text-black cursor-pointer flex items-center justify-center space-x-1.5" id="nativeOverlayBtn">
+                <span>LAUNCH OVERLAY OVER APPS</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Quick Controls -->
+        <div class="flex items-center space-x-1.5">
+          <div class="flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-black border border-zinc-800 text-[11px] font-mono" id="totalGiftsBadge" title="Total Gift Coins">
+            <span class="text-zinc-400 text-[9px]">GIFTS:</span>
+            <span class="text-white font-bold text-[11px]" id="totalGiftsValue">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STREAMER MINI DOCK (Appears directly beneath logo when chat window is hidden in preview) -->
+      <div class="pointer-events-auto mt-1 hidden transition-all duration-300" id="miniDock">
+        <div class="inline-flex flex-col bg-black/95 border-2 border-white rounded-2xl p-2.5 shadow-2xl max-w-xs backdrop-blur-xl">
+          <div class="flex items-center justify-between pb-1.5 border-b border-zinc-800 mb-1.5">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+              <span class="text-xs font-mono font-bold text-white uppercase">LIVE TICKER</span>
+            </div>
+            <button class="text-[10px] font-mono px-2 py-0.5 bg-white text-black font-bold rounded cursor-pointer" id="expandChatFromMiniBtn">
+              RESTORE
+            </button>
+          </div>
+          <div class="space-y-1 text-xs" id="miniTickerContent"></div>
+        </div>
+      </div>
+
+      <!-- FLOATING LIVE CHAT WINDOW (Draggable & Resizable Container) -->
+      <div class="fixed pointer-events-auto transition-shadow duration-200 flex flex-col rounded-2xl border-2 border-white/90 shadow-2xl overflow-hidden touch-none" id="floatingChatWindow" style="background-color: rgba(0, 0, 0, 0.85); width: 380px; height: 260px; top: 48px; left: 16px; min-width: 240px; min-height: 160px; z-index: 40;">
+
+        <!-- Window Header & Navigation Tabs (COMPACT & CLEAN, NO "PURPLEZ LIVE CHAT", NO "STREAMER HUD") -->
+        <div class="drag-grip flex items-center justify-between px-2.5 py-1 border-b border-zinc-800 bg-black select-none" id="chatHeaderBar">
+          <!-- Easy Compact Tabs Switcher -->
+          <div class="flex items-center space-x-1 bg-zinc-950 p-0.5 rounded-lg border border-zinc-800 pointer-events-auto" onpointerdown="event.stopPropagation()">
+            <!-- Tab 1: Gifter Chat (Compact) -->
+            <button class="tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all text-zinc-400 cursor-pointer" id="tabGifter">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+              </svg>
+              <span>Gifter</span>
+              <span class="bg-zinc-800 text-zinc-300 text-[9px] font-mono px-1 py-0 rounded-full" id="gifterCountBadge">0</span>
+            </button>
+            <!-- Tab 2: Regular Viewer Chat (Compact - Default Active) -->
+            <button class="tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all bg-white text-black shadow-sm cursor-pointer" id="tabRegular">
+              <svg class="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              <span>All</span>
+              <span class="bg-black text-white text-[9px] font-mono px-1 py-0 rounded-full border border-black font-extrabold" id="regularCountBadge">0</span>
+            </button>
+          </div>
+
+          <!-- Gift list Button on right side -->
+          <div class="flex items-center space-x-1.5 pointer-events-auto" onpointerdown="event.stopPropagation()">
+            <button class="flex items-center space-x-1 px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 text-[10px] font-mono font-bold cursor-pointer transition-all" id="giftListBtn" title="View all gifts sent">
+              <svg class="w-3 h-3 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+              </svg>
+              <span>Gift list</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- GIFT LIST MODAL (All gifts sent during stream) -->
+        <div class="hidden absolute inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col p-2 select-none" id="giftListModal" onpointerdown="event.stopPropagation()">
+          <div class="flex items-center justify-between pb-1.5 border-b border-zinc-800 mb-1.5">
+            <div class="flex items-center space-x-1.5">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+              </svg>
+              <span class="text-xs font-mono font-bold uppercase text-white tracking-wider">GIFT LIST</span>
+              <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 font-bold" id="giftListTotalCount">0 gifts</span>
+            </div>
+            <button class="px-2 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 text-[10px] font-mono font-bold cursor-pointer transition-all" id="closeGiftListBtn">
+              CLOSE
+            </button>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-1 p-0.5 font-mono" id="giftListEntriesContainer">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- PROMINENT LIVE GIFT ALERT BANNER (Drops down when gifts arrive) -->
+        <div class="gift-alert-banner hidden px-2.5 py-1 bg-white text-black border-b border-black font-mono flex items-center justify-between select-none" id="giftAlertBanner">
+          <div class="flex items-center space-x-1.5">
+            <svg class="w-3 h-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+            </svg>
+            <span class="text-[9px] font-extrabold uppercase tracking-wide" id="giftAlertText">GIFT ALERT: New Gift Received!</span>
+          </div>
+          <span class="text-[8px] font-extrabold px-1 py-0.2 bg-black text-white rounded font-mono" id="giftAlertCoins">0 COINS</span>
+        </div>
+
+        <!-- CHAT MESSAGES SCROLLABLE CONTAINER (MAXIMIZED DENSITY & VERTICAL HEIGHT) -->
+        <div class="flex-1 overflow-y-auto p-1.5 space-y-1 font-sans relative" id="chatMessagesContainer" onpointerdown="event.stopPropagation()">
+          <!-- Populated dynamically by JS -->
+        </div>
+
+        <!-- Floating Auto-Scroll Resume Button (Appears when streamer scrolls up to read older messages) -->
+        <button class="hidden absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-white text-black border border-white text-[10px] font-mono font-bold rounded-full shadow-2xl z-30 flex items-center space-x-1.5 cursor-pointer active:scale-95 transition-all" id="autoScrollResumeBtn">
+          <span id="autoScrollResumeText">RESUME AUTO-SCROLL</span>
+          <svg class="w-3 h-3 text-black shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          </svg>
+        </button>
+
+        <!-- Compact Bottom Right Corner Touch Resize Handle -->
+        <div class="absolute bottom-1 right-1 pointer-events-auto cursor-se-resize z-30" id="cornerResizeHandle" title="Drag to resize">
+          <svg class="w-3.5 h-3.5 text-zinc-500 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 19L5 5M19 13L13 19M19 7L7 19"></path>
+          </svg>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar for Preview -->
+    <div class="relative z-30 w-full bg-black/90 border-t border-zinc-800 px-4 py-1.5 flex items-center justify-between font-mono pointer-events-auto" id="bottomNavBar">
+      <div class="text-[10px] text-zinc-500">
+        <span class="text-white font-bold" id="footerStreamerTag">@streamer</span>
+        <span class="mx-1">•</span>
+        <span>Landscape HUD</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button class="px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-300 rounded-lg text-xs font-mono cursor-pointer" id="resetPositionBtn">
+          RESET POSITION
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
