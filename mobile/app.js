@@ -1439,8 +1439,8 @@
   function clampWindowPosition(x, y) {
     const bottomBarHeight = (bottomNavBar && !isOverlayMode) ? bottomNavBar.offsetHeight : 0;
     const margin = 8;
-    const windowWidth = floatingWindow ? floatingWindow.offsetWidth : 380;
-    const windowHeight = floatingWindow ? floatingWindow.offsetHeight : 260;
+    const windowWidth = floatingWindow ? floatingWindow.offsetWidth : 330;
+    const windowHeight = floatingWindow ? floatingWindow.offsetHeight : 230;
 
     const minX = margin;
     const maxX = Math.max(margin, window.innerWidth - windowWidth - margin);
@@ -1531,8 +1531,8 @@
       isResizing = true;
       resizeStartX = e.clientX;
       resizeStartY = e.clientY;
-      resizeStartWidth = floatingWindow ? floatingWindow.offsetWidth : 380;
-      resizeStartHeight = floatingWindow ? floatingWindow.offsetHeight : 260;
+      resizeStartWidth = floatingWindow ? floatingWindow.offsetWidth : 330;
+      resizeStartHeight = floatingWindow ? floatingWindow.offsetHeight : 230;
 
       if (e.target.setPointerCapture && e.pointerId !== undefined) {
         try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1542,11 +1542,11 @@
     window.addEventListener('pointermove', (e) => {
       if (!isResizing || !floatingWindow) return;
       const bottomBarHeight = (bottomNavBar && !isOverlayMode) ? bottomNavBar.offsetHeight : 0;
-      const maxWidth = window.innerWidth - 24;
-      const maxHeight = window.innerHeight - bottomBarHeight - floatingWindow.offsetTop - 8;
+      const maxWidth = Math.max(200, window.innerWidth - 20);
+      const maxHeight = Math.max(140, window.innerHeight - bottomBarHeight - floatingWindow.offsetTop - 8);
 
-      const newWidth = Math.max(260, Math.min(maxWidth, resizeStartWidth + (e.clientX - resizeStartX)));
-      const newHeight = Math.max(180, Math.min(maxHeight, resizeStartHeight + (e.clientY - resizeStartY)));
+      const newWidth = Math.max(200, Math.min(maxWidth, resizeStartWidth + (e.clientX - resizeStartX)));
+      const newHeight = Math.max(140, Math.min(maxHeight, resizeStartHeight + (e.clientY - resizeStartY)));
 
       floatingWindow.style.width = `${newWidth}px`;
       floatingWindow.style.height = `${newHeight}px`;
@@ -1573,14 +1573,25 @@
   }
 
   // ==========================================
-  // ORIENTATION CHANGE & LANDSCAPE OPTIMIZATION
+  // ORIENTATION CHANGE & SCREEN CONTAINMENT
   // ==========================================
+  function enforceWindowScreenBounds() {
+    if (!floatingWindow || isOverlayMode) return;
+    const maxW = Math.max(200, window.innerWidth - 16);
+    const maxH = Math.max(140, window.innerHeight - 56);
+    if (floatingWindow.offsetWidth > maxW) {
+      floatingWindow.style.width = `${maxW}px`;
+    }
+    if (floatingWindow.offsetHeight > maxH) {
+      floatingWindow.style.height = `${maxH}px`;
+    }
+    const rect = floatingWindow.getBoundingClientRect();
+    setWindowPosition(rect.left, rect.top);
+  }
+
   window.addEventListener('resize', () => {
     handleOrientationChange();
-    if (floatingWindow && !isOverlayMode) {
-      const rect = floatingWindow.getBoundingClientRect();
-      setWindowPosition(rect.left, rect.top);
-    }
+    enforceWindowScreenBounds();
   });
 
   function handleOrientationChange() {
@@ -1591,12 +1602,7 @@
     if (deviceOrientationBadge) deviceOrientationBadge.textContent = tag;
     if (landscapeStatus) landscapeStatus.textContent = `${tag} HUD`;
 
-    if (floatingWindow && isLandscape && !isOverlayMode) {
-      const maxH = window.innerHeight - 56;
-      if (floatingWindow.offsetHeight > maxH) {
-        floatingWindow.style.height = `${Math.max(220, maxH)}px`;
-      }
-    }
+    enforceWindowScreenBounds();
   }
 
   window.onAndroidOrientationChanged = function(isLand) {
@@ -2318,26 +2324,31 @@
 
   // Window Size Presets
   function setWindowDimensions(w, h, activeBtn) {
+    const maxW = Math.max(200, Math.floor(window.innerWidth - 16));
+    const maxH = Math.max(140, Math.floor(window.innerHeight - 56));
+    const clampedW = Math.min(w, maxW);
+    const clampedH = Math.min(h, maxH);
+
     if (floatingWindow && !isOverlayMode) {
-      floatingWindow.style.width = `${w}px`;
-      floatingWindow.style.height = `${h}px`;
+      floatingWindow.style.width = `${clampedW}px`;
+      floatingWindow.style.height = `${clampedH}px`;
       const rect = floatingWindow.getBoundingClientRect();
       setWindowPosition(rect.left, rect.top);
     }
     if (window.AndroidNative && window.AndroidNative.setOverlayWindowSize) {
-      window.AndroidNative.setOverlayWindowSize(w, h);
+      window.AndroidNative.setOverlayWindowSize(clampedW, clampedH);
     }
     updateSizeButtonStates(activeBtn);
   }
 
   if (sizeCompactBtn) {
-    sizeCompactBtn.addEventListener('click', () => setWindowDimensions(320, 210, sizeCompactBtn));
+    sizeCompactBtn.addEventListener('click', () => setWindowDimensions(280, 190, sizeCompactBtn));
   }
   if (sizeDefaultBtn) {
-    sizeDefaultBtn.addEventListener('click', () => setWindowDimensions(380, 260, sizeDefaultBtn));
+    sizeDefaultBtn.addEventListener('click', () => setWindowDimensions(330, 230, sizeDefaultBtn));
   }
   if (sizeLargeBtn) {
-    sizeLargeBtn.addEventListener('click', () => setWindowDimensions(460, 300, sizeLargeBtn));
+    sizeLargeBtn.addEventListener('click', () => setWindowDimensions(380, 260, sizeLargeBtn));
   }
 
   function updateSizeButtonStates(activeBtn) {
