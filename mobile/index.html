@@ -121,6 +121,31 @@
         </button>
       </div>
 
+      <!-- TEST LIVE NOTIFICATIONS -->
+      <div class="control-card space-y-2.5 bg-zinc-950 border border-zinc-800" id="testAlertsCard">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">TEST LIVE NOTIFICATIONS</span>
+          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-400">SIMULATE</span>
+        </div>
+        <div class="text-[11px] font-mono text-zinc-400 leading-snug">
+          Tap to test follow or gift alerts with audio chime, vibration, and chat badge:
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="py-2.5 px-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1.5" id="controlTestFollowBtn">
+            <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span>TEST FOLLOW</span>
+          </button>
+          <button class="py-2.5 px-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1.5" id="controlTestGiftBtn">
+            <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+            </svg>
+            <span>TEST GIFT</span>
+          </button>
+        </div>
+      </div>
+
       <!-- APP CONTROLS -->
       <div>
         <button class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-xl text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer font-mono text-xs font-bold uppercase tracking-wider transition-all" id="closeAppBtn">
@@ -312,6 +337,28 @@
               </div>
             </div>
 
+            <!-- Test Live Alerts Section -->
+            <div class="pt-2 border-t border-zinc-800 space-y-1.5">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-zinc-400 uppercase text-[11px]">Test Alerts</span>
+                <span class="text-zinc-500 text-[9px]">SIMULATE</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button class="py-1.5 px-2 text-[10px] font-mono font-bold rounded bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1" id="testFollowAlertBtn">
+                  <svg class="w-3 h-3 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                  <span>TEST FOLLOW</span>
+                </button>
+                <button class="py-1.5 px-2 text-[10px] font-mono font-bold rounded bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1" id="testGiftAlertBtn">
+                  <svg class="w-3 h-3 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                  </svg>
+                  <span>TEST GIFT</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Native Floating Overlay Action -->
             <div class="pt-2 border-t border-zinc-800 space-y-1.5">
               <button class="w-full py-1.5 px-3 text-xs font-mono font-bold rounded bg-white text-black cursor-pointer flex items-center justify-center space-x-1.5" id="nativeOverlayBtn">
@@ -413,14 +460,14 @@
         </div>
 
         <!-- PROMINENT LIVE FOLLOWER ALERT BANNER (Drops down when someone follows) -->
-        <div class="follow-alert-banner hidden px-2.5 py-1 bg-zinc-900/95 text-white border-b border-zinc-700 font-mono flex items-center justify-between select-none" id="followAlertBanner">
+        <div class="follow-alert-banner hidden px-2.5 py-1.5 bg-white text-black border-b-2 border-black font-mono flex items-center justify-between select-none shadow-xl transition-all" id="followAlertBanner">
           <div class="flex items-center space-x-1.5 truncate">
-            <svg class="w-3 h-3 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            <svg class="w-3.5 h-3.5 text-black shrink-0 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
-            <span class="text-[9px] font-extrabold uppercase tracking-wide truncate" id="followAlertText">NEW FOLLOWER: @user followed!</span>
+            <span class="text-[10px] font-extrabold uppercase tracking-wide truncate text-black" id="followAlertText">NEW FOLLOWER: @user followed!</span>
           </div>
-          <span class="text-[8px] font-extrabold px-1 py-0.2 bg-white text-black rounded font-mono shrink-0">FOLLOWER</span>
+          <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 bg-black text-white rounded font-mono shrink-0 ml-1">FOLLOWER</span>
         </div>
 
         <!-- CHAT MESSAGES SCROLLABLE CONTAINER (MAXIMIZED DENSITY & VERTICAL HEIGHT) -->

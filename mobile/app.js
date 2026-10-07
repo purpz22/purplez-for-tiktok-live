@@ -670,10 +670,32 @@
         handleIncomingRealGift(data);
       });
 
+      // Real live follower listener
+      liveSocket.on('tiktok_follow', (data) => {
+        handleIncomingRealFollow(data);
+      });
+
+      // Real live member events with follow action
+      liveSocket.on('tiktok_member', (data) => {
+        if (!data) return;
+        const isFollowDisplay = typeof data.displayType === 'string' && data.displayType.toLowerCase().includes('follow');
+        if (data.action === 3 || data.displayType === 'follow' || isFollowDisplay || data.action === 'follow' || data.isFollower) {
+          handleIncomingRealFollow(data);
+        }
+      });
+
     } catch (err) {
       console.error('[Bridge] Failed to initialize socket connection:', err);
       updateBridgeUI('ERROR', 'text-zinc-500');
     }
+  }
+
+  function handleIncomingRealFollow(data) {
+    if (!data) return;
+    const user = data.nickname || data.uniqueId || data.user || 'Viewer';
+    const cleanUser = String(user).trim().replace(/^@+/, '');
+    const avatarUrl = data.profilePictureUrl || data.avatarUrl || data.avatar || '';
+    triggerFollowAlert(cleanUser, data.nickname || cleanUser, avatarUrl);
   }
 
   function handleIncomingRealChat(data) {
@@ -1364,6 +1386,47 @@
     });
   }
 
+  // Live Alerts Test Triggers (Simulate Follower & Gift Notifications)
+  const testFollowAlertBtn = document.getElementById('testFollowAlertBtn');
+  const testGiftAlertBtn = document.getElementById('testGiftAlertBtn');
+  const controlTestFollowBtn = document.getElementById('controlTestFollowBtn');
+  const controlTestGiftBtn = document.getElementById('controlTestGiftBtn');
+
+  function triggerTestFollow() {
+    const testNames = ['SuperFan_99', 'TikTok_Explorer', 'Purplez_VIP', 'StarGazer', 'GamerPro_PH'];
+    const randomUser = testNames[Math.floor(Math.random() * testNames.length)];
+    if (window.AndroidNative && typeof window.AndroidNative.simulateFollowAlert === 'function') {
+      window.AndroidNative.simulateFollowAlert(randomUser);
+    } else {
+      triggerFollowAlert(randomUser, randomUser, '');
+    }
+  }
+
+  function triggerTestGift() {
+    const testGifts = [
+      { name: 'Rose', count: 1, coins: 1 },
+      { name: 'Heart Me', count: 5, coins: 5 },
+      { name: 'Doughnut', count: 1, coins: 30 },
+      { name: 'TikTok Corgi', count: 1, coins: 299 },
+      { name: 'Lion', count: 1, coins: 29999 }
+    ];
+    const testUsers = ['LegendaryGifter', 'DragonKing', 'QueenBee', 'Whale_Supporter'];
+    const randomGift = testGifts[Math.floor(Math.random() * testGifts.length)];
+    const randomUser = testUsers[Math.floor(Math.random() * testUsers.length)];
+    handleIncomingRealGift({
+      nickname: randomUser,
+      uniqueId: randomUser.toLowerCase(),
+      giftName: randomGift.name,
+      repeatCount: randomGift.count,
+      diamondCount: Math.round(randomGift.coins / randomGift.count)
+    });
+  }
+
+  if (testFollowAlertBtn) testFollowAlertBtn.addEventListener('click', triggerTestFollow);
+  if (controlTestFollowBtn) controlTestFollowBtn.addEventListener('click', triggerTestFollow);
+  if (testGiftAlertBtn) testGiftAlertBtn.addEventListener('click', triggerTestGift);
+  if (controlTestGiftBtn) controlTestGiftBtn.addEventListener('click', triggerTestGift);
+
   // ==========================================
   // DRAGGABLE WINDOW SYSTEM WITH BOUNDS CLAMPING
   // ==========================================
@@ -1588,15 +1651,23 @@
         </div>
       `;
     } else {
+      const isFollower = (msg.badge === 'FOLLOWER');
+      if (isFollower && !isHighlighted) {
+        row.className = 'chat-row cursor-pointer rounded-lg p-1.5 border transition-all duration-150 select-text bg-zinc-900 border-zinc-600 shadow-sm';
+      }
       row.innerHTML = `
         <div class="flex items-center justify-between gap-1 leading-tight">
           <div class="flex items-center space-x-1.5 min-w-0">
-            <span class="badge px-1 py-0.2 rounded text-[8px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700 shrink-0">${msg.badge}</span>
-            <span class="font-bold text-[9.5px] text-zinc-400 truncate">${msg.user}</span>
+            <span class="badge px-1 py-0.2 rounded text-[8px] font-mono font-bold shrink-0 ${
+              isFollower
+                ? 'bg-white text-black border border-white font-extrabold'
+                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+            }">${msg.badge}</span>
+            <span class="font-bold text-[9.5px] ${isFollower ? 'text-white' : 'text-zinc-400'} truncate">${msg.user}</span>
           </div>
           <span class="text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
         </div>
-        <div class="text-[10px] leading-tight text-zinc-400 pl-0.5 break-words mt-0.5">
+        <div class="text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : 'text-zinc-400'} pl-0.5 break-words mt-0.5">
           ${msg.text}
         </div>
       `;
@@ -1858,24 +1929,83 @@
   const followAlertBanner = document.getElementById('followAlertBanner');
   const followAlertText = document.getElementById('followAlertText');
 
+  function playFollowChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!window._followAudioCtx) {
+        window._followAudioCtx = new AudioCtx();
+      }
+      const ctx = window._followAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      // High-register crystal ascending chime
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, now); // A5
+      osc1.frequency.exponentialRampToValueAtTime(1318.51, now + 0.12); // E6
+      gain1.gain.setValueAtTime(0.35, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.5);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(1760, now + 0.1); // A6
+      gain2.gain.setValueAtTime(0.25, now + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.1);
+      osc2.stop(now + 0.6);
+    } catch (_) {}
+  }
+
   function triggerFollowAlert(followerName, nickname, avatarUrl) {
-    if (!followAlertBanner || !followAlertText) return;
+    const cleanUser = (followerName || nickname || 'Viewer').replace(/^@+/, '').trim();
+    if (!cleanUser) return;
 
-    const cleanUser = (followerName || 'Viewer').replace(/^@+/, '');
-    followAlertText.textContent = `NEW FOLLOWER: @${cleanUser} just followed!`;
-    followAlertBanner.classList.remove('hidden');
+    // 1. Play crystal audio chime
+    playFollowChime();
 
-    if (window.AndroidNative && typeof window.AndroidNative.triggerHapticFeedback === 'function') {
-      window.AndroidNative.triggerHapticFeedback(80);
+    // 2. Physical haptic vibration
+    if (window.AndroidNative) {
+      if (typeof window.AndroidNative.triggerHapticFeedback === 'function') {
+        window.AndroidNative.triggerHapticFeedback(120);
+      } else if (typeof window.AndroidNative.vibrate === 'function') {
+        window.AndroidNative.vibrate(120);
+      }
     }
 
-    clearTimeout(window.followAlertTimer);
-    window.followAlertTimer = setTimeout(() => {
-      followAlertBanner.classList.add('hidden');
-    }, 4500);
+    // 3. Dropdown alert banner
+    if (followAlertBanner && followAlertText) {
+      followAlertText.textContent = `NEW FOLLOWER: @${cleanUser} just followed!`;
+      followAlertBanner.classList.remove('hidden');
+      clearTimeout(window.followAlertTimer);
+      window.followAlertTimer = setTimeout(() => {
+        followAlertBanner.classList.add('hidden');
+      }, 5000);
+    }
 
-    // Update mini-ticker for landscape/minimized HUD
-    if (window.AndroidNative && window.AndroidNative.updateLatestChat) {
+    // 4. Floating Toast Notification
+    showToast(`NEW FOLLOWER: @${cleanUser}`);
+
+    // 5. Insert directly into live chat stream if not already added
+    const isAlreadyInChat = regularChats.some(
+      m => m.badge === 'FOLLOWER' && m.user.toLowerCase() === cleanUser.toLowerCase() && (Date.now() - (m._addedAt || 0) < 5000)
+    );
+    if (!isAlreadyInChat && typeof window.addChatMessage === 'function') {
+      window.addChatMessage(cleanUser, 'FOLLOWER', 'Started following the streamer!', false, null, 0);
+    }
+
+    // 6. Update mini-ticker for landscape/minimized HUD
+    if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
       window.AndroidNative.updateLatestChat(cleanUser, 'Started following the streamer!', 'FOLLOWER', new Date().toLocaleTimeString(), false);
     }
   }
@@ -2040,7 +2170,8 @@
       coins: msgCoins,
       isGifter: isGifter || msgCoins > 0 || !!gift,
       isSuperGifter: msgCoins >= 10000,
-      time: timestamp
+      time: timestamp,
+      _addedAt: Date.now()
     };
 
     // Every stream comment is visible in ALL VIEWERS tab
