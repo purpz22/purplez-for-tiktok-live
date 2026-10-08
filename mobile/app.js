@@ -2657,21 +2657,66 @@
   }
 
   function setupAuthEventListeners() {
+    const deviceTrialWarningBanner = document.getElementById('deviceTrialWarningBanner');
+    const deviceTrialConfirmModal = document.getElementById('deviceTrialConfirmModal');
+    const proceedWithoutTrialBtn = document.getElementById('proceedWithoutTrialBtn');
+    const switchSignInBtn = document.getElementById('switchSignInBtn');
+    const cancelTrialModalBtn = document.getElementById('cancelTrialModalBtn');
+    let trialWarningConfirmed = false;
+
+    const updateTrialBanner = () => {
+      const isUsed = window.PurplezAuth && window.PurplezAuth.isDeviceTrialUsed();
+      if (deviceTrialWarningBanner) {
+        if (isUsed && currentAuthMode === 'signup') deviceTrialWarningBanner.classList.remove('hidden');
+        else deviceTrialWarningBanner.classList.add('hidden');
+      }
+    };
+
     if (tabSignIn && tabSignUp) {
       tabSignIn.addEventListener('click', () => {
         currentAuthMode = 'signin';
+        trialWarningConfirmed = false;
         tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
         tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
         if (authSubmitBtn) authSubmitBtn.textContent = 'SIGN IN WITH GMAIL';
         if (authErrorText) authErrorText.classList.add('hidden');
+        if (deviceTrialWarningBanner) deviceTrialWarningBanner.classList.add('hidden');
       });
 
       tabSignUp.addEventListener('click', () => {
         currentAuthMode = 'signup';
+        trialWarningConfirmed = false;
         tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
         tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
         if (authSubmitBtn) authSubmitBtn.textContent = 'CREATE GMAIL ACCOUNT';
         if (authErrorText) authErrorText.classList.add('hidden');
+        updateTrialBanner();
+        if (window.PurplezAuth && typeof window.PurplezAuth.checkDeviceTrialStatus === 'function') {
+          window.PurplezAuth.checkDeviceTrialStatus().then(updateTrialBanner).catch(() => {});
+        }
+      });
+    }
+
+    if (proceedWithoutTrialBtn) {
+      proceedWithoutTrialBtn.addEventListener('click', () => {
+        trialWarningConfirmed = true;
+        if (deviceTrialConfirmModal) deviceTrialConfirmModal.classList.add('hidden');
+        if (authSubmitBtn) authSubmitBtn.click();
+      });
+    }
+
+    if (switchSignInBtn) {
+      switchSignInBtn.addEventListener('click', () => {
+        trialWarningConfirmed = false;
+        if (deviceTrialConfirmModal) deviceTrialConfirmModal.classList.add('hidden');
+        if (tabSignIn) tabSignIn.click();
+      });
+    }
+
+    if (cancelTrialModalBtn) {
+      cancelTrialModalBtn.addEventListener('click', () => {
+        trialWarningConfirmed = false;
+        if (deviceTrialConfirmModal) deviceTrialConfirmModal.classList.add('hidden');
       });
     }
 
@@ -2761,6 +2806,15 @@
           return;
         }
 
+        // Intercept registration if device trial was already consumed and user has not confirmed modal
+        if (currentAuthMode === 'signup') {
+          const isTrialUsed = window.PurplezAuth && window.PurplezAuth.isDeviceTrialUsed();
+          if (isTrialUsed && !trialWarningConfirmed) {
+            if (deviceTrialConfirmModal) deviceTrialConfirmModal.classList.remove('hidden');
+            return;
+          }
+        }
+
         authSubmitBtn.disabled = true;
         authSubmitBtn.textContent = 'CONNECTING...';
 
@@ -2768,8 +2822,11 @@
           let status;
           if (currentAuthMode === 'signup') {
             status = await window.PurplezAuth.register(email, pass);
+            trialWarningConfirmed = false;
             if (status.status === 'unverified') {
               showToast('Account created! Verification link sent to ' + email);
+            } else if (status.status === 'expired') {
+              showToast('Account created. Device trial previously consumed (0 days). Upgrade to PRO.');
             } else {
               showToast('Account created! 48h Free Trial activated.');
             }
@@ -2779,6 +2836,7 @@
           }
           updateAuthUI(status);
         } catch (err) {
+          trialWarningConfirmed = false;
           if (authErrorText) {
             authErrorText.textContent = err.message || 'Authentication failed.';
             authErrorText.classList.remove('hidden');

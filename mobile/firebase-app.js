@@ -312,6 +312,21 @@
   const PurplezAuth = {
     isValidGmail: isValidGmail,
     getDeviceId: getDeviceId,
+    isDeviceTrialUsed: isDeviceTrialUsed,
+    markDeviceTrialUsed: markDeviceTrialUsed,
+
+    checkDeviceTrialStatus: async function() {
+      const devId = getDeviceId();
+      if (!devId) return isDeviceTrialUsed();
+      try {
+        const res = await fetchWithServerFallback(`/api/auth/device-status?deviceId=${encodeURIComponent(devId)}`);
+        if (res && res.trialUsed) {
+          markDeviceTrialUsed();
+          return true;
+        }
+      } catch (_) {}
+      return isDeviceTrialUsed();
+    },
 
     getCurrentStatus: function() {
       const session = getStoredSession();
@@ -384,6 +399,7 @@
       }
 
       // Mark that this hardware device has created an account
+      const trialAlreadyUsed = isDeviceTrialUsed();
       markDeviceTrialUsed();
 
       // 2. Sync with Studio Backend
@@ -404,16 +420,20 @@
         if (idToken) studioRes.user.idToken = idToken;
         if (refreshToken) studioRes.user.refreshToken = refreshToken;
         studioRes.user.emailVerified = (studioRes.user.emailVerified === true);
-        if (!studioRes.user.emailVerified && studioRes.user.role !== 'admin') {
+        if (trialAlreadyUsed && studioRes.user.role !== 'admin' && studioRes.user.status !== 'pro') {
+          studioRes.user.status = 'expired';
+          studioRes.user.plan = 'none';
+          studioRes.user.trialHours = 0;
+          studioRes.user.trialExpiresAt = Date.now();
+        } else if (!studioRes.user.emailVerified && studioRes.user.role !== 'admin') {
           studioRes.user.status = 'unverified';
         }
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
 
-      // 3. Fallback Local Session (defaults to unverified until email confirmation)
+      // 3. Fallback Local Session (defaults to expired if trial used, or unverified)
       const now = Date.now();
-      const trialAlreadyUsed = isDeviceTrialUsed();
       const trialDuration = trialAlreadyUsed ? 0 : 48 * 3600 * 1000;
       const localUser = {
         uid: firebaseUid || ('usr_local_' + Math.random().toString(36).substring(2, 8)),
@@ -547,15 +567,17 @@
       // If Firebase login succeeded but local didn't exist yet, create active trial session
       if (firebaseUid) {
         const now = Date.now();
+        const trialAlreadyUsed = isDeviceTrialUsed();
+        markDeviceTrialUsed();
         const authedUser = {
           uid: firebaseUid,
           email: cleanEmail,
           displayName: cleanEmail.split('@')[0],
           role: 'user',
-          status: isEmailVerified ? 'trial' : 'unverified',
-          plan: isEmailVerified ? 'trial' : 'none',
-          trialHours: isEmailVerified ? 48 : 0,
-          trialExpiresAt: isEmailVerified ? now + (48 * 3600 * 1000) : now,
+          status: trialAlreadyUsed ? 'expired' : (isEmailVerified ? 'trial' : 'unverified'),
+          plan: trialAlreadyUsed ? 'none' : (isEmailVerified ? 'trial' : 'none'),
+          trialHours: trialAlreadyUsed ? 0 : (isEmailVerified ? 48 : 0),
+          trialExpiresAt: trialAlreadyUsed ? now : (isEmailVerified ? now + (48 * 3600 * 1000) : now),
           licenseExpiresAt: null,
           boundDeviceId: deviceId,
           emailVerified: isEmailVerified === true,
