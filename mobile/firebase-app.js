@@ -18,8 +18,36 @@
   function isValidGmail(email) {
     if (!email || typeof email !== 'string') return false;
     const clean = email.trim().toLowerCase();
-    const regex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|googlemail\.com)$/i;
-    return regex.test(clean);
+    const match = clean.match(/^([a-z0-9.]+)@(gmail\.com|googlemail\.com)$/);
+    if (!match) return false;
+    const username = match[1];
+    if (username.length < 6 || username.length > 30) return false;
+    if (username.startsWith('.') || username.endsWith('.') || username.includes('..')) return false;
+    // Real Gmail username must have at least one vowel or number
+    if (!/[aeiouy0-9]/.test(username) && username.length >= 5) return false;
+    // Reject 4+ consecutive identical characters (e.g. aaaaa)
+    if (/(.)\1{3,}/.test(username)) return false;
+    return true;
+  }
+
+  function isDeviceTrialUsed() {
+    if (window.AndroidNative && typeof window.AndroidNative.isDeviceTrialUsed === 'function') {
+      try {
+        return window.AndroidNative.isDeviceTrialUsed();
+      } catch (_) {}
+    }
+    return localStorage.getItem('purplez_device_trial_used') === 'true';
+  }
+
+  function markDeviceTrialUsed() {
+    try {
+      localStorage.setItem('purplez_device_trial_used', 'true');
+    } catch (_) {}
+    if (window.AndroidNative && typeof window.AndroidNative.markDeviceTrialUsed === 'function') {
+      try {
+        window.AndroidNative.markDeviceTrialUsed();
+      } catch (_) {}
+    }
   }
 
   function getDeviceId() {
@@ -103,6 +131,10 @@
       isAccessAllowed = true;
       badgeText = 'ADMIN';
       remainingTimeText = 'Permanent';
+    } else if (session.emailVerified === false) {
+      isAccessAllowed = false;
+      badgeText = 'UNVERIFIED';
+      remainingTimeText = 'Verify Email';
     } else if (session.status === 'suspended') {
       isAccessAllowed = false;
       badgeText = 'SUSPENDED';
@@ -146,9 +178,10 @@
       email: session.email,
       displayName: session.displayName || session.email.split('@')[0],
       role: session.role || 'user',
-      status: session.status === 'suspended' ? 'suspended' : (isAccessAllowed ? (session.status || 'trial') : 'expired'),
+      status: session.status === 'suspended' ? 'suspended' : ((session.emailVerified === false && session.role !== 'admin') ? 'unverified' : (isAccessAllowed ? (session.status || 'trial') : 'expired')),
       plan: session.plan || 'none',
       isAccessAllowed: isAccessAllowed,
+      emailVerified: session.emailVerified !== false,
       badgeText: badgeText,
       remainingTimeText: remainingTimeText,
       trialExpiresAt: session.trialExpiresAt,
@@ -266,6 +299,7 @@
       const deviceId = getDeviceId();
       let firebaseUid = null;
       let idToken = null;
+      let refreshToken = null;
 
       // 1. Direct Google Firebase Identity Signup
       try {
@@ -279,6 +313,20 @@
         if (fbRes.ok && fbData.localId) {
           firebaseUid = fbData.localId;
           idToken = fbData.idToken;
+          refreshToken = fbData.refreshToken;
+
+          // Send verification email to user's real Gmail inbox
+          try {
+            const oobUrl = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+            await fetch(oobUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                requestType: 'VERIFY_EMAIL',
+                idToken: idToken
+              })
+            });
+          } catch (_) {}
 
           // Update Firebase profile with device id
           try {
@@ -304,6 +352,9 @@
         console.warn('[PurplezAuth] Firebase direct signup skipped:', fbErr.message);
       }
 
+      // Mark that this hardware device has created an account
+      markDeviceTrialUsed();
+
       // 2. Sync with Studio Backend
       const studioRes = await fetchWithServerFallback('/api/auth/register', {
         method: 'POST',
@@ -320,24 +371,30 @@
       if (studioRes && studioRes.user) {
         if (!studioRes.user.boundDeviceId) studioRes.user.boundDeviceId = deviceId;
         if (idToken) studioRes.user.idToken = idToken;
+        if (refreshToken) studioRes.user.refreshToken = refreshToken;
+        studioRes.user.emailVerified = (studioRes.user.emailVerified === true);
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
 
-      // 3. Fallback Local Session
+      // 3. Fallback Local Session (defaults to unverified until email confirmation)
       const now = Date.now();
+      const trialAlreadyUsed = isDeviceTrialUsed();
+      const trialDuration = trialAlreadyUsed ? 0 : 48 * 3600 * 1000;
       const localUser = {
         uid: firebaseUid || ('usr_local_' + Math.random().toString(36).substring(2, 8)),
         email: cleanEmail,
         displayName: displayName || cleanEmail.split('@')[0],
         role: 'user',
-        status: 'trial',
-        plan: 'trial',
-        trialHours: 48,
-        trialExpiresAt: now + (48 * 3600 * 1000),
+        status: trialAlreadyUsed ? 'expired' : 'unverified',
+        plan: trialAlreadyUsed ? 'none' : 'trial',
+        emailVerified: false,
+        trialHours: trialAlreadyUsed ? 0 : 48,
+        trialExpiresAt: now + trialDuration,
         licenseExpiresAt: null,
         boundDeviceId: deviceId,
         idToken: idToken,
+        refreshToken: refreshToken,
         createdAt: now
       };
       saveStoredSession(localUser);
@@ -356,6 +413,8 @@
       const deviceId = getDeviceId();
       let firebaseUid = null;
       let idToken = null;
+      let refreshToken = null;
+      let isEmailVerified = null;
 
       // 1. Direct Google Firebase Identity Login
       try {
@@ -369,6 +428,24 @@
         if (fbRes.ok && fbData.localId) {
           firebaseUid = fbData.localId;
           idToken = fbData.idToken;
+          refreshToken = fbData.refreshToken;
+
+          // Check if email is verified via accounts:lookup
+          try {
+            const lookupUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+            const lkRes = await fetch(lookupUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idToken: idToken })
+            });
+            if (lkRes.ok) {
+              const lkData = await lkRes.json();
+              const u = lkData.users?.[0];
+              if (u && u.emailVerified !== undefined) {
+                isEmailVerified = !!u.emailVerified;
+              }
+            }
+          } catch (_) {}
 
           // Update Firebase profile with device id
           try {
@@ -410,6 +487,8 @@
       if (studioRes && studioRes.user) {
         if (!studioRes.user.boundDeviceId) studioRes.user.boundDeviceId = deviceId;
         if (idToken) studioRes.user.idToken = idToken;
+        if (refreshToken) studioRes.user.refreshToken = refreshToken;
+        if (isEmailVerified !== null) studioRes.user.emailVerified = isEmailVerified;
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
@@ -419,6 +498,8 @@
       if (stored && stored.email.toLowerCase() === cleanEmail) {
         stored.boundDeviceId = deviceId;
         if (idToken) stored.idToken = idToken;
+        if (refreshToken) stored.refreshToken = refreshToken;
+        if (isEmailVerified !== null) stored.emailVerified = isEmailVerified;
         saveStoredSession(stored);
         return computeStatusFromSession(stored);
       }
@@ -473,6 +554,31 @@
       };
     },
 
+    resendVerificationEmail: async function() {
+      const stored = getStoredSession();
+      if (!stored || !stored.email) {
+        throw new Error('No active account session found.');
+      }
+      if (stored.idToken) {
+        const fbUrl = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+        const res = await fetch(fbUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestType: 'VERIFY_EMAIL', idToken: stored.idToken })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || 'Failed to send verification email.');
+        }
+        return {
+          success: true,
+          email: stored.email,
+          message: 'Verification link sent to ' + stored.email + '. Check your inbox and spam folder.'
+        };
+      }
+      throw new Error('Please sign in again to send verification email.');
+    },
+
     refreshStatus: async function() {
       const stored = getStoredSession();
       if (!stored || !stored.email) {
@@ -483,7 +589,11 @@
 
       // 1. Check local Studio server first
       const remoteStatus = await fetchWithServerFallback(`/api/auth/status?email=${encodeURIComponent(stored.email)}&deviceId=${encodeURIComponent(deviceId)}`);
-      if (remoteStatus && remoteStatus.authenticated) {
+      if (remoteStatus) {
+        if (!remoteStatus.authenticated || remoteStatus.status === 'unregistered') {
+          clearStoredSession();
+          return computeStatusFromSession(null);
+        }
         stored.status = remoteStatus.status;
         stored.plan = remoteStatus.plan;
         stored.role = remoteStatus.role;
@@ -491,6 +601,9 @@
         stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
         stored.boundDeviceId = remoteStatus.boundDeviceId || deviceId;
         stored.isAccessAllowed = remoteStatus.isAccessAllowed;
+        if (remoteStatus.emailVerified !== undefined) {
+          stored.emailVerified = !!remoteStatus.emailVerified;
+        }
         saveStoredSession(stored);
         return computeStatusFromSession(stored);
       }
@@ -499,7 +612,7 @@
       if (stored.idToken) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2000);
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
           const fbRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -510,11 +623,25 @@
           if (fbRes.ok) {
             const fbData = await fbRes.json();
             const fbUser = fbData.users?.[0];
-            if (fbUser && fbUser.disabled) {
+            if (!fbUser) {
+              clearStoredSession();
+              return computeStatusFromSession(null);
+            }
+            if (fbUser.disabled) {
               stored.status = 'suspended';
               stored.isAccessAllowed = false;
               saveStoredSession(stored);
               return computeStatusFromSession(stored);
+            }
+            if (fbUser.emailVerified !== undefined) {
+              stored.emailVerified = !!fbUser.emailVerified;
+            }
+          } else {
+            const errData = await fbRes.json().catch(() => ({}));
+            const errCode = errData?.error?.message;
+            if (errCode === 'USER_NOT_FOUND' || errCode === 'TOKEN_EXPIRED') {
+              clearStoredSession();
+              return computeStatusFromSession(null);
             }
           }
         } catch (_) {}
@@ -531,18 +658,21 @@
     },
 
     applyRemoteStatus: function(remoteStatus) {
+      if (!remoteStatus || remoteStatus.authenticated === false || remoteStatus.status === 'unregistered') {
+        clearStoredSession();
+        return computeStatusFromSession(null);
+      }
       const stored = getStoredSession();
       if (!stored || !stored.email) return computeStatusFromSession(null);
-      if (remoteStatus) {
-        if (remoteStatus.status !== undefined) stored.status = remoteStatus.status;
-        if (remoteStatus.plan !== undefined) stored.plan = remoteStatus.plan;
-        if (remoteStatus.role !== undefined) stored.role = remoteStatus.role;
-        if (remoteStatus.trialExpiresAt !== undefined) stored.trialExpiresAt = remoteStatus.trialExpiresAt;
-        if (remoteStatus.licenseExpiresAt !== undefined) stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
-        if (remoteStatus.boundDeviceId !== undefined) stored.boundDeviceId = remoteStatus.boundDeviceId;
-        if (remoteStatus.isAccessAllowed !== undefined) stored.isAccessAllowed = remoteStatus.isAccessAllowed;
-        saveStoredSession(stored);
-      }
+      if (remoteStatus.status !== undefined) stored.status = remoteStatus.status;
+      if (remoteStatus.plan !== undefined) stored.plan = remoteStatus.plan;
+      if (remoteStatus.role !== undefined) stored.role = remoteStatus.role;
+      if (remoteStatus.trialExpiresAt !== undefined) stored.trialExpiresAt = remoteStatus.trialExpiresAt;
+      if (remoteStatus.licenseExpiresAt !== undefined) stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
+      if (remoteStatus.boundDeviceId !== undefined) stored.boundDeviceId = remoteStatus.boundDeviceId;
+      if (remoteStatus.isAccessAllowed !== undefined) stored.isAccessAllowed = remoteStatus.isAccessAllowed;
+      if (remoteStatus.emailVerified !== undefined) stored.emailVerified = !!remoteStatus.emailVerified;
+      saveStoredSession(stored);
       return computeStatusFromSession(stored);
     },
 

@@ -684,9 +684,15 @@
         <div class="text-zinc-300">3. Admin activates Weekly or Monthly access instantly!</div>
       </div>
 
-      <div class="flex space-x-2">
-        <button class="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-xs uppercase rounded-xl transition-all cursor-pointer" id="paywallSyncBtn">
+      <div class="flex flex-col space-y-2">
+        <button class="w-full py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-xs uppercase rounded-xl transition-all cursor-pointer" id="paywallSyncBtn">
           CHECK ACCESS / SYNC
+        </button>
+        <button class="w-full py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold text-xs uppercase rounded-xl transition-all cursor-pointer hidden" id="paywallResendEmailBtn">
+          RESEND VERIFICATION EMAIL
+        </button>
+        <button class="w-full py-2 bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white font-bold text-[11px] uppercase rounded-xl transition-all cursor-pointer" id="paywallSignOutBtn">
+          SIGN OUT / SWITCH ACCOUNT
         </button>
       </div>
     </div>

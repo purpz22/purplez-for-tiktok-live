@@ -628,11 +628,23 @@
         const current = window.PurplezAuth.getCurrentStatus();
         if (current && current.email && data.email && current.email.toLowerCase() === data.email.toLowerCase()) {
           console.log('[PurplezAuth] Real-time auth update received:', data);
+          if (data.type === 'delete' || data.status?.status === 'unregistered' || data.status?.authenticated === false) {
+            window.PurplezAuth.logout();
+            const reset = window.PurplezAuth.getCurrentStatus();
+            updateAuthUI(reset);
+            if (window.AndroidNative && typeof window.AndroidNative.stopFloatingOverlay === 'function') {
+              window.AndroidNative.stopFloatingOverlay();
+            }
+            showToast('Account was deleted by administrator');
+            return;
+          }
           if (data.status) {
             const updated = window.PurplezAuth.applyRemoteStatus(data.status);
             updateAuthUI(updated);
             if (updated.status === 'suspended') {
               showToast('Account suspended by administrator');
+            } else if (updated.status === 'unverified') {
+              showToast('Email verification required');
             } else if (updated.isAccessAllowed) {
               showToast(`Access updated: ${updated.badgeText} (${updated.remainingTimeText})`);
             }
@@ -2569,6 +2581,7 @@
       if (authRemainingTimeText) authRemainingTimeText.textContent = '';
       if (authStatusDot) authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-zinc-600';
       if (authModal && !isOverlayMode) authModal.classList.remove('hidden');
+      if (paywallModal) paywallModal.classList.add('hidden');
       return;
     }
 
@@ -2585,6 +2598,8 @@
         authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-blue-400';
       } else if (status.status === 'suspended') {
         authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse';
+      } else if (status.status === 'unverified') {
+        authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse';
       } else {
         authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-red-400';
       }
@@ -2592,23 +2607,39 @@
 
     // Update Details Modal
     if (accountDetailEmail) accountDetailEmail.textContent = status.email || '';
-    if (accountDetailPlan) accountDetailPlan.textContent = (status.status === 'suspended' ? 'SUSPENDED' : (status.plan || 'NONE')).toUpperCase();
+    if (accountDetailPlan) accountDetailPlan.textContent = (status.status === 'suspended' ? 'SUSPENDED' : (status.status === 'unverified' ? 'UNVERIFIED' : (status.plan || 'NONE'))).toUpperCase();
     if (accountDetailRemaining) {
-      accountDetailRemaining.textContent = status.status === 'suspended' ? 'Locked (Suspended)' : (status.remainingTimeText || 'Expired');
-      accountDetailRemaining.className = status.status === 'suspended' ? 'text-red-400 font-bold' : (status.isAccessAllowed ? 'text-blue-400 font-bold' : 'text-red-400 font-bold');
+      accountDetailRemaining.textContent = status.status === 'suspended' ? 'Locked (Suspended)' : (status.status === 'unverified' ? 'Verify Email' : (status.remainingTimeText || 'Expired'));
+      accountDetailRemaining.className = status.status === 'suspended' ? 'text-red-400 font-bold' : (status.status === 'unverified' ? 'text-amber-400 font-bold' : (status.isAccessAllowed ? 'text-blue-400 font-bold' : 'text-red-400 font-bold'));
     }
     if (accountDetailDevice) accountDetailDevice.textContent = status.boundDeviceId || 'This Device';
 
-    // Update Paywall Modal text based on suspended vs expired
+    // Update Paywall Modal text based on suspended vs unverified vs expired
     const paywallTitle = document.getElementById('paywallTitle');
     const paywallDesc = document.getElementById('paywallDesc');
+    const paywallResendEmailBtn = document.getElementById('paywallResendEmailBtn');
     if (paywallTitle) {
-      paywallTitle.textContent = status.status === 'suspended' ? 'ACCOUNT SUSPENDED' : 'ACCESS EXPIRED';
+      if (status.status === 'unverified') {
+        paywallTitle.textContent = 'EMAIL VERIFICATION REQUIRED';
+      } else {
+        paywallTitle.textContent = status.status === 'suspended' ? 'ACCOUNT SUSPENDED' : 'ACCESS EXPIRED';
+      }
     }
     if (paywallDesc) {
-      paywallDesc.textContent = status.status === 'suspended'
-        ? 'This account has been suspended by the administrator. Contact admin to appeal or restore access.'
-        : 'Your free trial or subscription has ended. Contact the admin to renew Weekly or Monthly access.';
+      if (status.status === 'suspended') {
+        paywallDesc.textContent = 'This account has been suspended by the administrator. Contact admin to appeal or restore access.';
+      } else if (status.status === 'unverified') {
+        paywallDesc.textContent = 'Please verify your Gmail address to activate your access. A verification link was sent to ' + (status.email || 'your Gmail inbox') + '. Check your inbox and spam folder, then tap CHECK ACCESS / SYNC.';
+      } else {
+        paywallDesc.textContent = 'Your free trial or subscription has ended. Contact the admin to renew Weekly or Monthly access.';
+      }
+    }
+    if (paywallResendEmailBtn) {
+      if (status.status === 'unverified') {
+        paywallResendEmailBtn.classList.remove('hidden');
+      } else {
+        paywallResendEmailBtn.classList.add('hidden');
+      }
     }
 
     // Show Paywall if access is not allowed
@@ -2737,7 +2768,11 @@
           let status;
           if (currentAuthMode === 'signup') {
             status = await window.PurplezAuth.register(email, pass);
-            showToast('Account created! 48h Free Trial activated.');
+            if (status.status === 'unverified') {
+              showToast('Account created! Verification link sent to ' + email);
+            } else {
+              showToast('Account created! 48h Free Trial activated.');
+            }
           } else {
             status = await window.PurplezAuth.login(email, pass);
             showToast('Signed in successfully.');
@@ -2824,6 +2859,8 @@
             updateAuthUI(status);
             if (status.isAccessAllowed) {
               showToast('Access renewed! Welcome back.');
+            } else if (status.status === 'unverified') {
+              showToast('Please click the verification link in your Gmail inbox first.');
             } else {
               showToast('Account is still expired. Contact admin to renew.');
             }
@@ -2831,6 +2868,37 @@
         } finally {
           paywallSyncBtn.disabled = false;
           paywallSyncBtn.textContent = 'CHECK ACCESS / SYNC';
+        }
+      });
+    }
+
+    const paywallResendEmailBtn = document.getElementById('paywallResendEmailBtn');
+    if (paywallResendEmailBtn) {
+      paywallResendEmailBtn.addEventListener('click', async () => {
+        paywallResendEmailBtn.disabled = true;
+        paywallResendEmailBtn.textContent = 'SENDING EMAIL...';
+        try {
+          if (window.PurplezAuth && typeof window.PurplezAuth.resendVerificationEmail === 'function') {
+            const res = await window.PurplezAuth.resendVerificationEmail();
+            showToast(res.message || 'Verification email resent! Check your inbox.');
+          }
+        } catch (err) {
+          showToast(err.message || 'Failed to resend email');
+        } finally {
+          paywallResendEmailBtn.disabled = false;
+          paywallResendEmailBtn.textContent = 'RESEND VERIFICATION EMAIL';
+        }
+      });
+    }
+
+    const paywallSignOutBtn = document.getElementById('paywallSignOutBtn');
+    if (paywallSignOutBtn) {
+      paywallSignOutBtn.addEventListener('click', () => {
+        if (window.PurplezAuth) {
+          window.PurplezAuth.logout();
+          if (paywallModal) paywallModal.classList.add('hidden');
+          updateAuthUI(window.PurplezAuth.getCurrentStatus());
+          showToast('Signed out');
         }
       });
     }
