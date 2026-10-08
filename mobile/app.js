@@ -2614,6 +2614,18 @@
     }
     if (accountDetailDevice) accountDetailDevice.textContent = status.boundDeviceId || 'This Device';
 
+    // Update Settings Tab Account Card
+    const settingsPlanBadge = document.getElementById('settingsPlanBadge');
+    const settingsAccountEmail = document.getElementById('settingsAccountEmail');
+    const settingsAccountRemaining = document.getElementById('settingsAccountRemaining');
+    if (settingsPlanBadge) {
+      settingsPlanBadge.textContent = (status.status === 'suspended' ? 'SUSPENDED' : (status.status === 'unverified' ? 'UNVERIFIED' : (status.badgeText || status.plan || 'NONE'))).toUpperCase();
+    }
+    if (settingsAccountEmail) settingsAccountEmail.textContent = status.email || 'Not signed in';
+    if (settingsAccountRemaining) {
+      settingsAccountRemaining.textContent = status.status === 'suspended' ? 'Suspended' : (status.status === 'unverified' ? 'Verify Email' : (status.remainingTimeText || 'Expired'));
+    }
+
     // Update Paywall Modal text based on suspended vs unverified vs expired
     const paywallTitle = document.getElementById('paywallTitle');
     const paywallDesc = document.getElementById('paywallDesc');
@@ -2678,7 +2690,7 @@
         trialWarningConfirmed = false;
         tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
         tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
-        if (authSubmitBtn) authSubmitBtn.textContent = 'SIGN IN WITH GMAIL';
+        if (authSubmitBtn) authSubmitBtn.textContent = 'SIGN IN';
         if (authErrorText) authErrorText.classList.add('hidden');
         if (deviceTrialWarningBanner) deviceTrialWarningBanner.classList.add('hidden');
       });
@@ -2688,7 +2700,7 @@
         trialWarningConfirmed = false;
         tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
         tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
-        if (authSubmitBtn) authSubmitBtn.textContent = 'CREATE GMAIL ACCOUNT';
+        if (authSubmitBtn) authSubmitBtn.textContent = 'CREATE ACCOUNT';
         if (authErrorText) authErrorText.classList.add('hidden');
         updateTrialBanner();
         if (window.PurplezAuth && typeof window.PurplezAuth.checkDeviceTrialStatus === 'function') {
@@ -3013,9 +3025,76 @@
     handleAppResumed();
   });
 
+  // Floating Bottom Navigation & Settings Handlers
+  function setupBottomNavigation() {
+    const navItems = document.querySelectorAll('.bottom-nav-item');
+    const views = {
+      navViewLive: document.getElementById('navViewLive'),
+      navViewAlerts: document.getElementById('navViewAlerts'),
+      navViewSettings: document.getElementById('navViewSettings')
+    };
+
+    navItems.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        if (!targetId || !views[targetId]) return;
+
+        navItems.forEach(b => {
+          b.classList.remove('active');
+          b.classList.add('text-zinc-400');
+        });
+        btn.classList.add('active');
+        btn.classList.remove('text-zinc-400');
+
+        Object.keys(views).forEach(vKey => {
+          if (views[vKey]) {
+            if (vKey === targetId) {
+              views[vKey].classList.remove('hidden');
+            } else {
+              views[vKey].classList.add('hidden');
+            }
+          }
+        });
+      });
+    });
+
+    const settingsSyncBtn = document.getElementById('settingsSyncBtn');
+    if (settingsSyncBtn) {
+      settingsSyncBtn.addEventListener('click', async () => {
+        const origText = settingsSyncBtn.textContent;
+        settingsSyncBtn.textContent = 'SYNCING...';
+        try {
+          if (window.PurplezAuth && typeof window.PurplezAuth.refreshStatus === 'function') {
+            const fresh = await window.PurplezAuth.refreshStatus();
+            updateAuthUI(fresh);
+            showToast('Account status synced');
+          }
+        } catch (e) {
+          showToast('Sync error: ' + (e.message || 'Failed'));
+        } finally {
+          settingsSyncBtn.textContent = origText;
+        }
+      });
+    }
+
+    const settingsSignOutBtn = document.getElementById('settingsSignOutBtn');
+    if (settingsSignOutBtn) {
+      settingsSignOutBtn.addEventListener('click', () => {
+        const signOutTarget = document.getElementById('signOutBtn');
+        if (signOutTarget) {
+          signOutTarget.click();
+        } else if (window.PurplezAuth && typeof window.PurplezAuth.logout === 'function') {
+          window.PurplezAuth.logout();
+          updateAuthUI(window.PurplezAuth.getCurrentStatus());
+        }
+      });
+    }
+  }
+
   // Initial Setup
   handleOrientationChange();
   renderChatMessages();
+  setupBottomNavigation();
   if (!isOverlayMode) {
     setWindowPosition(16, 48);
   }

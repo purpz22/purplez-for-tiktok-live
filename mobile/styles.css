@@ -791,3 +791,69 @@ body.overlay-mode #floatingChatWindow {
   }
 }
 
+/* Floating Pill Bottom Navigation Dock */
+#floatingBottomNav {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  background: rgba(10, 10, 14, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.bottom-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #a1a1aa;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.bottom-nav-item:hover {
+  color: #ffffff;
+}
+
+.bottom-nav-item.active {
+  color: #000000 !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(255, 255, 255, 0.25);
+}
+
+.bottom-nav-item.active svg {
+  color: #000000 !important;
+}
+
+/* Hide floating nav when overlay mode is active */
+body.overlay-mode #floatingBottomNav {
+  display: none !important;
+}
+
+@media (orientation: landscape) {
+  #floatingBottomNav {
+    bottom: 0.5rem;
+    padding: 0.25rem 0.35rem;
+  }
+  .bottom-nav-item {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.65rem;
+  }
+}
+

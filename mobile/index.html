@@ -41,7 +41,6 @@
               <h1 class="text-base font-bold font-mono tracking-wider uppercase text-white truncate">PurplezChat</h1>
               <span class="bg-white text-black text-[9px] font-extrabold px-1.5 py-0.2 rounded font-mono shrink-0">LIVE STUDIO</span>
             </div>
-            <p class="text-xs text-zinc-400 font-mono truncate">Floating Live Chat HUD</p>
           </div>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0">
@@ -54,223 +53,227 @@
         </div>
       </div>
 
-      <!-- DIRECT TIKTOK LIVE CONNECTOR (STANDALONE - NO PC REQUIRED) -->
-      <div class="control-card space-y-2.5 border-2 border-white bg-zinc-950">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">TIKTOK LIVE CONNECTOR (IN-APP)</span>
-          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300" id="currentAccountTag">NOT SET</span>
-        </div>
+      <!-- TAB 1: LIVE (Connect & Launch Floating Overlay) -->
+      <div id="navViewLive" class="space-y-4">
+        <!-- DIRECT TIKTOK LIVE CONNECTOR -->
+        <div class="control-card space-y-3 border-2 border-white bg-zinc-950">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">TIKTOK LIVE CONNECTOR</span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300" id="currentAccountTag">NOT SET</span>
+          </div>
 
-        <!-- TikTok Username Field -->
-        <div class="space-y-1">
-          <label class="text-[10px] font-mono text-zinc-400 uppercase">TIKTOK USERNAME (@)</label>
+          <!-- TikTok Username Field -->
           <div class="relative">
             <span class="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">@</span>
             <input type="text" id="streamerUsernameInput" placeholder="your_tiktok_username" class="w-full bg-black border border-zinc-700 rounded-xl pl-8 pr-3 py-2 text-sm text-white font-mono focus:border-white focus:outline-none" />
           </div>
-        </div>
 
-        <!-- Connect Action with Animated Loading Spinner -->
-        <div class="pt-1 flex items-center space-x-2">
-          <button class="control-btn-primary flex-1 py-2.5 text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer" id="saveStreamerUsernameBtn">
-            <!-- Animated Loading Spinner (Hidden by default) -->
+          <!-- Connect Action with Animated Loading Spinner -->
+          <button class="control-btn-primary w-full py-2.5 text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer" id="saveStreamerUsernameBtn">
             <svg class="hidden animate-spin w-3.5 h-3.5 text-black shrink-0" id="connectSpinner" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <span id="saveStreamerBtnText">CONNECT TO TIKTOK LIVE</span>
           </button>
-        </div>
 
-        <!-- Strict Live Status Display (Only says connected when 100% verified) -->
-        <div class="flex flex-col space-y-1 pt-1 border-t border-zinc-900">
-          <div class="flex items-center space-x-2 text-[10px] font-mono">
+          <!-- Strict Live Status Display -->
+          <div class="flex items-center space-x-2 text-[10px] font-mono pt-1 border-t border-zinc-900">
             <span class="w-2 h-2 rounded-full bg-zinc-600 shrink-0 transition-colors" id="usernameDot"></span>
             <span class="font-bold text-zinc-300" id="usernameStatusText">NOT CONNECTED</span>
-          </div>
-          <div class="text-[9px] font-mono text-zinc-500 pl-4 leading-tight" id="usernameDetailText">
-            Enter your TikTok username and tap CONNECT TO TIKTOK LIVE.
-          </div>
-        </div>
-      </div>
-
-      <!-- STATUS & FLOATING OVERLAY CONTROLLER CARD -->
-      <div class="control-card space-y-3 border-2 border-zinc-700 bg-zinc-950">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">FLOATING OVERLAY CONTROL</span>
-          <div class="flex items-center space-x-1.5">
-            <span class="w-2 h-2 rounded-full bg-zinc-600" id="overlayStatusDot"></span>
-            <span class="text-xs font-mono font-bold uppercase text-zinc-400" id="overlayStatusText">INACTIVE</span>
+            <span class="text-[9px] font-mono text-zinc-500 pl-2 leading-tight hidden" id="usernameDetailText"></span>
           </div>
         </div>
 
-        <!-- Permission Banner -->
-        <div class="p-3 rounded-xl border border-zinc-800 bg-black flex flex-col space-y-2" id="permissionCard">
+        <!-- STATUS & FLOATING OVERLAY CONTROLLER CARD -->
+        <div class="control-card space-y-3 border-2 border-zinc-700 bg-zinc-950">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-mono font-bold text-zinc-300 uppercase">SYSTEM OVERLAY PERMISSION</span>
-            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded" id="permStatusBadge">CHECKING...</span>
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">FLOATING OVERLAY CONTROL</span>
+            <div class="flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full bg-zinc-600" id="overlayStatusDot"></span>
+              <span class="text-xs font-mono font-bold uppercase text-zinc-400" id="overlayStatusText">INACTIVE</span>
+            </div>
           </div>
-          <button class="control-btn-secondary text-xs font-mono py-1.5 text-white bg-zinc-900 border-zinc-700 hidden" id="grantPermissionBtn">
-            GRANT "DISPLAY OVER OTHER APPS" PERMISSION
+
+          <!-- Permission Banner -->
+          <div class="p-3 rounded-xl border border-zinc-800 bg-black flex flex-col space-y-2" id="permissionCard">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-zinc-300 uppercase">SYSTEM OVERLAY PERMISSION</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded" id="permStatusBadge">CHECKING...</span>
+            </div>
+            <button class="control-btn-secondary text-xs font-mono py-1.5 text-white bg-zinc-900 border-zinc-700 hidden" id="grantPermissionBtn">
+              GRANT PERMISSION
+            </button>
+          </div>
+
+          <!-- Main Launcher Button -->
+          <button class="control-btn-primary py-3 text-sm font-mono tracking-wider font-extrabold" id="mainLaunchOverlayBtn">
+            LAUNCH FLOATING OVERLAY
           </button>
         </div>
-
-        <!-- Main Launcher Button -->
-        <button class="control-btn-primary py-3 text-sm font-mono tracking-wider font-extrabold" id="mainLaunchOverlayBtn">
-          LAUNCH FLOATING OVERLAY
-        </button>
       </div>
 
-      <!-- FOLLOWER NOTIFICATION SOUND SETTINGS -->
-      <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="followSoundSettingsCard">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">FOLLOW NOTIFICATION SOUND</span>
-          <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="currentSoundBadge">BLUP (DEFAULT)</span>
-        </div>
-        <div class="space-y-1">
-          <label class="text-[10px] font-mono text-zinc-400 uppercase">NOTIFICATION AUDIO TONE</label>
+      <!-- TAB 2: ALERTS (Audio Sounds & Test Notifications) -->
+      <div id="navViewAlerts" class="space-y-4 hidden">
+        <!-- FOLLOWER NOTIFICATION SOUND SETTINGS -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="followSoundSettingsCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">FOLLOW SOUND</span>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="currentSoundBadge">BLUP (DEFAULT)</span>
+          </div>
           <select id="followSoundSelect" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-white focus:outline-none">
             <option value="blup">Default (Blup - blup.mp3)</option>
             <option value="crystal">Crystal Chime (Synthesized)</option>
             <option value="pop">Bubble Pop (Synthesized)</option>
             <option value="custom">Custom Audio File...</option>
           </select>
-        </div>
-        <div class="hidden space-y-1.5" id="customSoundUploadRow">
-          <input type="file" id="customSoundFileInput" accept="audio/*" class="hidden" />
-          <button type="button" class="w-full py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-dashed border-zinc-600 hover:border-white rounded-xl text-xs font-mono text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer transition-all" id="chooseSoundFileBtn">
-            <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-            </svg>
-            <span id="chosenSoundFileName">CHOOSE AUDIO FILE (.MP3 / .WAV)</span>
-          </button>
-        </div>
-        <div class="flex items-center space-x-2 pt-1">
-          <button type="button" class="flex-1 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95" id="testFollowSoundBtn">
-            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>TEST SOUND</span>
-          </button>
-          <button type="button" class="py-2 px-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg font-mono text-xs cursor-pointer" id="resetFollowSoundBtn" title="Reset to Default Blup">
-            RESET
-          </button>
-        </div>
-      </div>
-
-      <!-- TEST LIVE NOTIFICATIONS -->
-      <div class="control-card space-y-2.5 bg-zinc-950 border border-zinc-800" id="testAlertsCard">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">TEST LIVE NOTIFICATIONS</span>
-          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-400">SIMULATE</span>
-        </div>
-        <div class="text-[11px] font-mono text-zinc-400 leading-snug">
-          Tap to test follow or gift alerts with audio chime, vibration, and chat badge:
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button class="py-2.5 px-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1.5" id="controlTestFollowBtn">
-            <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <span>TEST FOLLOW</span>
-          </button>
-          <button class="py-2.5 px-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1.5" id="controlTestGiftBtn">
-            <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-            </svg>
-            <span>TEST GIFT</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- APP CONTROLS -->
-      <div>
-        <button class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-xl text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer font-mono text-xs font-bold uppercase tracking-wider transition-all" id="closeAppBtn">
-          <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-          <span>CLOSE APP</span>
-        </button>
-      </div>
-
-      <!-- OVER-THE-AIR (OTA) HOT UPDATES -->
-      <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
+          <div class="hidden space-y-1.5" id="customSoundUploadRow">
+            <input type="file" id="customSoundFileInput" accept="audio/*" class="hidden" />
+            <button type="button" class="w-full py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-dashed border-zinc-600 hover:border-white rounded-xl text-xs font-mono text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer transition-all" id="chooseSoundFileBtn">
+              <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+              </svg>
+              <span id="chosenSoundFileName">CHOOSE AUDIO FILE</span>
+            </button>
           </div>
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.0.0</span>
-        </div>
-        <div class="flex items-center justify-between text-xs font-mono">
-          <span class="text-zinc-400">STATUS:</span>
-          <span class="text-zinc-200 font-bold uppercase" id="otaStatusText">APP IS UP TO DATE</span>
-        </div>
-        <div class="flex space-x-2">
-          <button class="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-zinc-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer" id="otaCheckBtn">
-            CHECK FOR UPDATES
-          </button>
-          <button class="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-zinc-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer" id="otaReloadBtn" title="Reload Web HUD">
-            RELOAD HUD
-          </button>
+          <div class="flex items-center space-x-2 pt-1">
+            <button type="button" class="flex-1 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95" id="testFollowSoundBtn">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>TEST SOUND</span>
+            </button>
+            <button type="button" class="py-2 px-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg font-mono text-xs cursor-pointer" id="resetFollowSoundBtn" title="Reset to Default Blup">
+              RESET
+            </button>
+          </div>
         </div>
 
-        <!-- Native APK Update Banner (Shown when native Android code or services change) -->
-        <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
+        <!-- TEST LIVE NOTIFICATIONS -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="testAlertsCard">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.0.2</span>
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">TEST ALERTS</span>
+            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-400">SIMULATE</span>
           </div>
-          <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
-            Native Android update available.
-          </div>
-          <div class="w-full bg-zinc-950 rounded-full h-1.5 overflow-hidden border border-zinc-800 hidden" id="apkProgressBarContainer">
-            <div class="bg-white h-1.5 transition-all duration-200" id="apkProgressBar" style="width: 0%"></div>
-          </div>
-          <div class="flex flex-col space-y-1.5">
-            <button class="w-full py-2 bg-white hover:bg-zinc-200 text-black rounded-lg font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer" id="downloadApkBtn">
-              DOWNLOAD &amp; INSTALL APK
+          <div class="grid grid-cols-2 gap-2">
+            <button class="py-2.5 px-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1.5" id="controlTestFollowBtn">
+              <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <span>TEST FOLLOW</span>
             </button>
-            <button class="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer hidden" id="installPermSettingsBtn">
-              ENABLE "INSTALL UNKNOWN APPS" PERMISSION
+            <button class="py-2.5 px-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer text-center active:scale-95 flex items-center justify-center space-x-1.5" id="controlTestGiftBtn">
+              <svg class="w-3.5 h-3.5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+              </svg>
+              <span>TEST GIFT</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- STREAMER QUICK START GUIDE -->
-      <div class="control-card space-y-2 bg-zinc-950">
-        <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">STREAMER QUICK START GUIDE</span>
-        <div class="space-y-1.5 text-xs font-mono text-zinc-300">
-          <div class="flex items-start space-x-2">
-            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">1</span>
-            <span>Enter your TikTok @username above and tap CONNECT.</span>
+      <!-- TAB 3: SETTINGS (Account, OTA Updates, Close App) -->
+      <div id="navViewSettings" class="space-y-4 hidden">
+        <!-- ACCOUNT SUMMARY CARD -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="settingsAccountCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">STREAMER ACCOUNT</span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white uppercase" id="settingsPlanBadge">TRIAL</span>
           </div>
-          <div class="flex items-start space-x-2">
-            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">2</span>
-            <span>Grant "Display over other apps" permission if prompted.</span>
+          <div class="flex justify-between items-center text-xs font-mono text-zinc-300">
+            <span class="text-zinc-500">GMAIL:</span>
+            <span class="font-bold truncate max-w-[200px]" id="settingsAccountEmail">Not signed in</span>
           </div>
-          <div class="flex items-start space-x-2">
-            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">3</span>
-            <span>Tap <strong class="text-white">LAUNCH FLOATING OVERLAY</strong>. A draggable logo bubble will appear.</span>
+          <div class="flex justify-between items-center text-xs font-mono text-zinc-300">
+            <span class="text-zinc-500">ACCESS:</span>
+            <span class="text-blue-400 font-bold" id="settingsAccountRemaining">48h left</span>
           </div>
-          <div class="flex items-start space-x-2">
-            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">4</span>
-            <span>Switch to TikTok Live or your game in landscape mode.</span>
-          </div>
-          <div class="flex items-start space-x-2">
-            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">5</span>
-            <span>Tap the logo bubble to expand or collapse the live chat HUD.</span>
-          </div>
-          <div class="flex items-start space-x-2">
-            <span class="bg-zinc-800 text-white px-1.5 py-0.2 rounded font-bold text-[10px]">6</span>
-            <span>Tap any message row to instantly <strong class="text-white">copy to clipboard</strong> with highlight.</span>
+          <div class="flex space-x-2 pt-1">
+            <button class="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-lg text-white font-mono text-xs font-bold uppercase transition-all cursor-pointer" id="settingsSyncBtn">
+              SYNC STATUS
+            </button>
+            <button class="py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white font-mono text-xs font-bold uppercase transition-all cursor-pointer" id="settingsSignOutBtn">
+              SIGN OUT
+            </button>
           </div>
         </div>
+
+        <!-- OVER-THE-AIR (OTA) HOT UPDATES -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.0</span>
+          </div>
+          <div class="flex items-center justify-between text-xs font-mono">
+            <span class="text-zinc-400">STATUS:</span>
+            <span class="text-zinc-200 font-bold uppercase" id="otaStatusText">APP IS UP TO DATE</span>
+          </div>
+          <div class="flex space-x-2">
+            <button class="flex-1 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-zinc-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer" id="otaCheckBtn">
+              CHECK FOR UPDATES
+            </button>
+            <button class="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-zinc-300 hover:text-white font-mono text-xs font-bold uppercase tracking-wider transition-all cursor-pointer" id="otaReloadBtn" title="Reload Web HUD">
+              RELOAD HUD
+            </button>
+          </div>
+
+          <!-- Native APK Update Banner -->
+          <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.0</span>
+            </div>
+            <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
+              Native Android update available.
+            </div>
+            <div class="w-full bg-zinc-950 rounded-full h-1.5 overflow-hidden border border-zinc-800 hidden" id="apkProgressBarContainer">
+              <div class="bg-white h-1.5 transition-all duration-200" id="apkProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="flex flex-col space-y-1.5">
+              <button class="w-full py-2 bg-white hover:bg-zinc-200 text-black rounded-lg font-mono text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer" id="downloadApkBtn">
+                DOWNLOAD &amp; INSTALL APK
+              </button>
+              <button class="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-lg font-mono text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer hidden" id="installPermSettingsBtn">
+                ENABLE "INSTALL UNKNOWN APPS" PERMISSION
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- APP CONTROLS -->
+        <div>
+          <button class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-xl text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer font-mono text-xs font-bold uppercase tracking-wider transition-all" id="closeAppBtn">
+            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>CLOSE APP</span>
+          </button>
+        </div>
       </div>
+
+      <!-- FLOATING PILL BOTTOM NAVIGATION DOCK -->
+      <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-zinc-700/80 rounded-full px-2 py-1.5 flex items-center space-x-1.5 shadow-2xl font-mono" id="floatingBottomNav">
+        <button type="button" class="bottom-nav-item active flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer" data-target="navViewLive" id="bottomNavLiveBtn">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+          <span>LIVE</span>
+        </button>
+        <button type="button" class="bottom-nav-item flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all cursor-pointer" data-target="navViewAlerts" id="bottomNavAlertsBtn">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+          <span>ALERTS</span>
+        </button>
+        <button type="button" class="bottom-nav-item flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all cursor-pointer" data-target="navViewSettings" id="bottomNavSettingsBtn">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span>SETTINGS</span>
+        </button>
+      </nav>
 
     </div>
   </div>
@@ -557,14 +560,14 @@
       <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
         <div class="flex items-center space-x-2">
           <div class="w-6 h-6 rounded bg-white text-black flex items-center justify-center font-bold text-xs">P</div>
-          <span class="text-xs font-bold text-white uppercase tracking-wider">PURPLEZCHAT ACCOUNT</span>
+          <span class="text-xs font-bold text-white uppercase tracking-wider">PURPLEZCHAT</span>
         </div>
       </div>
 
       <!-- Auth Tabs -->
       <div class="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 text-xs font-bold">
         <button class="flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer" id="tabSignIn">SIGN IN</button>
-        <button class="flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer" id="tabSignUp">REGISTER GMAIL</button>
+        <button class="flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer" id="tabSignUp">REGISTER</button>
       </div>
 
       <!-- Form Inputs -->
@@ -572,23 +575,19 @@
         <div id="deviceTrialWarningBanner" class="hidden p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-left">
           <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-0.5">TRIAL ALREADY CLAIMED</div>
           <div class="text-[10px] text-zinc-300 leading-normal">
-            This device has already claimed the 48-hour free trial. Any new account created will not receive trial time and will require a PRO plan.
+            This device already used the 48-hour trial. Any new account created will require a PRO plan.
           </div>
         </div>
 
         <div>
-          <label class="text-[10px] text-zinc-400 block mb-1 uppercase">REAL GMAIL ADDRESS (@gmail.com)</label>
-          <input type="email" id="authEmailInput" placeholder="your_streamer@gmail.com" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
-          <span class="text-[9.5px] text-zinc-500 mt-1 block">Must be a valid @gmail.com or @googlemail.com account.</span>
+          <input type="email" id="authEmailInput" placeholder="Gmail address (@gmail.com)" class="w-full bg-black border border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-white focus:outline-none" />
         </div>
 
         <div>
-          <label class="text-[10px] text-zinc-400 block mb-1 uppercase">PASSWORD (MIN 6 CHARS)</label>
-          <input type="password" id="authPasswordInput" placeholder="Enter secure password" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
+          <input type="password" id="authPasswordInput" placeholder="Password (min 6 chars)" class="w-full bg-black border border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-white focus:outline-none" />
         </div>
 
-        <div class="flex justify-between items-center text-[10px] pt-0.5">
-          <span class="text-zinc-500">Forgot your credentials?</span>
+        <div class="flex justify-end items-center text-[11px] pt-0.5">
           <button type="button" class="text-zinc-400 hover:text-white underline cursor-pointer" id="forgotPasswordBtn">
             Forgot password?
           </button>
@@ -600,31 +599,26 @@
       <!-- Submit Button -->
       <div id="authSubmitContainer">
         <button class="w-full py-2.5 bg-white hover:bg-zinc-200 text-black rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg" id="authSubmitBtn">
-          SIGN IN WITH GMAIL
+          SIGN IN
         </button>
       </div>
 
       <!-- Forgot Password View (Hidden by default) -->
       <div class="space-y-3 hidden" id="forgotPasswordView">
         <div class="text-xs text-zinc-300 leading-relaxed">
-          Enter your registered Gmail address. We will send an official Google password reset link directly to your inbox.
+          Enter your registered Gmail to receive a password reset link:
         </div>
         <div>
-          <label class="text-[10px] text-zinc-400 block mb-1 uppercase">GMAIL ADDRESS (@gmail.com)</label>
-          <input type="email" id="forgotEmailInput" placeholder="your_streamer@gmail.com" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white focus:border-white focus:outline-none" />
+          <input type="email" id="forgotEmailInput" placeholder="Gmail address (@gmail.com)" class="w-full bg-black border border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-white focus:outline-none" />
         </div>
         <div class="text-[10.5px] text-red-400 font-bold hidden" id="forgotErrorText"></div>
         <div class="text-[10.5px] text-green-400 font-bold hidden" id="forgotSuccessText"></div>
         <button class="w-full py-2.5 bg-white hover:bg-zinc-200 text-black rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg" id="sendResetBtn">
-          SEND PASSWORD RESET LINK
+          SEND RESET LINK
         </button>
         <button type="button" class="w-full py-2 bg-transparent text-zinc-400 hover:text-white text-xs text-center cursor-pointer" id="backToSignInBtn">
           Back to Sign In
         </button>
-      </div>
-
-      <div class="text-[9.5px] text-zinc-500 text-center leading-tight">
-        New accounts receive an automatic 48-hour free trial with full access. One trial per physical device.
       </div>
     </div>
   </div>
