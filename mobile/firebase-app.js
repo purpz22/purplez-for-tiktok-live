@@ -20,13 +20,38 @@
     const clean = email.trim().toLowerCase();
     const match = clean.match(/^([a-z0-9.]+)@(gmail\.com|googlemail\.com)$/);
     if (!match) return false;
-    const username = match[1];
-    if (username.length < 6 || username.length > 30) return false;
-    if (username.startsWith('.') || username.endsWith('.') || username.includes('..')) return false;
-    // Real Gmail username must have at least one vowel or number
-    if (!/[aeiouy0-9]/.test(username) && username.length >= 5) return false;
+    const rawUser = match[1];
+    const user = rawUser.replace(/\./g, '');
+    if (user.length < 6 || user.length > 30) return false;
+    if (rawUser.startsWith('.') || rawUser.endsWith('.') || rawUser.includes('..')) return false;
+
+    // Reject disposable/spam keywords
+    const spamWords = ['fake', 'test', 'temp', 'dummy', 'spam', 'trash', 'sample', 'throwaway', 'random', 'asdf', 'qwerty', 'zxcv', 'testing', 'noreply', 'nobody'];
+    for (const s of spamWords) {
+      if (user.includes(s)) return false;
+    }
+
+    // Reject obvious keyboard walk patterns
+    const walks = ['12345', '54321', 'qwerty', 'ytrewq', 'asdfg', 'gfdsa', 'zxcvb', 'bvcxz', 'poiuy', 'lkjhg'];
+    for (const w of walks) {
+      if (user.includes(w)) return false;
+    }
+
+    // Minimum unique character variety
+    if (new Set(user).size < 4) return false;
+
+    // No 5+ consecutive consonants
+    if (/[bcdfghjklmnpqrstvwxz]{5,}/i.test(user)) return false;
+
+    // No 4+ consecutive vowels
+    if (/[aeiou]{4,}/i.test(user)) return false;
+
+    // Real Gmail username must contain at least one vowel
+    if (!/[aeiouy]/.test(user)) return false;
+
     // Reject 4+ consecutive identical characters (e.g. aaaaa)
-    if (/(.)\1{3,}/.test(username)) return false;
+    if (/(.)\1{3,}/.test(user)) return false;
+
     return true;
   }
 
@@ -373,6 +398,9 @@
         if (idToken) studioRes.user.idToken = idToken;
         if (refreshToken) studioRes.user.refreshToken = refreshToken;
         studioRes.user.emailVerified = (studioRes.user.emailVerified === true);
+        if (!studioRes.user.emailVerified && studioRes.user.role !== 'admin') {
+          studioRes.user.status = 'unverified';
+        }
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
@@ -489,6 +517,9 @@
         if (idToken) studioRes.user.idToken = idToken;
         if (refreshToken) studioRes.user.refreshToken = refreshToken;
         if (isEmailVerified !== null) studioRes.user.emailVerified = isEmailVerified;
+        if (!studioRes.user.emailVerified && studioRes.user.role !== 'admin') {
+          studioRes.user.status = 'unverified';
+        }
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
@@ -500,6 +531,9 @@
         if (idToken) stored.idToken = idToken;
         if (refreshToken) stored.refreshToken = refreshToken;
         if (isEmailVerified !== null) stored.emailVerified = isEmailVerified;
+        if (!stored.emailVerified && stored.role !== 'admin') {
+          stored.status = 'unverified';
+        }
         saveStoredSession(stored);
         return computeStatusFromSession(stored);
       }
@@ -512,13 +546,15 @@
           email: cleanEmail,
           displayName: cleanEmail.split('@')[0],
           role: 'user',
-          status: 'trial',
-          plan: 'trial',
-          trialHours: 48,
-          trialExpiresAt: now + (48 * 3600 * 1000),
+          status: isEmailVerified ? 'trial' : 'unverified',
+          plan: isEmailVerified ? 'trial' : 'none',
+          trialHours: isEmailVerified ? 48 : 0,
+          trialExpiresAt: isEmailVerified ? now + (48 * 3600 * 1000) : now,
           licenseExpiresAt: null,
           boundDeviceId: deviceId,
+          emailVerified: isEmailVerified === true,
           idToken: idToken,
+          refreshToken: refreshToken,
           createdAt: now
         };
         saveStoredSession(authedUser);
@@ -603,24 +639,64 @@
         stored.isAccessAllowed = remoteStatus.isAccessAllowed;
         if (remoteStatus.emailVerified !== undefined) {
           stored.emailVerified = !!remoteStatus.emailVerified;
+          if (!stored.emailVerified && stored.role !== 'admin') {
+            stored.status = 'unverified';
+            stored.isAccessAllowed = false;
+          }
         }
         saveStoredSession(stored);
         return computeStatusFromSession(stored);
       }
 
       // 2. Direct Cloud validation fallback via Google Identity Toolkit
-      if (stored.idToken) {
+      if (stored.idToken || stored.refreshToken) {
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2500);
-          const fbRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken: stored.idToken }),
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-          if (fbRes.ok) {
+          let tokenToUse = stored.idToken;
+
+          const doLookup = async (token) => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2500);
+            const fbRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idToken: token }),
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            return fbRes;
+          };
+
+          let fbRes = tokenToUse ? await doLookup(tokenToUse).catch(() => null) : null;
+
+          if (!fbRes || !fbRes.ok) {
+            const errData = fbRes ? await fbRes.json().catch(() => ({})) : {};
+            const errCode = errData?.error?.message;
+            if ((!fbRes || errCode === 'TOKEN_EXPIRED' || !tokenToUse) && stored.refreshToken) {
+              try {
+                const rfRes = await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(stored.refreshToken)}`
+                });
+                if (rfRes.ok) {
+                  const rfData = await rfRes.json();
+                  tokenToUse = rfData.id_token;
+                  stored.idToken = tokenToUse;
+                  if (rfData.refresh_token) stored.refreshToken = rfData.refresh_token;
+                  fbRes = await doLookup(tokenToUse).catch(() => null);
+                } else {
+                  // User deleted from Firebase or token revoked
+                  clearStoredSession();
+                  return computeStatusFromSession(null);
+                }
+              } catch (_) {}
+            } else if (errCode === 'USER_NOT_FOUND') {
+              clearStoredSession();
+              return computeStatusFromSession(null);
+            }
+          }
+
+          if (fbRes && fbRes.ok) {
             const fbData = await fbRes.json();
             const fbUser = fbData.users?.[0];
             if (!fbUser) {
@@ -635,11 +711,14 @@
             }
             if (fbUser.emailVerified !== undefined) {
               stored.emailVerified = !!fbUser.emailVerified;
+              if (!stored.emailVerified && stored.role !== 'admin') {
+                stored.status = 'unverified';
+                stored.isAccessAllowed = false;
+              }
             }
-          } else {
+          } else if (fbRes && !fbRes.ok) {
             const errData = await fbRes.json().catch(() => ({}));
-            const errCode = errData?.error?.message;
-            if (errCode === 'USER_NOT_FOUND' || errCode === 'TOKEN_EXPIRED') {
+            if (errData?.error?.message === 'USER_NOT_FOUND') {
               clearStoredSession();
               return computeStatusFromSession(null);
             }
