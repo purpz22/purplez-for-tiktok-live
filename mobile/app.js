@@ -817,7 +817,7 @@
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
         </span>
-        <img src="${url}" class="w-full h-full object-cover rounded-xl" alt="Streamer" onerror="this.onerror=null; this.src='';" />
+        <img src="${url}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 36px; max-height: 36px; object-fit: cover;" alt="Streamer" onerror="this.onerror=null; this.src='';" />
       `;
     }
 
@@ -825,7 +825,7 @@
     const headerLogo = document.getElementById('appHeaderLogo');
     if (headerLogo) {
       headerLogo.innerHTML = `
-        <img src="${url}" class="w-full h-full object-cover rounded-xl" alt="Streamer" onerror="this.onerror=null; this.src='';" />
+        <img src="${url}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 44px; max-height: 44px; object-fit: cover;" alt="Streamer" onerror="this.onerror=null; this.src='';" />
       `;
     }
   };
