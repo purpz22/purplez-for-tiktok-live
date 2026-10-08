@@ -622,6 +622,26 @@
         updateBridgeUI('BRIDGE UNREACHABLE', 'text-zinc-500');
       });
 
+      // Real-time auth state updates pushed directly from studio server
+      liveSocket.on('purplez_auth_changed', (data) => {
+        if (!data || !window.PurplezAuth) return;
+        const current = window.PurplezAuth.getCurrentStatus();
+        if (current && current.email && data.email && current.email.toLowerCase() === data.email.toLowerCase()) {
+          console.log('[PurplezAuth] Real-time auth update received:', data);
+          if (data.status) {
+            const updated = window.PurplezAuth.applyRemoteStatus(data.status);
+            updateAuthUI(updated);
+            if (updated.status === 'suspended') {
+              showToast('Account suspended by administrator');
+            } else if (updated.isAccessAllowed) {
+              showToast(`Access updated: ${updated.badgeText} (${updated.remainingTimeText})`);
+            }
+          } else {
+            window.PurplezAuth.refreshStatus().then(updateAuthUI).catch(() => {});
+          }
+        }
+      });
+
       // Stream status updates from server
       liveSocket.on('tiktok_status', (data) => {
         if (!data) return;
@@ -2563,6 +2583,8 @@
         authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-purple-400';
       } else if (status.status === 'trial') {
         authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-blue-400';
+      } else if (status.status === 'suspended') {
+        authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse';
       } else {
         authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-red-400';
       }
@@ -2570,13 +2592,34 @@
 
     // Update Details Modal
     if (accountDetailEmail) accountDetailEmail.textContent = status.email || '';
-    if (accountDetailPlan) accountDetailPlan.textContent = (status.plan || 'NONE').toUpperCase();
-    if (accountDetailRemaining) accountDetailRemaining.textContent = status.remainingTimeText || 'Expired';
+    if (accountDetailPlan) accountDetailPlan.textContent = (status.status === 'suspended' ? 'SUSPENDED' : (status.plan || 'NONE')).toUpperCase();
+    if (accountDetailRemaining) {
+      accountDetailRemaining.textContent = status.status === 'suspended' ? 'Locked (Suspended)' : (status.remainingTimeText || 'Expired');
+      accountDetailRemaining.className = status.status === 'suspended' ? 'text-red-400 font-bold' : (status.isAccessAllowed ? 'text-blue-400 font-bold' : 'text-red-400 font-bold');
+    }
     if (accountDetailDevice) accountDetailDevice.textContent = status.boundDeviceId || 'This Device';
 
+    // Update Paywall Modal text based on suspended vs expired
+    const paywallTitle = document.getElementById('paywallTitle');
+    const paywallDesc = document.getElementById('paywallDesc');
+    if (paywallTitle) {
+      paywallTitle.textContent = status.status === 'suspended' ? 'ACCOUNT SUSPENDED' : 'ACCESS EXPIRED';
+    }
+    if (paywallDesc) {
+      paywallDesc.textContent = status.status === 'suspended'
+        ? 'This account has been suspended by the administrator. Contact admin to appeal or restore access.'
+        : 'Your free trial or subscription has ended. Contact the admin to renew Weekly or Monthly access.';
+    }
+
     // Show Paywall if access is not allowed
-    if (!status.isAccessAllowed && !isOverlayMode) {
-      if (paywallModal) paywallModal.classList.remove('hidden');
+    if (!status.isAccessAllowed) {
+      if (isOverlayMode) {
+        if (window.AndroidNative && typeof window.AndroidNative.stopFloatingOverlay === 'function') {
+          window.AndroidNative.stopFloatingOverlay();
+        }
+      } else {
+        if (paywallModal) paywallModal.classList.remove('hidden');
+      }
     } else {
       if (paywallModal) paywallModal.classList.add('hidden');
     }
@@ -2717,7 +2760,28 @@
         if (!cachedAuthStatus || !cachedAuthStatus.authenticated) {
           if (authModal) authModal.classList.remove('hidden');
         } else {
+          // Immediately refresh local countdown calculation and open modal
+          updateAuthUI(window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : cachedAuthStatus);
           if (accountDetailsModal) accountDetailsModal.classList.remove('hidden');
+
+          // Auto-sync in background so fresh days/hours and admin updates appear without pressing SYNC STATUS
+          if (window.PurplezAuth) {
+            if (refreshAccountStatusBtn) {
+              refreshAccountStatusBtn.textContent = 'SYNCING...';
+              refreshAccountStatusBtn.disabled = true;
+            }
+            window.PurplezAuth.refreshStatus()
+              .then(fresh => {
+                updateAuthUI(fresh);
+              })
+              .catch(() => {})
+              .finally(() => {
+                if (refreshAccountStatusBtn) {
+                  refreshAccountStatusBtn.textContent = 'SYNC STATUS';
+                  refreshAccountStatusBtn.disabled = false;
+                }
+              });
+          }
         }
       });
     }
@@ -2775,12 +2839,53 @@
   // Initialize Auth
   setupAuthEventListeners();
   if (window.PurplezAuth) {
+    // 1. Immediate local session render
     updateAuthUI(window.PurplezAuth.getCurrentStatus());
-    // Background status sync every 15s to catch real-time admin upgrades
+
+    // 2. Immediate startup background sync without waiting
+    window.PurplezAuth.refreshStatus().then(updateAuthUI).catch(() => {});
+
+    // 3. Real-time background sync interval (every 5 seconds) to catch admin updates without clicking
+    let isSyncingStatus = false;
+    const syncStatusInBackground = async () => {
+      if (isSyncingStatus) return;
+      isSyncingStatus = true;
+      try {
+        const fresh = await window.PurplezAuth.refreshStatus();
+        updateAuthUI(fresh);
+      } catch (_) {
+      } finally {
+        isSyncingStatus = false;
+      }
+    };
+    setInterval(syncStatusInBackground, 5000);
+
+    // 4. Fast local countdown timer every 10 seconds:
+    // Keeps days/hours remaining dynamically counting down in real time and triggers paywall immediately when expired
     setInterval(() => {
-      window.PurplezAuth.refreshStatus().then(updateAuthUI).catch(() => {});
-    }, 15000);
+      updateAuthUI(window.PurplezAuth.getCurrentStatus());
+    }, 10000);
   }
+
+  // Lifecycle resume hooks
+  const handleAppResumed = () => {
+    if (window.PurplezAuth) {
+      updateAuthUI(window.PurplezAuth.getCurrentStatus());
+      window.PurplezAuth.refreshStatus().then(updateAuthUI).catch(() => {});
+    }
+  };
+
+  window.onNativeAppResumed = handleAppResumed;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      handleAppResumed();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    handleAppResumed();
+  });
 
   // Initial Setup
   handleOrientationChange();

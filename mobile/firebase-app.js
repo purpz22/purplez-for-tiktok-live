@@ -128,10 +128,11 @@
     } else if (session.status === 'trial') {
       const diffMs = Math.max(0, (session.trialExpiresAt || 0) - now);
       const hours = Math.ceil(diffMs / (3600 * 1000));
+      const days = Math.ceil(diffMs / (24 * 3600 * 1000));
       if (hours > 0) {
         isAccessAllowed = true;
         badgeText = 'TRIAL';
-        remainingTimeText = `${hours}h left`;
+        remainingTimeText = days > 1 ? `${days}d left` : `${hours}h left`;
       } else {
         isAccessAllowed = false;
         badgeText = 'EXPIRED';
@@ -145,7 +146,7 @@
       email: session.email,
       displayName: session.displayName || session.email.split('@')[0],
       role: session.role || 'user',
-      status: isAccessAllowed ? (session.status || 'trial') : 'expired',
+      status: session.status === 'suspended' ? 'suspended' : (isAccessAllowed ? (session.status || 'trial') : 'expired'),
       plan: session.plan || 'none',
       isAccessAllowed: isAccessAllowed,
       badgeText: badgeText,
@@ -191,19 +192,36 @@
   }
 
   async function fetchWithServerFallback(endpointPath, options = {}) {
-    const candidates = getCandidateServerUrls();
-    for (const base of candidates) {
-      try {
-        const url = `${base}${endpointPath}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const saved = (localStorage.getItem('purplez_studio_server') || '').trim().replace(/\/+$/, '');
 
-        const res = await fetch(url, {
+    // 1. Try saved studio server first with fast 1000ms timeout
+    if (saved) {
+      try {
+        const fullSaved = (saved.startsWith('http://') || saved.startsWith('https://')) ? saved : `http://${saved}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1000);
+        const res = await fetch(`${fullSaved}${endpointPath}`, {
           ...options,
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (_) {}
+    }
 
+    // 2. Fast parallel candidate discovery across LAN candidates
+    const candidates = getCandidateServerUrls();
+    const probeCandidate = async (base) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1000);
+      try {
+        const res = await fetch(`${base}${endpointPath}`, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
           try {
@@ -212,9 +230,17 @@
           return data;
         }
       } catch (_) {
-        // Try next candidate
+        clearTimeout(timeoutId);
       }
-    }
+      return null;
+    };
+
+    try {
+      const results = await Promise.all(candidates.map(base => probeCandidate(base)));
+      const successful = results.find(r => r !== null);
+      if (successful) return successful;
+    } catch (_) {}
+
     return null;
   }
 
@@ -293,6 +319,7 @@
 
       if (studioRes && studioRes.user) {
         if (!studioRes.user.boundDeviceId) studioRes.user.boundDeviceId = deviceId;
+        if (idToken) studioRes.user.idToken = idToken;
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
@@ -310,6 +337,7 @@
         trialExpiresAt: now + (48 * 3600 * 1000),
         licenseExpiresAt: null,
         boundDeviceId: deviceId,
+        idToken: idToken,
         createdAt: now
       };
       saveStoredSession(localUser);
@@ -381,6 +409,7 @@
 
       if (studioRes && studioRes.user) {
         if (!studioRes.user.boundDeviceId) studioRes.user.boundDeviceId = deviceId;
+        if (idToken) studioRes.user.idToken = idToken;
         saveStoredSession(studioRes.user);
         return computeStatusFromSession(studioRes.user);
       }
@@ -389,6 +418,7 @@
       const stored = getStoredSession();
       if (stored && stored.email.toLowerCase() === cleanEmail) {
         stored.boundDeviceId = deviceId;
+        if (idToken) stored.idToken = idToken;
         saveStoredSession(stored);
         return computeStatusFromSession(stored);
       }
@@ -407,6 +437,7 @@
           trialExpiresAt: now + (48 * 3600 * 1000),
           licenseExpiresAt: null,
           boundDeviceId: deviceId,
+          idToken: idToken,
           createdAt: now
         };
         saveStoredSession(authedUser);
@@ -450,6 +481,7 @@
 
       const deviceId = getDeviceId();
 
+      // 1. Check local Studio server first
       const remoteStatus = await fetchWithServerFallback(`/api/auth/status?email=${encodeURIComponent(stored.email)}&deviceId=${encodeURIComponent(deviceId)}`);
       if (remoteStatus && remoteStatus.authenticated) {
         stored.status = remoteStatus.status;
@@ -463,6 +495,54 @@
         return computeStatusFromSession(stored);
       }
 
+      // 2. Direct Cloud validation fallback via Google Identity Toolkit
+      if (stored.idToken) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+          const fbRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: stored.idToken }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (fbRes.ok) {
+            const fbData = await fbRes.json();
+            const fbUser = fbData.users?.[0];
+            if (fbUser && fbUser.disabled) {
+              stored.status = 'suspended';
+              stored.isAccessAllowed = false;
+              saveStoredSession(stored);
+              return computeStatusFromSession(stored);
+            }
+          }
+        } catch (_) {}
+      }
+
+      // 3. Local clock validation (ensures expired trial/license immediately locks)
+      const computed = computeStatusFromSession(stored);
+      if (computed.status !== stored.status || computed.isAccessAllowed !== stored.isAccessAllowed) {
+        stored.status = computed.status;
+        stored.isAccessAllowed = computed.isAccessAllowed;
+        saveStoredSession(stored);
+      }
+      return computed;
+    },
+
+    applyRemoteStatus: function(remoteStatus) {
+      const stored = getStoredSession();
+      if (!stored || !stored.email) return computeStatusFromSession(null);
+      if (remoteStatus) {
+        if (remoteStatus.status !== undefined) stored.status = remoteStatus.status;
+        if (remoteStatus.plan !== undefined) stored.plan = remoteStatus.plan;
+        if (remoteStatus.role !== undefined) stored.role = remoteStatus.role;
+        if (remoteStatus.trialExpiresAt !== undefined) stored.trialExpiresAt = remoteStatus.trialExpiresAt;
+        if (remoteStatus.licenseExpiresAt !== undefined) stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
+        if (remoteStatus.boundDeviceId !== undefined) stored.boundDeviceId = remoteStatus.boundDeviceId;
+        if (remoteStatus.isAccessAllowed !== undefined) stored.isAccessAllowed = remoteStatus.isAccessAllowed;
+        saveStoredSession(stored);
+      }
       return computeStatusFromSession(stored);
     },
 
