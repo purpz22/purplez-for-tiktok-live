@@ -791,15 +791,22 @@
         handleIncomingRealFollow(data);
       });
 
-      // Real live member events with follow action
+      // Real live member events (Join / Follow)
       liveSocket.on('tiktok_member', (data) => {
         if (!data) return;
         const isShareDisplay = typeof data.displayType === 'string' && data.displayType.toLowerCase().includes('share');
-        if (isShareDisplay || data.action === 1) return;
+        if (isShareDisplay) return;
         const isFollowDisplay = typeof data.displayType === 'string' && data.displayType.toLowerCase().includes('follow');
         if (data.action === 3 || data.displayType === 'follow' || isFollowDisplay || data.action === 'follow') {
           handleIncomingRealFollow(data);
+          return;
         }
+        handleIncomingRealJoin(data);
+      });
+
+      // Real live join listener
+      liveSocket.on('tiktok_join', (data) => {
+        handleIncomingRealJoin(data);
       });
 
       // Real live share listener
@@ -841,6 +848,45 @@
 
     if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
       window.AndroidNative.updateLatestChat(cleanUser, shareText, 'SHARE', time, false);
+    }
+  }
+
+  const recentJoinTimes = new Map();
+
+  function handleIncomingRealJoin(data) {
+    if (!data) return;
+    if (window.PurplezChatSettings && window.PurplezChatSettings.showJoins === false) return;
+
+    const user = data.nickname || data.uniqueId || data.user || 'Viewer';
+    const cleanUser = String(user).trim().replace(/^@+/, '');
+    if (!cleanUser) return;
+
+    const now = Date.now();
+    const lastJoin = recentJoinTimes.get(cleanUser.toLowerCase());
+    if (lastJoin && (now - lastJoin < 10000)) return;
+    recentJoinTimes.set(cleanUser.toLowerCase(), now);
+    if (recentJoinTimes.size > 300) {
+      const oldestKey = recentJoinTimes.keys().next().value;
+      recentJoinTimes.delete(oldestKey);
+    }
+
+    const avatarUrl = data.profilePictureUrl || data.avatarUrl || data.avatar || '';
+    const joinText = 'Joined the live stream!';
+    const time = new Date().toLocaleTimeString();
+
+    handleIncomingRealChat({
+      nickname: cleanUser,
+      uniqueId: data.uniqueId || cleanUser,
+      comment: joinText,
+      roleLabel: 'JOIN',
+      role: 'join',
+      isGifter: false,
+      coins: 0,
+      profilePictureUrl: avatarUrl
+    });
+
+    if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
+      window.AndroidNative.updateLatestChat(cleanUser, joinText, 'JOIN', time, false);
     }
   }
 
@@ -1614,11 +1660,24 @@
     });
   }
 
-  // Live Alerts Test Triggers (Simulate Follower & Gift Notifications)
+  // Live Alerts Test Triggers (Simulate Follower, Join & Gift Notifications)
   const testFollowAlertBtn = document.getElementById('testFollowAlertBtn');
+  const testJoinAlertBtn = document.getElementById('testJoinAlertBtn');
   const testGiftAlertBtn = document.getElementById('testGiftAlertBtn');
   const controlTestFollowBtn = document.getElementById('controlTestFollowBtn');
+  const controlTestJoinBtn = document.getElementById('controlTestJoinBtn');
   const controlTestGiftBtn = document.getElementById('controlTestGiftBtn');
+
+  function triggerTestJoin() {
+    const testNames = ['Viewer_Juan', 'TikTok_Explorer', 'Purplez_Fan', 'StarStreamer', 'GamerPro_PH'];
+    const randomUser = testNames[Math.floor(Math.random() * testNames.length)];
+    handleIncomingRealJoin({
+      nickname: randomUser,
+      uniqueId: randomUser.toLowerCase(),
+      displayType: 'join'
+    });
+    showToast(`Simulated Join: @${randomUser}`);
+  }
 
   function triggerTestFollow() {
     const testNames = ['SuperFan_99', 'TikTok_Explorer', 'Purplez_VIP', 'StarGazer', 'GamerPro_PH'];
@@ -1650,6 +1709,8 @@
     });
   }
 
+  if (testJoinAlertBtn) testJoinAlertBtn.addEventListener('click', triggerTestJoin);
+  if (controlTestJoinBtn) controlTestJoinBtn.addEventListener('click', triggerTestJoin);
   if (testFollowAlertBtn) testFollowAlertBtn.addEventListener('click', triggerTestFollow);
   if (controlTestFollowBtn) controlTestFollowBtn.addEventListener('click', triggerTestFollow);
   if (testGiftAlertBtn) testGiftAlertBtn.addEventListener('click', triggerTestGift);
@@ -1902,8 +1963,12 @@
       `;
     } else {
       const isFollower = (msg.badge === 'FOLLOWER');
+      const isJoin = (msg.badge === 'JOIN');
+      const isShare = (msg.badge === 'SHARE');
       if (isFollower && !isHighlighted) {
         row.className = 'chat-row cursor-pointer rounded-lg p-1.5 border transition-all duration-150 select-text bg-zinc-900 border-zinc-600 shadow-sm';
+      } else if (isJoin && !isHighlighted) {
+        row.className = 'chat-row cursor-pointer rounded-lg p-1.5 border transition-all duration-150 select-text bg-zinc-950/70 border-zinc-800/80 hover:border-zinc-700';
       }
       row.innerHTML = `
         <div class="flex items-center justify-between gap-1 leading-tight">
@@ -1911,13 +1976,17 @@
             <span class="badge px-1 py-0.2 rounded text-[8px] font-mono font-bold shrink-0 ${
               isFollower
                 ? 'bg-white text-black border border-white font-extrabold'
-                : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                : (isJoin
+                    ? 'bg-zinc-800 text-zinc-300 border border-zinc-700 font-semibold'
+                    : (isShare
+                        ? 'bg-zinc-800 text-zinc-200 border border-zinc-600 font-bold'
+                        : 'bg-zinc-800 text-zinc-400 border border-zinc-700'))
             }">${msg.badge}</span>
-            <span class="chat-username font-bold text-[9.5px] ${isFollower ? 'text-white' : 'text-zinc-400'} truncate">${msg.user}</span>
+            <span class="chat-username font-bold text-[9.5px] ${isFollower ? 'text-white' : (isJoin ? 'text-zinc-300' : 'text-zinc-400')} truncate">${msg.user}</span>
           </div>
           <span class="chat-time text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
         </div>
-        <div class="chat-text text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : 'text-zinc-400'} pl-0.5 break-words mt-0.5">
+        <div class="chat-text text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : (isJoin ? 'text-zinc-400 font-normal italic' : 'text-zinc-400')} pl-0.5 break-words mt-0.5">
           ${msg.text}
         </div>
       `;
@@ -2650,11 +2719,34 @@
     syncFollowSoundUi();
   }
 
-  // Initialize sound settings after DOM is ready
+  function setupViewerJoinControls() {
+    const toggle = document.getElementById('dropdownShowJoinsToggle');
+    if (!toggle) return;
+
+    const saved = localStorage.getItem('purplez_show_joins');
+    const isEnabled = (saved === null) ? true : (saved === 'true');
+    toggle.checked = isEnabled;
+    window.PurplezChatSettings = window.PurplezChatSettings || {};
+    window.PurplezChatSettings.showJoins = isEnabled;
+
+    toggle.addEventListener('change', () => {
+      const state = toggle.checked;
+      localStorage.setItem('purplez_show_joins', state ? 'true' : 'false');
+      window.PurplezChatSettings = window.PurplezChatSettings || {};
+      window.PurplezChatSettings.showJoins = state;
+      showToast(state ? 'Viewer Joins: Visible' : 'Viewer Joins: Muted');
+    });
+  }
+
+  // Initialize sound & join settings after DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupFollowSoundControls);
+    document.addEventListener('DOMContentLoaded', () => {
+      setupFollowSoundControls();
+      setupViewerJoinControls();
+    });
   } else {
     setupFollowSoundControls();
+    setupViewerJoinControls();
   }
 
   function triggerFollowAlert(followerName, nickname, avatarUrl) {
@@ -3081,6 +3173,13 @@
     if (simTestChatBtn) {
       simTestChatBtn.addEventListener('click', () => {
         window.addChatMessage('AkiStreamer', 'VIEWER', 'Testing compact chat overlay!', false, null, 0);
+      });
+    }
+
+    const simTestJoinBtn = document.getElementById('simTestJoinBtn');
+    if (simTestJoinBtn) {
+      simTestJoinBtn.addEventListener('click', () => {
+        triggerTestJoin();
       });
     }
 
