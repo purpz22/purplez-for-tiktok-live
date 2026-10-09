@@ -468,6 +468,7 @@
       floatingPermModal.classList.add('hidden');
       const auth = window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null;
       if ((!auth || !auth.authenticated) && authModal && !isOverlayMode) {
+        if (typeof window.applyAuthModeUI === 'function') window.applyAuthModeUI('signup');
         authModal.classList.remove('hidden');
       }
     }
@@ -544,6 +545,7 @@
       if (floatingPermModal) floatingPermModal.classList.add('hidden');
       const auth = window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null;
       if ((!auth || !auth.authenticated) && authModal && !isOverlayMode) {
+        if (typeof window.applyAuthModeUI === 'function') window.applyAuthModeUI('signup');
         authModal.classList.remove('hidden');
       }
     });
@@ -3247,6 +3249,8 @@
         if (deviceTrialWarningBanner) deviceTrialWarningBanner.classList.add('hidden');
       }
     }
+
+    window.applyAuthModeUI = applyAuthModeUI;
 
     if (tabSignIn && tabSignUp) {
       tabSignIn.addEventListener('click', () => applyAuthModeUI('signin'));

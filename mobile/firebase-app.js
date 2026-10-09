@@ -496,11 +496,15 @@
           // Check if email is verified via accounts:lookup
           try {
             const lookupUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3500);
             const lkRes = await fetch(lookupUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ idToken: idToken })
+              body: JSON.stringify({ idToken: idToken }),
+              signal: controller.signal
             });
+            clearTimeout(timeoutId);
             if (lkRes.ok) {
               const lkData = await lkRes.json();
               const u = lkData.users?.[0];
@@ -590,10 +594,29 @@
         if (!studioUser.boundDeviceId) studioUser.boundDeviceId = deviceId;
         if (idToken) studioUser.idToken = idToken;
         if (refreshToken) studioUser.refreshToken = refreshToken;
-        if (isEmailVerified !== null) studioUser.emailVerified = isEmailVerified;
-        if (!studioUser.emailVerified && studioUser.role !== 'admin') {
-          studioUser.status = 'unverified';
+        if (isEmailVerified === true) {
+          studioUser.emailVerified = true;
+          try {
+            fetchWithServerFallback('/api/admin/verify-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: cleanEmail })
+            }).catch(() => {});
+          } catch (_) {}
+        } else if (isEmailVerified !== null) {
+          studioUser.emailVerified = isEmailVerified;
         }
+
+        if (studioUser.emailVerified || studioUser.role === 'admin' || studioUser.status === 'pro') {
+          if (studioUser.status === 'unverified') {
+            studioUser.status = (studioUser.plan && studioUser.plan !== 'none' && studioUser.plan !== 'trial') ? 'pro' : 'trial';
+          }
+          studioUser.isAccessAllowed = true;
+        } else {
+          studioUser.status = 'unverified';
+          studioUser.isAccessAllowed = false;
+        }
+
         saveStoredSession(studioUser);
         return computeStatusFromSession(studioUser);
       }
@@ -601,9 +624,6 @@
       // 3. Direct Google Firebase authed user fallback
       if (firebaseUid) {
         const now = Date.now();
-        const trialAlreadyUsed = isDeviceTrialUsed();
-        markDeviceTrialUsed();
-
         const isAdmin = customRole === 'admin' || cleanEmail === 'darklordzm13@gmail.com';
         const isVerified = isEmailVerified === true || isAdmin;
 
@@ -620,10 +640,6 @@
             status = 'pro';
             plan = customPlan || 'lifetime';
             isAccessAllowed = true;
-          } else if (trialAlreadyUsed) {
-            status = 'expired';
-            plan = 'none';
-            isAccessAllowed = false;
           } else {
             status = 'trial';
             plan = 'trial';
@@ -642,8 +658,8 @@
           role: isAdmin ? 'admin' : (customRole || 'user'),
           status: status,
           plan: plan,
-          trialHours: (status === 'trial' && !trialAlreadyUsed) ? 48 : 0,
-          trialExpiresAt: (status === 'trial' && !trialAlreadyUsed) ? (now + 48 * 3600 * 1000) : null,
+          trialHours: status === 'trial' ? 48 : 0,
+          trialExpiresAt: status === 'trial' ? (now + 48 * 3600 * 1000) : null,
           licenseExpiresAt: (status === 'pro' && plan === 'lifetime') ? null : null,
           boundDeviceId: deviceId,
           emailVerified: isVerified,
@@ -716,40 +732,17 @@
       }
 
       const deviceId = getDeviceId();
+      const cleanEmail = (stored.email || '').trim().toLowerCase();
 
-      // 1. Check local Studio server first
-      const remoteStatus = await fetchWithServerFallback(`/api/auth/status?email=${encodeURIComponent(stored.email)}&deviceId=${encodeURIComponent(deviceId)}`);
-      if (remoteStatus) {
-        if (!remoteStatus.authenticated || remoteStatus.status === 'unregistered') {
-          clearStoredSession();
-          return computeStatusFromSession(null);
-        }
-        stored.status = remoteStatus.status;
-        stored.plan = remoteStatus.plan;
-        stored.role = remoteStatus.role;
-        stored.trialExpiresAt = remoteStatus.trialExpiresAt;
-        stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
-        stored.boundDeviceId = remoteStatus.boundDeviceId || deviceId;
-        stored.isAccessAllowed = remoteStatus.isAccessAllowed;
-        if (remoteStatus.emailVerified !== undefined) {
-          stored.emailVerified = !!remoteStatus.emailVerified;
-          if (!stored.emailVerified && stored.role !== 'admin') {
-            stored.status = 'unverified';
-            stored.isAccessAllowed = false;
-          }
-        }
-        saveStoredSession(stored);
-        return computeStatusFromSession(stored);
-      }
-
-      // 2. Direct Cloud validation fallback via Google Identity Toolkit
+      // 1. Live Google Cloud Identity Validation (Authoritative source for email verification & suspension)
+      let googleVerified = null;
       if (stored.idToken || stored.refreshToken) {
         try {
           let tokenToUse = stored.idToken;
 
           const doLookup = async (token) => {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2500);
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
             const fbRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -779,7 +772,6 @@
                   if (rfData.refresh_token) stored.refreshToken = rfData.refresh_token;
                   fbRes = await doLookup(tokenToUse).catch(() => null);
                 } else {
-                  // User deleted from Firebase or token revoked
                   clearStoredSession();
                   return computeStatusFromSession(null);
                 }
@@ -804,30 +796,9 @@
               return computeStatusFromSession(stored);
             }
             if (fbUser.emailVerified !== undefined) {
-              stored.emailVerified = !!fbUser.emailVerified;
-              if (!stored.emailVerified && stored.role !== 'admin') {
-                stored.status = 'unverified';
-                stored.isAccessAllowed = false;
-              } else if (stored.emailVerified && (stored.status === 'unverified' || !stored.status)) {
-                const now = Date.now();
-                if (stored.role === 'admin' || stored.plan === 'lifetime' || (stored.email && stored.email.toLowerCase() === 'darklordzm13@gmail.com')) {
-                  stored.role = 'admin';
-                  stored.status = 'pro';
-                  stored.plan = 'lifetime';
-                  stored.isAccessAllowed = true;
-                } else if (stored.licenseExpiresAt && stored.licenseExpiresAt > now) {
-                  stored.status = 'pro';
-                  stored.isAccessAllowed = true;
-                } else if (stored.trialExpiresAt && stored.trialExpiresAt > now) {
-                  stored.status = 'trial';
-                  stored.isAccessAllowed = true;
-                } else if (stored.plan && stored.plan !== 'none' && stored.plan !== 'trial') {
-                  stored.status = 'pro';
-                  stored.isAccessAllowed = true;
-                } else {
-                  stored.status = 'trial';
-                  stored.isAccessAllowed = true;
-                }
+              googleVerified = !!fbUser.emailVerified;
+              if (googleVerified) {
+                stored.emailVerified = true;
               }
             }
             if (fbUser.customAttributes) {
@@ -858,14 +829,95 @@
         } catch (_) {}
       }
 
-      // 3. Local clock validation (ensures expired trial/license immediately locks)
-      const computed = computeStatusFromSession(stored);
-      if (computed.status !== stored.status || computed.isAccessAllowed !== stored.isAccessAllowed) {
-        stored.status = computed.status;
-        stored.isAccessAllowed = computed.isAccessAllowed;
-        saveStoredSession(stored);
+      // 2. Check local Studio server for subscription tier, device binding & admin grants
+      const remoteStatus = await fetchWithServerFallback(`/api/auth/status?email=${encodeURIComponent(cleanEmail)}&deviceId=${encodeURIComponent(deviceId)}`);
+      if (remoteStatus) {
+        if (!remoteStatus.authenticated || remoteStatus.status === 'unregistered') {
+          if (!stored.uid && !stored.idToken) {
+            clearStoredSession();
+            return computeStatusFromSession(null);
+          }
+        } else {
+          const isGoogleOrStoredVerified = googleVerified === true || stored.emailVerified === true;
+          if (remoteStatus.plan !== undefined) stored.plan = remoteStatus.plan;
+          if (remoteStatus.role !== undefined) stored.role = remoteStatus.role;
+          if (remoteStatus.trialExpiresAt !== undefined) stored.trialExpiresAt = remoteStatus.trialExpiresAt;
+          if (remoteStatus.licenseExpiresAt !== undefined) stored.licenseExpiresAt = remoteStatus.licenseExpiresAt;
+          if (remoteStatus.boundDeviceId !== undefined) stored.boundDeviceId = remoteStatus.boundDeviceId;
+
+          // Crucial: Google's verified status takes precedence over outdated server state
+          if (isGoogleOrStoredVerified) {
+            stored.emailVerified = true;
+            if (remoteStatus.status !== 'unverified') {
+              if (remoteStatus.status !== undefined) stored.status = remoteStatus.status;
+              if (remoteStatus.isAccessAllowed !== undefined) stored.isAccessAllowed = remoteStatus.isAccessAllowed;
+            }
+            if (remoteStatus.emailVerified === false) {
+              fetchWithServerFallback('/api/admin/verify-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: cleanEmail })
+              }).catch(() => {});
+            }
+          } else {
+            if (remoteStatus.status !== undefined) stored.status = remoteStatus.status;
+            if (remoteStatus.isAccessAllowed !== undefined) stored.isAccessAllowed = remoteStatus.isAccessAllowed;
+            if (remoteStatus.emailVerified !== undefined) stored.emailVerified = !!remoteStatus.emailVerified;
+          }
+        }
       }
-      return computed;
+
+      // 3. Unblock verified accounts & calculate active permissions
+      const now = Date.now();
+      const isAdmin = stored.role === 'admin' || cleanEmail === 'darklordzm13@gmail.com';
+
+      if (isAdmin) {
+        stored.role = 'admin';
+        stored.status = 'pro';
+        stored.plan = 'lifetime';
+        stored.isAccessAllowed = true;
+      } else if (!stored.emailVerified && stored.status !== 'pro') {
+        stored.status = 'unverified';
+        stored.isAccessAllowed = false;
+      } else if (stored.status === 'suspended') {
+        stored.isAccessAllowed = false;
+      } else if (stored.emailVerified && (stored.status === 'unverified' || !stored.status)) {
+        // User has verified their email
+        if (stored.plan === 'lifetime' || (stored.status === 'pro' && !stored.licenseExpiresAt)) {
+          stored.status = 'pro';
+          stored.isAccessAllowed = true;
+        } else if (stored.licenseExpiresAt && stored.licenseExpiresAt > now) {
+          stored.status = 'pro';
+          stored.isAccessAllowed = true;
+        } else if (stored.trialExpiresAt && stored.trialExpiresAt > now) {
+          stored.status = 'trial';
+          stored.isAccessAllowed = true;
+        } else if (stored.plan && stored.plan !== 'none' && stored.plan !== 'trial') {
+          stored.status = 'pro';
+          stored.isAccessAllowed = true;
+        } else {
+          stored.status = 'trial';
+          if (!stored.trialExpiresAt) stored.trialExpiresAt = now + 48 * 3600 * 1000;
+          stored.isAccessAllowed = true;
+        }
+      } else if (stored.status === 'pro') {
+        if (stored.plan === 'lifetime' || !stored.licenseExpiresAt || stored.licenseExpiresAt > now) {
+          stored.isAccessAllowed = true;
+        } else {
+          stored.status = 'expired';
+          stored.isAccessAllowed = false;
+        }
+      } else if (stored.status === 'trial') {
+        if (stored.trialExpiresAt && stored.trialExpiresAt > now) {
+          stored.isAccessAllowed = true;
+        } else {
+          stored.status = 'expired';
+          stored.isAccessAllowed = false;
+        }
+      }
+
+      saveStoredSession(stored);
+      return computeStatusFromSession(stored);
     },
 
     applyRemoteStatus: function(remoteStatus) {
