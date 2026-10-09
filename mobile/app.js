@@ -119,6 +119,9 @@
   // Direct Live Streamer State
   let streamerUsername = '';
   let isAutoScrollPaused = false;
+  let isUserTouchingChat = false;
+  let touchReleaseTimer = null;
+  let liveCumulativeLikes = 0;
   let pausedUnreadCount = 0;
   let isConnecting = false;
   let is100PercentConnected = false;
@@ -773,6 +776,16 @@
         handleIncomingRealGift(data);
       });
 
+      // Real live like listener
+      liveSocket.on('tiktok_like', (data) => {
+        if (!data) return;
+        const total = typeof data.totalLikeCount === 'number' ? data.totalLikeCount : (typeof data.totalLikes === 'number' ? data.totalLikes : 0);
+        const count = typeof data.likeCount === 'number' ? data.likeCount : (typeof data.count === 'number' ? data.count : 1);
+        if (typeof window.updateLiveLikeCount === 'function') {
+          window.updateLiveLikeCount(total, count);
+        }
+      });
+
       // Real live follower listener
       liveSocket.on('tiktok_follow', (data) => {
         handleIncomingRealFollow(data);
@@ -1272,6 +1285,8 @@
           parseWebcastGiftMessageProto(payloadField.data);
         } else if (method === 'WebcastRoomUserSeqMessage') {
           parseWebcastRoomUserSeqProto(payloadField.data);
+        } else if (method === 'WebcastLikeMessage') {
+          parseWebcastLikeMessageProto(payloadField.data);
         }
       }
     } catch (e) {
@@ -1309,6 +1324,19 @@
         if (typeof window.updateLiveViewerCount === 'function') {
           window.updateLiveViewerCount(count);
         }
+      }
+    } catch (_) {}
+  }
+
+  function parseWebcastLikeMessageProto(payloadBytes) {
+    try {
+      const fields = parseProtoFields(payloadBytes);
+      const countField = fields.find(f => f.fieldNumber === 2 && f.wireType === 0);
+      const count = countField ? Math.max(1, countField.value) : 1;
+      const totalField = fields.find(f => f.fieldNumber === 3 && f.wireType === 0);
+      const total = totalField ? totalField.value : 0;
+      if (typeof window.updateLiveLikeCount === 'function') {
+        window.updateLiveLikeCount(total, count);
       }
     } catch (_) {}
   }
@@ -1887,15 +1915,20 @@
     const row = createChatRowElement(msg);
     chatContainer.appendChild(row);
 
-    while (chatContainer.children.length > 150) {
-      chatContainer.removeChild(chatContainer.firstElementChild);
+    while (chatContainer.children.length > 500) {
+      const removedChild = chatContainer.firstElementChild;
+      const removedHeight = removedChild ? removedChild.offsetHeight : 0;
+      chatContainer.removeChild(removedChild);
+      if (isAutoScrollPaused && removedHeight > 0) {
+        chatContainer.scrollTop -= removedHeight;
+      }
     }
 
     if (viewerFilterQuery) {
       applyViewerFilter();
     }
 
-    if (!isAutoScrollPaused) {
+    if (!isAutoScrollPaused && !isUserTouchingChat) {
       chatContainer.scrollTop = chatContainer.scrollHeight;
     } else {
       pausedUnreadCount++;
@@ -1944,7 +1977,7 @@
       applyViewerFilter();
     }
 
-    if (!isAutoScrollPaused) {
+    if (!isAutoScrollPaused && !isUserTouchingChat) {
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
@@ -1979,21 +2012,63 @@
   }
 
   if (chatContainer) {
+    chatContainer.addEventListener('touchstart', () => {
+      isUserTouchingChat = true;
+      isAutoScrollPaused = true;
+      clearTimeout(touchReleaseTimer);
+      updateAutoScrollResumeBtn();
+    }, { passive: true });
+
+    chatContainer.addEventListener('pointerdown', () => {
+      isUserTouchingChat = true;
+      isAutoScrollPaused = true;
+      clearTimeout(touchReleaseTimer);
+      updateAutoScrollResumeBtn();
+    });
+
+    chatContainer.addEventListener('touchmove', () => {
+      isUserTouchingChat = true;
+      isAutoScrollPaused = true;
+    }, { passive: true });
+
+    chatContainer.addEventListener('pointermove', () => {
+      isUserTouchingChat = true;
+      isAutoScrollPaused = true;
+    });
+
+    const onTouchEnd = () => {
+      touchReleaseTimer = setTimeout(() => {
+        isUserTouchingChat = false;
+      }, 600);
+    };
+
+    chatContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+    chatContainer.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    chatContainer.addEventListener('pointerup', onTouchEnd);
+    chatContainer.addEventListener('pointercancel', onTouchEnd);
+
+    chatContainer.addEventListener('wheel', () => {
+      isAutoScrollPaused = true;
+      updateAutoScrollResumeBtn();
+    }, { passive: true });
+
     chatContainer.addEventListener('scroll', () => {
       const distFromBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight;
-      if (distFromBottom > 35) {
+      if (distFromBottom > 15) {
         if (!isAutoScrollPaused) {
           isAutoScrollPaused = true;
-          updateAutoScrollResumeBtn();
         }
+        updateAutoScrollResumeBtn();
       } else {
-        if (isAutoScrollPaused && !highlightedMessageId) {
-          isAutoScrollPaused = false;
-          pausedUnreadCount = 0;
-          updateAutoScrollResumeBtn();
+        if (distFromBottom <= 5 && !isUserTouchingChat && !highlightedMessageId) {
+          if (isAutoScrollPaused) {
+            isAutoScrollPaused = false;
+            pausedUnreadCount = 0;
+            updateAutoScrollResumeBtn();
+          }
         }
       }
-    });
+    }, { passive: true });
   }
 
   function extractMlbbIdOrText(text) {
@@ -2020,7 +2095,7 @@
       showToast('Highlight Deselected');
 
       const distFromBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight;
-      if (distFromBottom <= 35) {
+      if (distFromBottom <= 15 && !isUserTouchingChat) {
         isAutoScrollPaused = false;
         pausedUnreadCount = 0;
       }
@@ -2144,10 +2219,16 @@
       const isHidden = chatSearchFilterBar.classList.contains('hidden');
       if (isHidden) {
         chatSearchFilterBar.classList.remove('hidden');
+        if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+          window.AndroidNative.requestOverlayKeyboard(true);
+        }
         if (viewerSearchInput) {
           viewerSearchInput.focus();
         }
       } else {
+        if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+          window.AndroidNative.requestOverlayKeyboard(false);
+        }
         if (viewerSearchInput && viewerSearchInput.value.trim().length > 0) {
           viewerSearchInput.value = '';
           viewerFilterQuery = '';
@@ -2160,6 +2241,9 @@
     if (closeViewerSearchBtn) {
       closeViewerSearchBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+          window.AndroidNative.requestOverlayKeyboard(false);
+        }
         if (viewerSearchInput) viewerSearchInput.value = '';
         viewerFilterQuery = '';
         applyViewerFilter();
@@ -2168,6 +2252,18 @@
     }
 
     if (viewerSearchInput) {
+      viewerSearchInput.addEventListener('focus', () => {
+        if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+          window.AndroidNative.requestOverlayKeyboard(true);
+        }
+      });
+
+      viewerSearchInput.addEventListener('blur', () => {
+        if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+          window.AndroidNative.requestOverlayKeyboard(false);
+        }
+      });
+
       viewerSearchInput.addEventListener('input', (e) => {
         viewerFilterQuery = e.target.value.trim().toLowerCase();
         applyViewerFilter();
@@ -2175,8 +2271,14 @@
 
       viewerSearchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
+          if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+            window.AndroidNative.requestOverlayKeyboard(false);
+          }
           viewerSearchInput.blur();
         } else if (e.key === 'Escape') {
+          if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
+            window.AndroidNative.requestOverlayKeyboard(false);
+          }
           viewerSearchInput.value = '';
           viewerFilterQuery = '';
           applyViewerFilter();
@@ -2721,6 +2823,40 @@
     const previewViewerCount = document.getElementById('previewViewerCount');
     if (previewViewerCount) {
       previewViewerCount.textContent = `${formattedStr} viewers`;
+    }
+  };
+
+  function formatCompactLikes(num) {
+    const n = typeof num === 'number' ? num : parseInt(num, 10) || 0;
+    if (n >= 1000000) {
+      const v = (n / 1000000).toFixed(1);
+      return v.endsWith('.0') ? `${Math.floor(n / 1000000)}M` : `${v}M`;
+    }
+    if (n >= 1000) {
+      const v = (n / 1000).toFixed(1);
+      return v.endsWith('.0') ? `${Math.floor(n / 1000)}K` : `${v}K`;
+    }
+    return String(n);
+  }
+
+  window.updateLiveLikeCount = function(totalLikes, count) {
+    let numeric = typeof totalLikes === 'number' ? totalLikes : parseInt(totalLikes, 10);
+    if (isNaN(numeric) || numeric <= 0) {
+      const inc = typeof count === 'number' ? count : parseInt(count, 10) || 1;
+      liveCumulativeLikes += inc;
+      numeric = liveCumulativeLikes;
+    } else {
+      liveCumulativeLikes = numeric;
+    }
+
+    const formattedStr = formatCompactLikes(numeric);
+    const overlayLiveLikeCount = document.getElementById('overlayLiveLikeCount');
+    if (overlayLiveLikeCount) {
+      overlayLiveLikeCount.textContent = formattedStr;
+    }
+    const previewLikeCount = document.getElementById('previewLikeCount');
+    if (previewLikeCount) {
+      previewLikeCount.textContent = `${formattedStr} likes`;
     }
   };
 
@@ -3681,6 +3817,12 @@
     const initialViewers = window.AndroidNative.getLiveViewerCount();
     if (initialViewers > 0) {
       window.updateLiveViewerCount(initialViewers);
+    }
+  }
+  if (window.AndroidNative && typeof window.AndroidNative.getLiveLikeCount === 'function') {
+    const initialLikes = window.AndroidNative.getLiveLikeCount();
+    if (initialLikes > 0) {
+      window.updateLiveLikeCount(initialLikes);
     }
   }
   if (!isOverlayMode) {

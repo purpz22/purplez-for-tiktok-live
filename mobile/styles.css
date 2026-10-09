@@ -421,6 +421,10 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+#chatMessagesContainer {
+  overflow-anchor: auto;
+}
+
 /* Chat Message Row: Frosted Glass Pills */
 .chat-row {
   transition: all 0.15s ease-in-out;
@@ -655,7 +659,8 @@ body.overlay-mode #bottomNavBar,
 body.overlay-mode #previewTopBar,
 body.overlay-mode #miniDock,
 body.overlay-mode #chatDragHeader,
-body.overlay-mode #headerViewerCountPill {
+body.overlay-mode #headerViewerCountPill,
+body.overlay-mode #headerLikeCountPill {
   display: none !important;
 }
 body.overlay-mode #inAppPreviewView {
