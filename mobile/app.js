@@ -1226,10 +1226,32 @@
   function parseWebcastRoomUserSeqProto(payloadBytes) {
     try {
       const fields = parseProtoFields(payloadBytes);
-      const totalField = fields.find(f => (f.fieldNumber === 2 || f.fieldNumber === 3) && f.wireType === 0);
-      if (totalField && totalField.value > 0) {
+      let count = 0;
+      const f3 = fields.find(f => f.fieldNumber === 3 && f.wireType === 0);
+      if (f3 && f3.value > 0) count = f3.value;
+      if (!count) {
+        const f7 = fields.find(f => f.fieldNumber === 7 && f.wireType === 0);
+        if (f7 && f7.value > 0) count = f7.value;
+      }
+      if (!count) {
+        const f6 = fields.find(f => f.fieldNumber === 6 && f.wireType === 0);
+        if (f6 && f6.value > 0) count = f6.value;
+      }
+      if (!count) {
+        const f2 = fields.find(f => f.fieldNumber === 2 && f.wireType === 0);
+        if (f2 && f2.value > 0) count = f2.value;
+      }
+      if (!count) {
+        const anyV = fields.find(f => f.fieldNumber !== 1 && f.wireType === 0 && f.value > 0);
+        if (anyV) count = anyV.value;
+      }
+      if (!count) {
+        const ranks = fields.filter(f => f.fieldNumber === 2);
+        if (ranks.length > 0) count = ranks.length;
+      }
+      if (count > 0) {
         if (typeof window.updateLiveViewerCount === 'function') {
-          window.updateLiveViewerCount(totalField.value);
+          window.updateLiveViewerCount(count);
         }
       }
     } catch (_) {}

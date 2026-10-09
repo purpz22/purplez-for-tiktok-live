@@ -649,7 +649,8 @@ body.overlay-mode #backgroundStreamCanvas,
 body.overlay-mode #bottomNavBar,
 body.overlay-mode #previewTopBar,
 body.overlay-mode #miniDock,
-body.overlay-mode #chatDragHeader {
+body.overlay-mode #chatDragHeader,
+body.overlay-mode #headerViewerCountPill {
   display: none !important;
 }
 body.overlay-mode #inAppPreviewView {
