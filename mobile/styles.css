@@ -269,9 +269,13 @@ body.overlay-mode #particleCanvas {
 .bg-black\/90 { background-color: rgba(0, 0, 0, 0.9); }
 .bg-black\/95 { background-color: rgba(0, 0, 0, 0.95); }
 .bg-transparent { background-color: transparent; }
+.bg-purple-600 { background-color: #9333ea; }
+.bg-purple-700, .hover\:bg-purple-700:hover { background-color: #7e22ce; }
+.bg-purple-950\/60 { background-color: rgba(59, 7, 100, 0.6); }
 
 .text-white { color: #FFFFFF; }
 .text-black { color: #000000; }
+.text-purple-400 { color: #c084fc; }
 .text-zinc-100 { color: #f4f4f5; }
 .text-zinc-200 { color: #e4e4e7; }
 .text-zinc-300 { color: #d4d4d8; }
@@ -290,6 +294,7 @@ body.overlay-mode #particleCanvas {
 .border-zinc-800 { border-color: #27272a; }
 .border-zinc-850 { border-color: #202023; }
 .border-zinc-900 { border-color: #18181b; }
+.border-purple-500\/50 { border-color: rgba(168, 85, 247, 0.5); }
 
 .rounded { border-radius: 0.25rem; }
 .rounded-lg { border-radius: 0.5rem; }
@@ -939,4 +944,26 @@ body.overlay-mode #floatingBottomNav {
 #chatSearchFilterBar {
   transition: all 0.2s ease-in-out;
 }
+
+/* Purple Sign In Button and Floating Permission Controls */
+#switchToSignInBtn {
+  background-color: #9333ea !important;
+  color: #ffffff !important;
+}
+
+#switchToSignInBtn:hover,
+#switchToSignInBtn:active {
+  background-color: #7e22ce !important;
+}
+
+#floatingPermSettingsBtn {
+  background-color: #9333ea !important;
+  color: #ffffff !important;
+}
+
+#floatingPermSettingsBtn:hover,
+#floatingPermSettingsBtn:active {
+  background-color: #7e22ce !important;
+}
+
 

@@ -1,28 +1,28 @@
 {
   "appName": "PurplezChat",
-  "version": "1.1.5",
-  "buildTime": 1791516390715,
-  "updatedAt": "2026-10-09T03:26:30.715Z",
+  "version": "1.1.6",
+  "buildTime": 1791544741129,
+  "updatedAt": "2026-10-09T11:19:01.129Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
-  "releaseNotes": "Mobile Over-The-Air update v1.1.5",
+  "releaseNotes": "Mobile Over-The-Air update v1.1.6",
   "bundleFiles": [
     {
       "relativePath": "index.html",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/index.html",
-      "hash": "be3feb7756e3a9ebf5c5b2842e3dee70",
-      "size": 60497
+      "hash": "36c3d25e1bb7bf91b8811a838da93edc",
+      "size": 63168
     },
     {
       "relativePath": "app.js",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/app.js",
-      "hash": "1becc42a7fb7e6a860d8816b4e43c41d",
-      "size": 138585
+      "hash": "bc6e28a279e3c6e0913d4f43067957f0",
+      "size": 143527
     },
     {
       "relativePath": "styles.css",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/styles.css",
-      "hash": "999b5cc86dd9245d3772df3ba70f6eae",
-      "size": 28718
+      "hash": "333a4521e0c5f4d5b851c5f5166e5d23",
+      "size": 29466
     },
     {
       "relativePath": "socket.io.min.js",
@@ -33,8 +33,8 @@
     {
       "relativePath": "firebase-app.js",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/firebase-app.js",
-      "hash": "7e292a23046703c850888bec7cc2fb11",
-      "size": 30448
+      "hash": "ff18584bc134fc797caf04212a1f0754",
+      "size": 34857
     },
     {
       "relativePath": "blup.mp3",
@@ -44,11 +44,11 @@
     }
   ],
   "nativeApk": {
-    "versionCode": 12,
-    "versionName": "1.1.5",
+    "versionCode": 13,
+    "versionName": "1.1.6",
     "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/purplez-for-tiktok-live.apk",
-    "hash": "4e30b1010ba9b4dee688e441ab8c90d4",
-    "size": 1360398,
-    "releaseNotes": "PurplezChat v1.1.5 native Android release"
+    "hash": "f19d7ffc3424bea209321c32b33f450f",
+    "size": 1362416,
+    "releaseNotes": "PurplezChat v1.1.6 native Android release"
   }
 }

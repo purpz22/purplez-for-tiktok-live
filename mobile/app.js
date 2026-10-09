@@ -443,10 +443,34 @@
   // ==========================================
   // PERMISSION & OVERLAY SERVICE SYNCHRONIZATION
   // ==========================================
+  const floatingPermModal = document.getElementById('floatingPermModal');
+  const floatingPermSettingsBtn = document.getElementById('floatingPermSettingsBtn');
+  const floatingPermLaterBtn = document.getElementById('floatingPermLaterBtn');
+
+  function checkFloatingPermissionOnboarding() {
+    if (isOverlayMode) return;
+    if (window.AndroidNative && typeof window.AndroidNative.isOverlayPermissionGranted === 'function') {
+      hasOverlayPermission = window.AndroidNative.isOverlayPermissionGranted();
+    }
+    if (!hasOverlayPermission) {
+      if (floatingPermModal) floatingPermModal.classList.remove('hidden');
+      if (authModal) authModal.classList.add('hidden');
+    } else {
+      if (floatingPermModal) floatingPermModal.classList.add('hidden');
+    }
+  }
+
   window.onOverlayStateUpdated = function(permissionGranted, serviceRunning) {
     hasOverlayPermission = !!permissionGranted;
     isOverlayRunning = !!serviceRunning;
     updateControlCenterUI();
+    if (hasOverlayPermission && floatingPermModal) {
+      floatingPermModal.classList.add('hidden');
+      const auth = window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null;
+      if ((!auth || !auth.authenticated) && authModal && !isOverlayMode) {
+        authModal.classList.remove('hidden');
+      }
+    }
   };
 
   function updateControlCenterUI() {
@@ -456,6 +480,7 @@
         permStatusBadge.textContent = 'PERMISSION GRANTED';
         permStatusBadge.className = 'text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black';
         if (grantPermissionBtn) grantPermissionBtn.classList.add('hidden');
+        if (floatingPermModal) floatingPermModal.classList.add('hidden');
       } else {
         permStatusBadge.textContent = 'PERMISSION NEEDED';
         permStatusBadge.className = 'text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300';
@@ -503,6 +528,28 @@
       }
     });
   }
+
+  if (floatingPermSettingsBtn) {
+    floatingPermSettingsBtn.addEventListener('click', () => {
+      if (window.AndroidNative && typeof window.AndroidNative.requestOverlayPermission === 'function') {
+        window.AndroidNative.requestOverlayPermission();
+      } else {
+        showToast('Settings requested');
+      }
+    });
+  }
+
+  if (floatingPermLaterBtn) {
+    floatingPermLaterBtn.addEventListener('click', () => {
+      if (floatingPermModal) floatingPermModal.classList.add('hidden');
+      const auth = window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null;
+      if ((!auth || !auth.authenticated) && authModal && !isOverlayMode) {
+        authModal.classList.remove('hidden');
+      }
+    });
+  }
+
+  checkFloatingPermissionOnboarding();
 
   if (mainLaunchOverlayBtn) {
     mainLaunchOverlayBtn.addEventListener('click', () => {
@@ -3027,7 +3074,7 @@
   const paywallModal = document.getElementById('paywallModal');
   const paywallSyncBtn = document.getElementById('paywallSyncBtn');
 
-  let currentAuthMode = 'signin';
+  let currentAuthMode = 'signup';
   let cachedAuthStatus = null;
 
   function updateAuthUI(status) {
@@ -3037,12 +3084,24 @@
       if (authPlanBadge) authPlanBadge.textContent = 'SIGN IN';
       if (authRemainingTimeText) authRemainingTimeText.textContent = '';
       if (authStatusDot) authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-zinc-600';
-      if (authModal && !isOverlayMode) authModal.classList.remove('hidden');
       if (paywallModal) paywallModal.classList.add('hidden');
+      if (!isOverlayMode) {
+        const hasPerm = (window.AndroidNative && typeof window.AndroidNative.isOverlayPermissionGranted === 'function')
+          ? window.AndroidNative.isOverlayPermissionGranted()
+          : true;
+        if (!hasPerm) {
+          if (floatingPermModal) floatingPermModal.classList.remove('hidden');
+          if (authModal) authModal.classList.add('hidden');
+        } else {
+          if (floatingPermModal) floatingPermModal.classList.add('hidden');
+          if (authModal) authModal.classList.remove('hidden');
+        }
+      }
       return;
     }
 
     if (authModal) authModal.classList.add('hidden');
+    if (floatingPermModal) floatingPermModal.classList.add('hidden');
 
     // Update Status Pill
     if (authPlanBadge) authPlanBadge.textContent = status.badgeText || (status.plan ? status.plan.toUpperCase() : 'PRO');
@@ -3087,6 +3146,13 @@
     const paywallTitle = document.getElementById('paywallTitle');
     const paywallDesc = document.getElementById('paywallDesc');
     const paywallResendEmailBtn = document.getElementById('paywallResendEmailBtn');
+    const paywallSubscribeBox = document.getElementById('paywallSubscribeBox');
+    const paywallSignOutBtn = document.getElementById('paywallSignOutBtn');
+
+    if (paywallSignOutBtn) {
+      paywallSignOutBtn.textContent = 'CANCEL';
+    }
+
     if (paywallTitle) {
       if (status.status === 'unverified') {
         paywallTitle.textContent = 'EMAIL VERIFICATION REQUIRED';
@@ -3098,14 +3164,22 @@
       if (status.status === 'suspended') {
         paywallDesc.textContent = 'This account has been suspended by the administrator. Contact admin to appeal or restore access.';
       } else if (status.status === 'unverified') {
-        paywallDesc.textContent = 'Please verify your Gmail address to activate your access. A verification link was sent to ' + (status.email || 'your Gmail inbox') + '. Check your inbox and spam folder, then tap CHECK ACCESS / SYNC.';
+        paywallDesc.textContent = 'A verification link was sent to ' + (status.email || 'your Gmail inbox') + '. Check your inbox and spam folder, then tap CHECK ACCESS / SYNC.';
       } else {
         paywallDesc.textContent = 'Your free trial or subscription has ended. Contact the admin to renew Weekly or Monthly access.';
+      }
+    }
+    if (paywallSubscribeBox) {
+      if (status.status === 'unverified' || status.status === 'suspended') {
+        paywallSubscribeBox.classList.add('hidden');
+      } else {
+        paywallSubscribeBox.classList.remove('hidden');
       }
     }
     if (paywallResendEmailBtn) {
       if (status.status === 'unverified') {
         paywallResendEmailBtn.classList.remove('hidden');
+        paywallResendEmailBtn.textContent = 'RESEND EMAIL';
       } else {
         paywallResendEmailBtn.classList.add('hidden');
       }
@@ -3131,6 +3205,13 @@
     const proceedWithoutTrialBtn = document.getElementById('proceedWithoutTrialBtn');
     const switchSignInBtn = document.getElementById('switchSignInBtn');
     const cancelTrialModalBtn = document.getElementById('cancelTrialModalBtn');
+
+    const promptRegisterToSignIn = document.getElementById('promptRegisterToSignIn');
+    const promptSignInToRegister = document.getElementById('promptSignInToRegister');
+    const switchToSignInBtn = document.getElementById('switchToSignInBtn');
+    const switchToSignUpBtn = document.getElementById('switchToSignUpBtn');
+    const forgotPasswordContainer = document.getElementById('forgotPasswordContainer');
+
     let trialWarningConfirmed = false;
 
     const updateTrialBanner = () => {
@@ -3141,30 +3222,46 @@
       }
     };
 
-    if (tabSignIn && tabSignUp) {
-      tabSignIn.addEventListener('click', () => {
-        currentAuthMode = 'signin';
-        trialWarningConfirmed = false;
-        tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
-        tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
-        if (authSubmitBtn) authSubmitBtn.textContent = 'SIGN IN';
-        if (authErrorText) authErrorText.classList.add('hidden');
-        if (deviceTrialWarningBanner) deviceTrialWarningBanner.classList.add('hidden');
-      });
-
-      tabSignUp.addEventListener('click', () => {
-        currentAuthMode = 'signup';
-        trialWarningConfirmed = false;
-        tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
-        tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
+    function applyAuthModeUI(mode) {
+      currentAuthMode = mode;
+      trialWarningConfirmed = false;
+      if (authErrorText) authErrorText.classList.add('hidden');
+      if (mode === 'signup') {
+        if (tabSignUp) tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
+        if (tabSignIn) tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
         if (authSubmitBtn) authSubmitBtn.textContent = 'CREATE ACCOUNT';
-        if (authErrorText) authErrorText.classList.add('hidden');
+        if (forgotPasswordContainer) forgotPasswordContainer.classList.add('hidden');
+        if (promptRegisterToSignIn) promptRegisterToSignIn.classList.remove('hidden');
+        if (promptSignInToRegister) promptSignInToRegister.classList.add('hidden');
         updateTrialBanner();
         if (window.PurplezAuth && typeof window.PurplezAuth.checkDeviceTrialStatus === 'function') {
           window.PurplezAuth.checkDeviceTrialStatus().then(updateTrialBanner).catch(() => {});
         }
-      });
+      } else {
+        if (tabSignIn) tabSignIn.className = 'flex-1 py-1.5 rounded-lg text-black bg-white transition-all cursor-pointer';
+        if (tabSignUp) tabSignUp.className = 'flex-1 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer';
+        if (authSubmitBtn) authSubmitBtn.textContent = 'SIGN IN';
+        if (forgotPasswordContainer) forgotPasswordContainer.classList.remove('hidden');
+        if (promptRegisterToSignIn) promptRegisterToSignIn.classList.add('hidden');
+        if (promptSignInToRegister) promptSignInToRegister.classList.remove('hidden');
+        if (deviceTrialWarningBanner) deviceTrialWarningBanner.classList.add('hidden');
+      }
     }
+
+    if (tabSignIn && tabSignUp) {
+      tabSignIn.addEventListener('click', () => applyAuthModeUI('signin'));
+      tabSignUp.addEventListener('click', () => applyAuthModeUI('signup'));
+    }
+
+    if (switchToSignInBtn) {
+      switchToSignInBtn.addEventListener('click', () => applyAuthModeUI('signin'));
+    }
+
+    if (switchToSignUpBtn) {
+      switchToSignUpBtn.addEventListener('click', () => applyAuthModeUI('signup'));
+    }
+
+    applyAuthModeUI('signup');
 
     if (proceedWithoutTrialBtn) {
       proceedWithoutTrialBtn.addEventListener('click', () => {
@@ -3178,7 +3275,7 @@
       switchSignInBtn.addEventListener('click', () => {
         trialWarningConfirmed = false;
         if (deviceTrialConfirmModal) deviceTrialConfirmModal.classList.add('hidden');
-        if (tabSignIn) tabSignIn.click();
+        applyAuthModeUI('signin');
       });
     }
 
@@ -3301,8 +3398,13 @@
             }
           } else {
             status = await window.PurplezAuth.login(email, pass);
+            try {
+              const fresh = await window.PurplezAuth.refreshStatus();
+              if (fresh && fresh.authenticated) status = fresh;
+            } catch (_) {}
             showToast('Signed in successfully.');
           }
+          cachedAuthStatus = status;
           updateAuthUI(status);
         } catch (err) {
           trialWarningConfirmed = false;
@@ -3312,7 +3414,7 @@
           }
         } finally {
           authSubmitBtn.disabled = false;
-          authSubmitBtn.textContent = currentAuthMode === 'signup' ? 'CREATE GMAIL ACCOUNT' : 'SIGN IN WITH GMAIL';
+          authSubmitBtn.textContent = currentAuthMode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN';
         }
       });
     }
@@ -3369,10 +3471,15 @@
       signOutBtn.addEventListener('click', () => {
         if (window.PurplezAuth) {
           window.PurplezAuth.logout();
-          if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
-          updateAuthUI(window.PurplezAuth.getCurrentStatus());
-          showToast('Signed out of PurplezChat');
         }
+        cachedAuthStatus = null;
+        if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
+        if (authEmailInput) authEmailInput.value = '';
+        if (authPasswordInput) authPasswordInput.value = '';
+        if (authErrorText) authErrorText.classList.add('hidden');
+        applyAuthModeUI('signin');
+        updateAuthUI(window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null);
+        showToast('Signed out of PurplezChat');
       });
     }
 
@@ -3413,7 +3520,7 @@
           showToast(err.message || 'Failed to resend email');
         } finally {
           paywallResendEmailBtn.disabled = false;
-          paywallResendEmailBtn.textContent = 'RESEND VERIFICATION EMAIL';
+          paywallResendEmailBtn.textContent = 'RESEND EMAIL';
         }
       });
     }
@@ -3423,10 +3530,15 @@
       paywallSignOutBtn.addEventListener('click', () => {
         if (window.PurplezAuth) {
           window.PurplezAuth.logout();
-          if (paywallModal) paywallModal.classList.add('hidden');
-          updateAuthUI(window.PurplezAuth.getCurrentStatus());
-          showToast('Signed out');
         }
+        cachedAuthStatus = null;
+        if (paywallModal) paywallModal.classList.add('hidden');
+        if (authEmailInput) authEmailInput.value = '';
+        if (authPasswordInput) authPasswordInput.value = '';
+        if (authErrorText) authErrorText.classList.add('hidden');
+        applyAuthModeUI('signin');
+        updateAuthUI(window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null);
+        showToast('Cancelled');
       });
     }
   }
