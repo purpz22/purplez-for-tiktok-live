@@ -78,6 +78,13 @@
   const toastMessage = document.getElementById('toastMessage');
   const selectedStatusText = document.getElementById('selectedStatusText');
   const clearHighlightBtn = document.getElementById('clearHighlightBtn');
+  const searchViewerToggleBtn = document.getElementById('searchViewerToggleBtn');
+  const searchViewerIconPill = document.getElementById('searchViewerIconPill');
+  const chatSearchFilterBar = document.getElementById('chatSearchFilterBar');
+  const viewerSearchInput = document.getElementById('viewerSearchInput');
+  const viewerSearchCountBadge = document.getElementById('viewerSearchCountBadge');
+  const closeViewerSearchBtn = document.getElementById('closeViewerSearchBtn');
+  let viewerFilterQuery = '';
   const sizeCompactBtn = document.getElementById('sizeCompactBtn');
   const sizeDefaultBtn = document.getElementById('sizeDefaultBtn');
   const sizeLargeBtn = document.getElementById('sizeLargeBtn');
@@ -1799,6 +1806,19 @@
       `;
     }
 
+    row.dataset.user = (msg.user || '').toLowerCase();
+    row.dataset.uniqueId = (msg.uniqueId || '').toLowerCase();
+    row.dataset.isGifter = msg.isGifter ? 'true' : 'false';
+
+    if (viewerFilterQuery) {
+      const q = viewerFilterQuery;
+      const matches = (row.dataset.user && row.dataset.user.includes(q)) || 
+                      (row.dataset.uniqueId && row.dataset.uniqueId.includes(q));
+      if (!matches) {
+        row.classList.add('hidden');
+      }
+    }
+
     row.addEventListener('click', () => {
       copyAndHighlightMessage(msg);
     });
@@ -1820,6 +1840,10 @@
 
     while (chatContainer.children.length > 150) {
       chatContainer.removeChild(chatContainer.firstElementChild);
+    }
+
+    if (viewerFilterQuery) {
+      applyViewerFilter();
     }
 
     if (!isAutoScrollPaused) {
@@ -1866,6 +1890,10 @@
       const row = createChatRowElement(msg);
       chatContainer.appendChild(row);
     });
+
+    if (viewerFilterQuery) {
+      applyViewerFilter();
+    }
 
     if (!isAutoScrollPaused) {
       chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -1919,6 +1947,18 @@
     });
   }
 
+  function extractMlbbIdOrText(text) {
+    if (!text || typeof text !== 'string') return '';
+    const clean = text.trim();
+    // Look for standard MLBB account ID: 5 to 12 consecutive digits
+    // Examples: "ate pa flex 332701259" -> "332701259", "332701259 (3657)" -> "332701259"
+    const match = clean.match(/\b\d{5,12}\b/);
+    if (match) {
+      return match[0];
+    }
+    return clean;
+  }
+
   function copyAndHighlightMessage(msg) {
     if (highlightedMessageId === msg.id) {
       highlightedMessageId = null;
@@ -1944,7 +1984,8 @@
     isAutoScrollPaused = true;
     updateAutoScrollResumeBtn();
 
-    const copyPayload = msg.text;
+    const copyPayload = extractMlbbIdOrText(msg.text);
+    const isMlbbId = (copyPayload !== msg.text) || /^\d{5,12}$/.test(copyPayload);
 
     let copiedSuccessfully = false;
     if (window.AndroidNative && window.AndroidNative.copyToClipboard) {
@@ -1969,7 +2010,7 @@
       } catch (_) {}
     }
 
-    showToast('Chat message copied to clipboard');
+    showToast(isMlbbId ? `Copied ID: ${copyPayload}` : 'Chat message copied to clipboard');
 
     if (selectedStatusText) {
       selectedStatusText.textContent = `Selected: ${msg.user}`;
@@ -1993,6 +2034,107 @@
         row.classList.remove('highlighted', 'border-white');
       }
     });
+  }
+
+  function applyViewerFilter() {
+    if (!chatContainer) return;
+    const rows = chatContainer.querySelectorAll('.chat-row');
+    let matchCount = 0;
+    const q = viewerFilterQuery;
+
+    rows.forEach(row => {
+      const u = (row.dataset.user || '');
+      const uid = (row.dataset.uniqueId || '');
+      const isGifter = row.dataset.isGifter === 'true';
+
+      if (activeTab === 'gifter' && !isGifter) {
+        row.classList.add('hidden');
+        return;
+      }
+
+      if (!q) {
+        row.classList.remove('hidden');
+        matchCount++;
+      } else {
+        const matches = u.includes(q) || uid.includes(q);
+        if (matches) {
+          row.classList.remove('hidden');
+          matchCount++;
+        } else {
+          row.classList.add('hidden');
+        }
+      }
+    });
+
+    if (q) {
+      if (viewerSearchCountBadge) {
+        viewerSearchCountBadge.textContent = `${matchCount} found`;
+        viewerSearchCountBadge.classList.remove('hidden');
+      }
+      if (searchViewerIconPill) {
+        searchViewerIconPill.classList.remove('bg-zinc-900/90', 'border-zinc-700', 'text-zinc-300');
+        searchViewerIconPill.classList.add('bg-white', 'border-white', 'text-black');
+      }
+    } else {
+      if (viewerSearchCountBadge) {
+        viewerSearchCountBadge.classList.add('hidden');
+      }
+      if (searchViewerIconPill) {
+        searchViewerIconPill.classList.remove('bg-white', 'border-white', 'text-black');
+        searchViewerIconPill.classList.add('bg-zinc-900/90', 'border-zinc-700', 'text-zinc-300');
+      }
+    }
+  }
+
+  function setupViewerSearchFilter() {
+    if (!searchViewerToggleBtn) return;
+
+    searchViewerToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!chatSearchFilterBar) return;
+      const isHidden = chatSearchFilterBar.classList.contains('hidden');
+      if (isHidden) {
+        chatSearchFilterBar.classList.remove('hidden');
+        if (viewerSearchInput) {
+          viewerSearchInput.focus();
+        }
+      } else {
+        if (viewerSearchInput && viewerSearchInput.value.trim().length > 0) {
+          viewerSearchInput.value = '';
+          viewerFilterQuery = '';
+          applyViewerFilter();
+        }
+        chatSearchFilterBar.classList.add('hidden');
+      }
+    });
+
+    if (closeViewerSearchBtn) {
+      closeViewerSearchBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (viewerSearchInput) viewerSearchInput.value = '';
+        viewerFilterQuery = '';
+        applyViewerFilter();
+        if (chatSearchFilterBar) chatSearchFilterBar.classList.add('hidden');
+      });
+    }
+
+    if (viewerSearchInput) {
+      viewerSearchInput.addEventListener('input', (e) => {
+        viewerFilterQuery = e.target.value.trim().toLowerCase();
+        applyViewerFilter();
+      });
+
+      viewerSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          viewerSearchInput.blur();
+        } else if (e.key === 'Escape') {
+          viewerSearchInput.value = '';
+          viewerFilterQuery = '';
+          applyViewerFilter();
+          if (chatSearchFilterBar) chatSearchFilterBar.classList.add('hidden');
+        }
+      });
+    }
   }
 
   function showToast(text) {
@@ -3418,6 +3560,7 @@
   setupBottomNavigation();
   setupLogoToggleDrag();
   setupOverlaySimulatorControls();
+  setupViewerSearchFilter();
   if (window.AndroidNative && typeof window.AndroidNative.getLiveViewerCount === 'function') {
     const initialViewers = window.AndroidNative.getLiveViewerCount();
     if (initialViewers > 0) {
@@ -3427,5 +3570,9 @@
   if (!isOverlayMode) {
     setWindowPosition(16, 48);
   }
+
+  window.extractMlbbIdOrText = extractMlbbIdOrText;
+  window.applyViewerFilter = applyViewerFilter;
+  window.setupViewerSearchFilter = setupViewerSearchFilter;
 
 })();

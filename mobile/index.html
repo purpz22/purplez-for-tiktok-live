@@ -203,7 +203,7 @@
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.4</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.5</span>
           </div>
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-zinc-400">STATUS:</span>
@@ -222,7 +222,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.4</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.5</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.
@@ -541,10 +541,37 @@
           <span class="text-[8px] font-extrabold px-1 py-0.2 bg-black text-white rounded font-mono" id="giftAlertCoins">0 COINS</span>
         </div>
 
+        <!-- VIEWER NAME FILTER BAR (Slide-down filter bar) -->
+        <div class="hidden px-2 py-1 bg-zinc-950 border-b border-zinc-800 flex items-center space-x-1.5 select-none z-30" id="chatSearchFilterBar" onpointerdown="event.stopPropagation()">
+          <svg class="w-3 h-3 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input type="text" id="viewerSearchInput" placeholder="Filter viewer name..." class="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2 py-0.5 text-[10px] text-white placeholder-zinc-500 font-mono focus:outline-none focus:border-white">
+          <span class="hidden text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 font-bold shrink-0" id="viewerSearchCountBadge">0 found</span>
+          <button class="text-zinc-400 hover:text-white p-1 text-[10px] font-bold cursor-pointer" id="closeViewerSearchBtn" title="Close filter">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
         <!-- CHAT MESSAGES SCROLLABLE CONTAINER (MAXIMIZED DENSITY & VERTICAL HEIGHT) -->
-        <div class="flex-1 overflow-y-auto p-1.5 space-y-1 font-sans relative" id="chatMessagesContainer" onpointerdown="event.stopPropagation()">
+        <div class="flex-1 overflow-y-auto p-1.5 pr-7 space-y-1 font-sans relative" id="chatMessagesContainer" onpointerdown="event.stopPropagation()">
           <!-- Populated dynamically by JS -->
         </div>
+
+        <!-- Right Edge Middle Search Viewer Filter Button (Normal Hitbox, Small Icon) -->
+        <button id="searchViewerToggleBtn" 
+                class="absolute right-0 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center pointer-events-auto cursor-pointer z-35 select-none focus:outline-none" 
+                title="Search viewer name to filter" 
+                onpointerdown="event.stopPropagation()" 
+                onclick="event.stopPropagation()">
+          <div id="searchViewerIconPill" class="w-5 h-5 rounded-full bg-zinc-900/90 border border-zinc-700 hover:border-zinc-400 active:scale-90 flex items-center justify-center shadow-lg transition-all">
+            <svg class="w-3 h-3 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </button>
 
         <!-- Floating Auto-Scroll Resume Button (Appears when streamer scrolls up to read older messages) -->
         <button class="hidden absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-white text-black border border-white text-[10px] font-mono font-bold rounded-full shadow-2xl z-30 flex items-center space-x-1.5 cursor-pointer active:scale-95 transition-all" id="autoScrollResumeBtn">

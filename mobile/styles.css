@@ -901,3 +901,42 @@ body.overlay-mode #floatingBottomNav {
   }
 }
 
+/* Right Edge Middle Search Viewer Filter Button */
+#searchViewerToggleBtn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 35;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+#searchViewerIconPill {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  transition: all 0.15s ease;
+}
+
+#searchViewerToggleBtn:active #searchViewerIconPill {
+  transform: scale(0.9);
+}
+
+/* Search Filter Bar */
+#chatSearchFilterBar {
+  transition: all 0.2s ease-in-out;
+}
+
