@@ -970,6 +970,11 @@
     } else if (status === 'DISCONNECTED') {
       isConnecting = false;
       is100PercentConnected = false;
+      liveCumulativeLikes = 0;
+      const overlayLiveLikeCount = document.getElementById('overlayLiveLikeCount');
+      if (overlayLiveLikeCount) overlayLiveLikeCount.textContent = '0';
+      const previewLikeCount = document.getElementById('previewLikeCount');
+      if (previewLikeCount) previewLikeCount.textContent = '0 likes';
       if (connectSpinner) connectSpinner.classList.add('hidden');
       if (saveStreamerUsernameBtn) saveStreamerUsernameBtn.disabled = false;
       if (usernameDot) usernameDot.className = 'w-2 h-2 rounded-full bg-zinc-600';
@@ -985,6 +990,11 @@
   function disconnectTikTokLive() {
     isConnecting = false;
     is100PercentConnected = false;
+    liveCumulativeLikes = 0;
+    const overlayLiveLikeCount = document.getElementById('overlayLiveLikeCount');
+    if (overlayLiveLikeCount) overlayLiveLikeCount.textContent = '0';
+    const previewLikeCount = document.getElementById('previewLikeCount');
+    if (previewLikeCount) previewLikeCount.textContent = '0 likes';
     if (inAppStreamPollTimer) {
       clearInterval(inAppStreamPollTimer);
       inAppStreamPollTimer = null;
@@ -1999,6 +2009,8 @@
     }
   }
 
+  let isProgrammaticScroll = false;
+
   if (autoScrollResumeBtn) {
     autoScrollResumeBtn.addEventListener('click', () => {
       isAutoScrollPaused = false;
@@ -2006,7 +2018,12 @@
       highlightedMessageId = null;
       updateHighlightDOM(null);
       updateAutoScrollResumeBtn();
+      isProgrammaticScroll = true;
       chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+      setTimeout(() => {
+        isProgrammaticScroll = false;
+        if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+      }, 350);
       showToast('Resumed Auto-Scroll');
     });
   }
@@ -2037,6 +2054,7 @@
     });
 
     const onTouchEnd = () => {
+      clearTimeout(touchReleaseTimer);
       touchReleaseTimer = setTimeout(() => {
         isUserTouchingChat = false;
       }, 600);
@@ -2053,6 +2071,7 @@
     }, { passive: true });
 
     chatContainer.addEventListener('scroll', () => {
+      if (isProgrammaticScroll) return;
       const distFromBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight;
       if (distFromBottom > 15) {
         if (!isAutoScrollPaused) {
@@ -2224,6 +2243,9 @@
         }
         if (viewerSearchInput) {
           viewerSearchInput.focus();
+          setTimeout(() => {
+            try { viewerSearchInput.focus(); } catch (_) {}
+          }, 60);
         }
       } else {
         if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
@@ -2279,6 +2301,7 @@
           if (window.AndroidNative && typeof window.AndroidNative.requestOverlayKeyboard === 'function') {
             window.AndroidNative.requestOverlayKeyboard(false);
           }
+          viewerSearchInput.blur();
           viewerSearchInput.value = '';
           viewerFilterQuery = '';
           applyViewerFilter();
@@ -2827,7 +2850,7 @@
   };
 
   function formatCompactLikes(num) {
-    const n = typeof num === 'number' ? num : parseInt(num, 10) || 0;
+    const n = typeof num === 'number' ? Math.max(0, num) : Math.max(0, parseInt(num, 10) || 0);
     if (n >= 1000000) {
       const v = (n / 1000000).toFixed(1);
       return v.endsWith('.0') ? `${Math.floor(n / 1000000)}M` : `${v}M`;
@@ -2841,9 +2864,14 @@
 
   window.updateLiveLikeCount = function(totalLikes, count) {
     let numeric = typeof totalLikes === 'number' ? totalLikes : parseInt(totalLikes, 10);
-    if (isNaN(numeric) || numeric <= 0) {
-      const inc = typeof count === 'number' ? count : parseInt(count, 10) || 1;
-      liveCumulativeLikes += inc;
+    const inc = typeof count === 'number' ? count : parseInt(count, 10);
+
+    if (numeric === 0 && (inc === 0 || isNaN(inc))) {
+      liveCumulativeLikes = 0;
+      numeric = 0;
+    } else if (isNaN(numeric) || numeric <= 0) {
+      const step = !isNaN(inc) && inc > 0 ? inc : 1;
+      liveCumulativeLikes += step;
       numeric = liveCumulativeLikes;
     } else {
       liveCumulativeLikes = numeric;
@@ -3056,12 +3084,12 @@
 
     // Every stream comment is visible in ALL VIEWERS tab
     regularChats.push(msg);
-    if (regularChats.length > 200) regularChats.shift();
+    if (regularChats.length > 500) regularChats.shift();
 
     // Gifters and super fans are also tracked in GIFTER CHAT tab
     if (msg.isGifter) {
       gifterChats.push(msg);
-      if (gifterChats.length > 100) gifterChats.shift();
+      if (gifterChats.length > 500) gifterChats.shift();
       if (gift) {
         triggerGiftAlert(cleanUser, gift, msgCoins);
         sessionGiftList.unshift({
