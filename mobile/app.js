@@ -794,10 +794,17 @@
       // Real live member events with follow action
       liveSocket.on('tiktok_member', (data) => {
         if (!data) return;
+        const isShareDisplay = typeof data.displayType === 'string' && data.displayType.toLowerCase().includes('share');
+        if (isShareDisplay || data.action === 1) return;
         const isFollowDisplay = typeof data.displayType === 'string' && data.displayType.toLowerCase().includes('follow');
-        if (data.action === 3 || data.displayType === 'follow' || isFollowDisplay || data.action === 'follow' || data.isFollower) {
+        if (data.action === 3 || data.displayType === 'follow' || isFollowDisplay || data.action === 'follow') {
           handleIncomingRealFollow(data);
         }
+      });
+
+      // Real live share listener
+      liveSocket.on('tiktok_share', (data) => {
+        handleIncomingRealShare(data);
       });
 
     } catch (err) {
@@ -812,6 +819,29 @@
     const cleanUser = String(user).trim().replace(/^@+/, '');
     const avatarUrl = data.profilePictureUrl || data.avatarUrl || data.avatar || '';
     triggerFollowAlert(cleanUser, data.nickname || cleanUser, avatarUrl);
+  }
+
+  function handleIncomingRealShare(data) {
+    if (!data) return;
+    const user = data.nickname || data.uniqueId || data.user || 'Viewer';
+    const cleanUser = String(user).trim().replace(/^@+/, '');
+    const avatarUrl = data.profilePictureUrl || data.avatarUrl || data.avatar || '';
+    const shareText = 'Shared the live stream!';
+    const time = new Date().toLocaleTimeString();
+
+    handleIncomingRealChat({
+      nickname: cleanUser,
+      comment: shareText,
+      roleLabel: 'SHARE',
+      role: 'share',
+      isGifter: false,
+      coins: 0,
+      profilePictureUrl: avatarUrl
+    });
+
+    if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
+      window.AndroidNative.updateLatestChat(cleanUser, shareText, 'SHARE', time, false);
+    }
   }
 
   function handleIncomingRealChat(data) {

@@ -1,22 +1,22 @@
 {
   "appName": "PurplezChat",
-  "version": "1.1.8",
-  "buildTime": 1791550335225,
-  "updatedAt": "2026-10-09T12:52:15.225Z",
+  "version": "1.1.9",
+  "buildTime": 1791557097679,
+  "updatedAt": "2026-10-09T14:44:57.679Z",
   "domain": "raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main",
-  "releaseNotes": "Mobile Over-The-Air update v1.1.8",
+  "releaseNotes": "Mobile Over-The-Air update v1.1.9",
   "bundleFiles": [
     {
       "relativePath": "index.html",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/index.html",
-      "hash": "140fe9ed83eb55d0c734a1a2531b1d7c",
+      "hash": "c2dfff9d33de2ee372e69469a686b070",
       "size": 64171
     },
     {
       "relativePath": "app.js",
       "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/mobile/app.js",
-      "hash": "1fe0bb8301ae99a5cc28f1ba292a2c83",
-      "size": 150862
+      "hash": "cfd607bb77deaa185ff4e67fe7ee454a",
+      "size": 151947
     },
     {
       "relativePath": "styles.css",
@@ -44,11 +44,11 @@
     }
   ],
   "nativeApk": {
-    "versionCode": 15,
-    "versionName": "1.1.8",
+    "versionCode": 16,
+    "versionName": "1.1.9",
     "url": "https://raw.githubusercontent.com/purpz22/purplez-for-tiktok-live/main/purplez-for-tiktok-live.apk",
-    "hash": "288d99bd9abc465458625e7f67cfa6c6",
-    "size": 1366749,
-    "releaseNotes": "PurplezChat v1.1.8 native Android release"
+    "hash": "ab0ab8c2ddad0958113e9d2e8edc588f",
+    "size": 1367272,
+    "releaseNotes": "PurplezChat v1.1.9 native Android release"
   }
 }
