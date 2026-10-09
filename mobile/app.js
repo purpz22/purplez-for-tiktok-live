@@ -17,6 +17,7 @@
   let totalGiftCoins = 0;
   let hasOverlayPermission = false;
   let isOverlayRunning = false;
+  let isSimAtEdge = false;
 
   // Stream Live Real-Time Data (Starts 100% empty, populated exclusively by real live stream events)
   const gifterChats = [];
@@ -130,20 +131,34 @@
   // ==========================================
   // VIEW NAVIGATION & BACK ACTION
   // ==========================================
+  let lastNavTab = 'navViewLive';
+
   function showControlCenter() {
     if (isOverlayMode) return;
     if (inAppPreviewView) inAppPreviewView.classList.add('hidden');
     if (controlCenterView) controlCenterView.classList.remove('hidden');
+    if (typeof switchNavTab === 'function') {
+      switchNavTab(lastNavTab || 'navViewSettings');
+    }
   }
 
-  function showInAppPreview() {
+  function showInAppPreview(fromTab = 'navViewLive') {
+    lastNavTab = fromTab;
     if (controlCenterView) controlCenterView.classList.add('hidden');
     if (inAppPreviewView) inAppPreviewView.classList.remove('hidden');
+    if (regularChats.length === 0) {
+      injectSamplePreviewChats();
+    }
     renderChatMessages();
     setWindowPosition(16, 48);
   }
 
-  if (openPreviewBtn) openPreviewBtn.addEventListener('click', showInAppPreview);
+  function injectSamplePreviewChats() {
+    window.addChatMessage('AkiStreamer', 'VIEWER', 'stream looks amazing!', false, null, 0);
+    window.addChatMessage('TopSupporter', 'VIP', 'Sent Rose x1! (1 Coins)', true, 'Rose', 1);
+  }
+
+  if (openPreviewBtn) openPreviewBtn.addEventListener('click', () => showInAppPreview('navViewLive'));
   if (backToControlCenterBtn) backToControlCenterBtn.addEventListener('click', showControlCenter);
 
   // Close App Action (Force Closes Mobile App)
@@ -1199,11 +1214,25 @@
           parseWebcastChatMessageProto(payloadField.data);
         } else if (method === 'WebcastGiftMessage') {
           parseWebcastGiftMessageProto(payloadField.data);
+        } else if (method === 'WebcastRoomUserSeqMessage') {
+          parseWebcastRoomUserSeqProto(payloadField.data);
         }
       }
     } catch (e) {
       console.warn('[StreamProto] Decode error:', e);
     }
+  }
+
+  function parseWebcastRoomUserSeqProto(payloadBytes) {
+    try {
+      const fields = parseProtoFields(payloadBytes);
+      const totalField = fields.find(f => (f.fieldNumber === 2 || f.fieldNumber === 3) && f.wireType === 0);
+      if (totalField && totalField.value > 0) {
+        if (typeof window.updateLiveViewerCount === 'function') {
+          window.updateLiveViewerCount(totalField.value);
+        }
+      }
+    } catch (_) {}
   }
 
   function parseWebcastChatMessageProto(payloadBytes) {
@@ -1228,7 +1257,15 @@
       const displayUser = user || uniqueId || 'Viewer';
       if (!content) return;
 
-      const dedupeKey = `chat:${displayUser}:${content}`;
+      const commonField = fields.find(f => f.fieldNumber === 1 && f.wireType === 2);
+      let msgId = '';
+      if (commonField) {
+        const cFields = parseProtoFields(commonField.data);
+        const idField = cFields.find(f => f.fieldNumber === 1);
+        if (idField) msgId = String(idField.value || '');
+      }
+
+      const dedupeKey = msgId ? `chat:msg:${msgId}` : `chat:${displayUser}:${content}:${Date.now()}_${Math.random()}`;
       if (processedMessageIds.has(dedupeKey)) return;
       processedMessageIds.add(dedupeKey);
       if (processedMessageIds.size > 250) {
@@ -1271,7 +1308,15 @@
       }
 
       const totalCoins = diamondCount * repeatCount;
-      const dedupeKey = `gift:${user}:${giftName}:${repeatCount}:${totalCoins}`;
+      const commonField = fields.find(f => f.fieldNumber === 1 && f.wireType === 2);
+      let msgId = '';
+      if (commonField) {
+        const cFields = parseProtoFields(commonField.data);
+        const idField = cFields.find(f => f.fieldNumber === 1);
+        if (idField) msgId = String(idField.value || '');
+      }
+
+      const dedupeKey = msgId ? `gift:msg:${msgId}` : `gift:${user}:${giftName}:${repeatCount}:${totalCoins}:${Date.now()}_${Math.random()}`;
       if (processedMessageIds.has(dedupeKey)) return;
       processedMessageIds.add(dedupeKey);
       if (processedMessageIds.size > 250) {
@@ -1305,7 +1350,7 @@
     while ((match = chatRegex.exec(str)) !== null) {
       const user = match[1];
       const text = match[2];
-      const key = `str:${user}:${text}`;
+      const key = `str:${user}:${text}:${Date.now()}_${Math.random()}`;
       if (!processedMessageIds.has(key)) {
         processedMessageIds.add(key);
         if (processedMessageIds.size > 250) {
@@ -1390,6 +1435,11 @@
 
   function applyOpacity(val) {
     if (transparencyValue) transparencyValue.textContent = `${val}%`;
+    const simOpacityDisplay = document.getElementById('simOpacityDisplay');
+    if (simOpacityDisplay) simOpacityDisplay.textContent = `${val}%`;
+    const simOpacitySlider = document.getElementById('simOpacitySlider');
+    if (simOpacitySlider && simOpacitySlider.value !== String(val)) simOpacitySlider.value = val;
+    if (transparencySlider && transparencySlider.value !== String(val)) transparencySlider.value = val;
     const alpha = (val / 100).toFixed(2);
     if (floatingWindow) {
       floatingWindow.style.backgroundColor = `rgba(0, 0, 0, ${alpha})`;
@@ -1649,7 +1699,23 @@
   if (resetPositionBtn) {
     resetPositionBtn.addEventListener('click', () => {
       setWindowPosition(16, 48);
-      showToast('Window Position Reset');
+      if (logoToggleBtn) {
+        logoToggleBtn.style.position = '';
+        logoToggleBtn.style.left = '';
+        logoToggleBtn.style.top = '';
+        logoToggleBtn.style.zIndex = '';
+      }
+      if (miniDock) {
+        miniDock.style.position = '';
+        miniDock.style.left = '';
+        miniDock.style.top = '';
+        miniDock.style.zIndex = '';
+      }
+      isSimAtEdge = false;
+      if (isWindowHidden && miniDock) {
+        miniDock.classList.remove('hidden');
+      }
+      showToast('Overlay & Bubble Position Reset');
     });
   }
 
@@ -1675,16 +1741,16 @@
                 ? 'bg-white text-black border border-white'
                 : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
             }">${msg.badge}</span>
-            <span class="font-bold text-[9.5px] text-zinc-400 truncate">${msg.user}</span>
+            <span class="chat-username font-bold text-[9.5px] text-zinc-400 truncate">${msg.user}</span>
             ${msg.gift ? `
               <span class="gift-badge text-[8.5px] font-mono font-bold px-1 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-700 truncate shrink-0">
                 ${msg.gift}
               </span>
             ` : ''}
           </div>
-          <span class="text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
+          <span class="chat-time text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
         </div>
-        <div class="text-[10px] leading-tight text-zinc-400 font-normal pl-0.5 break-words mt-0.5">
+        <div class="chat-text text-[10px] leading-tight text-zinc-400 font-normal pl-0.5 break-words mt-0.5">
           ${msg.text}
         </div>
       `;
@@ -1701,11 +1767,11 @@
                 ? 'bg-white text-black border border-white font-extrabold'
                 : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
             }">${msg.badge}</span>
-            <span class="font-bold text-[9.5px] ${isFollower ? 'text-white' : 'text-zinc-400'} truncate">${msg.user}</span>
+            <span class="chat-username font-bold text-[9.5px] ${isFollower ? 'text-white' : 'text-zinc-400'} truncate">${msg.user}</span>
           </div>
-          <span class="text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
+          <span class="chat-time text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
         </div>
-        <div class="text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : 'text-zinc-400'} pl-0.5 break-words mt-0.5">
+        <div class="chat-text text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : 'text-zinc-400'} pl-0.5 break-words mt-0.5">
           ${msg.text}
         </div>
       `;
@@ -1937,6 +2003,13 @@
             <span class="text-white">${latest.time}</span>
           </div>
         `;
+      }
+      if (isWindowHidden && miniDock) {
+        if (!isSimAtEdge) {
+          miniDock.classList.remove('hidden');
+        } else {
+          miniDock.classList.add('hidden');
+        }
       }
 
       // Sync latest message to native Android ticker
@@ -2317,8 +2390,14 @@
     isWindowHidden = !isWindowHidden;
     if (isWindowHidden) {
       if (floatingWindow) floatingWindow.classList.add('hidden');
-      if (miniDock) miniDock.classList.remove('hidden');
-      showToast('Chat Window Hidden (Docked at logo)');
+      if (miniDock) {
+        if (!isSimAtEdge) {
+          miniDock.classList.remove('hidden');
+        } else {
+          miniDock.classList.add('hidden');
+        }
+      }
+      showToast(isSimAtEdge ? 'Chat Hidden (Mini Mode 2: Edge Mode)' : 'Chat Minimized (Mini Mode 1: Ticker Active)');
     } else {
       if (floatingWindow) floatingWindow.classList.remove('hidden');
       if (miniDock) miniDock.classList.add('hidden');
@@ -2330,7 +2409,6 @@
     }
   };
 
-  if (logoToggleBtn) logoToggleBtn.addEventListener('click', window.toggleChatVisibility);
   if (expandChatFromMiniBtn) expandChatFromMiniBtn.addEventListener('click', window.toggleChatVisibility);
 
   // Clear Highlight
@@ -2389,6 +2467,221 @@
     });
     if (activeBtn) {
       activeBtn.className = 'py-1 text-xs font-mono rounded bg-white text-black font-bold border border-white cursor-pointer';
+    }
+  }
+
+  // ==========================================
+  // TYPOGRAPHY SCALING & LIVE VIEWER COUNT
+  // ==========================================
+  function applyFontSize(size) {
+    const validSizes = ['compact', 'normal', 'medium'];
+    const chosen = validSizes.includes(size) ? size : 'compact';
+    if (floatingWindow) {
+      floatingWindow.classList.remove('font-compact', 'font-normal', 'font-medium');
+      floatingWindow.classList.add(`font-${chosen}`);
+    }
+    const simFontSizeDisplay = document.getElementById('simFontSizeDisplay');
+    if (simFontSizeDisplay) {
+      simFontSizeDisplay.textContent = chosen.toUpperCase();
+    }
+    document.querySelectorAll('.sim-font-btn').forEach(btn => {
+      if (btn.getAttribute('data-size') === chosen) {
+        btn.classList.add('bg-white', 'text-black');
+        btn.classList.remove('bg-zinc-800', 'text-zinc-400');
+      } else {
+        btn.classList.remove('bg-white', 'text-black');
+        btn.classList.add('bg-zinc-800', 'text-zinc-400');
+      }
+    });
+    try {
+      localStorage.setItem('purplez_font_size', chosen);
+    } catch (_) {}
+  }
+
+  window.updateLiveViewerCount = function(count, formatted) {
+    const numeric = typeof count === 'number' ? count : parseInt(count, 10) || 0;
+    const formattedStr = formatted || Number(numeric).toLocaleString();
+    const overlayLiveViewerCount = document.getElementById('overlayLiveViewerCount');
+    if (overlayLiveViewerCount) {
+      overlayLiveViewerCount.textContent = formattedStr;
+    }
+    const previewViewerCount = document.getElementById('previewViewerCount');
+    if (previewViewerCount) {
+      previewViewerCount.textContent = `${formattedStr} viewers`;
+    }
+  };
+
+  // Draggable & Edge-Snapping Logo Bubble in Simulator (Mini Mode 1 & Mini Mode 2)
+  function setupLogoToggleDrag() {
+    if (!logoToggleBtn) return;
+    let isDragging = false;
+    let hasMoved = false;
+    let startX = 0;
+    let startY = 0;
+    let initLeft = 0;
+    let initTop = 0;
+
+    logoToggleBtn.addEventListener('pointerdown', (e) => {
+      if (inAppPreviewView && inAppPreviewView.classList.contains('hidden')) return;
+      isDragging = true;
+      hasMoved = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = logoToggleBtn.getBoundingClientRect();
+      initLeft = rect.left;
+      initTop = rect.top;
+      try { logoToggleBtn.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.hypot(dx, dy) > 8) {
+        hasMoved = true;
+      }
+      if (!hasMoved) return;
+
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const newLeft = Math.max(0, Math.min(screenWidth - 44, initLeft + dx));
+      const newTop = Math.max(0, Math.min(screenHeight - 44, initTop + dy));
+
+      logoToggleBtn.style.position = 'fixed';
+      logoToggleBtn.style.left = `${newLeft}px`;
+      logoToggleBtn.style.top = `${newTop}px`;
+      logoToggleBtn.style.zIndex = '50';
+
+      if (miniDock) {
+        miniDock.style.position = 'fixed';
+        miniDock.style.left = `${newLeft}px`;
+        miniDock.style.top = `${newTop + 44}px`;
+        miniDock.style.zIndex = '49';
+      }
+
+      // Edge proximity detection for Mini Mode 2 (left, right, top edges)
+      const edgeThreshold = 32;
+      const nearLeft = newLeft <= edgeThreshold;
+      const nearRight = newLeft >= (screenWidth - 44 - edgeThreshold);
+      const nearTop = newTop <= edgeThreshold;
+      const edgeMode = (nearLeft || nearRight || nearTop);
+
+      if (edgeMode !== isSimAtEdge) {
+        isSimAtEdge = edgeMode;
+        if (isWindowHidden && miniDock) {
+          if (isSimAtEdge) {
+            miniDock.classList.add('hidden');
+          } else {
+            miniDock.classList.remove('hidden');
+          }
+        }
+      }
+    });
+
+    const onLogoDragEnd = (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      try { logoToggleBtn.releasePointerCapture(e.pointerId); } catch (_) {}
+
+      if (!hasMoved) return;
+
+      const rect = logoToggleBtn.getBoundingClientRect();
+      const edgeThreshold = 32;
+      const screenWidth = window.innerWidth;
+      const nearLeft = rect.left <= edgeThreshold;
+      const nearRight = rect.left >= (screenWidth - 44 - edgeThreshold);
+      const nearTop = rect.top <= edgeThreshold;
+
+      let finalLeft = rect.left;
+      let finalTop = rect.top;
+
+      if (nearLeft) {
+        finalLeft = 8;
+        isSimAtEdge = true;
+      } else if (nearRight) {
+        finalLeft = screenWidth - 44 - 8;
+        isSimAtEdge = true;
+      } else if (nearTop) {
+        finalTop = 8;
+        isSimAtEdge = true;
+      } else {
+        isSimAtEdge = false;
+      }
+
+      logoToggleBtn.style.left = `${finalLeft}px`;
+      logoToggleBtn.style.top = `${finalTop}px`;
+      if (miniDock) {
+        miniDock.style.left = `${finalLeft}px`;
+        miniDock.style.top = `${finalTop + 44}px`;
+      }
+
+      if (isWindowHidden && miniDock) {
+        if (isSimAtEdge) {
+          miniDock.classList.add('hidden');
+          showToast('Mini Mode 2 (Edge Mode: Hidden)');
+        } else {
+          miniDock.classList.remove('hidden');
+          showToast('Mini Mode 1 (Ticker Active)');
+        }
+      }
+    };
+
+    window.addEventListener('pointerup', onLogoDragEnd);
+    window.addEventListener('pointercancel', onLogoDragEnd);
+
+    logoToggleBtn.addEventListener('click', (e) => {
+      if (hasMoved) {
+        e.stopPropagation();
+        e.preventDefault();
+        hasMoved = false;
+        return;
+      }
+      window.toggleChatVisibility();
+    });
+  }
+
+  // Real-Time Simulator Dock Controls
+  function setupOverlaySimulatorControls() {
+    const openOverlaySimulatorBtn = document.getElementById('openOverlaySimulatorBtn');
+    if (openOverlaySimulatorBtn) {
+      openOverlaySimulatorBtn.addEventListener('click', () => {
+        showInAppPreview('navViewSettings');
+      });
+    }
+
+    const simulatorDoneBtn = document.getElementById('simulatorDoneBtn');
+    if (simulatorDoneBtn) {
+      simulatorDoneBtn.addEventListener('click', () => {
+        showControlCenter();
+      });
+    }
+
+    const simOpacitySlider = document.getElementById('simOpacitySlider');
+    if (simOpacitySlider) {
+      simOpacitySlider.addEventListener('input', (e) => {
+        applyOpacity(e.target.value);
+      });
+    }
+
+    document.querySelectorAll('.sim-font-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const s = btn.getAttribute('data-size');
+        if (s) applyFontSize(s);
+      });
+    });
+
+    const simTestChatBtn = document.getElementById('simTestChatBtn');
+    if (simTestChatBtn) {
+      simTestChatBtn.addEventListener('click', () => {
+        window.addChatMessage('AkiStreamer', 'VIEWER', 'Testing compact chat overlay!', false, null, 0);
+      });
+    }
+
+    const simTestGiftBtn = document.getElementById('simTestGiftBtn');
+    if (simTestGiftBtn) {
+      simTestGiftBtn.addEventListener('click', () => {
+        window.addChatMessage('StarSupporter', 'VIP', 'Sent Rose x1! (1 Coins)', true, 'Rose', 1);
+      });
     }
   }
 
@@ -3026,35 +3319,40 @@
   });
 
   // Floating Bottom Navigation & Settings Handlers
-  function setupBottomNavigation() {
-    const navItems = document.querySelectorAll('.bottom-nav-item');
+  function switchNavTab(targetId) {
     const views = {
       navViewLive: document.getElementById('navViewLive'),
       navViewAlerts: document.getElementById('navViewAlerts'),
       navViewSettings: document.getElementById('navViewSettings')
     };
+    if (!targetId || !views[targetId]) targetId = 'navViewLive';
+    const navItems = document.querySelectorAll('.bottom-nav-item');
+    navItems.forEach(b => {
+      if (b.getAttribute('data-target') === targetId) {
+        b.classList.add('active');
+        b.classList.remove('text-zinc-400');
+      } else {
+        b.classList.remove('active');
+        b.classList.add('text-zinc-400');
+      }
+    });
+    Object.keys(views).forEach(vKey => {
+      if (views[vKey]) {
+        if (vKey === targetId) {
+          views[vKey].classList.remove('hidden');
+        } else {
+          views[vKey].classList.add('hidden');
+        }
+      }
+    });
+  }
 
+  function setupBottomNavigation() {
+    const navItems = document.querySelectorAll('.bottom-nav-item');
     navItems.forEach(btn => {
       btn.addEventListener('click', () => {
         const targetId = btn.getAttribute('data-target');
-        if (!targetId || !views[targetId]) return;
-
-        navItems.forEach(b => {
-          b.classList.remove('active');
-          b.classList.add('text-zinc-400');
-        });
-        btn.classList.add('active');
-        btn.classList.remove('text-zinc-400');
-
-        Object.keys(views).forEach(vKey => {
-          if (views[vKey]) {
-            if (vKey === targetId) {
-              views[vKey].classList.remove('hidden');
-            } else {
-              views[vKey].classList.add('hidden');
-            }
-          }
-        });
+        switchNavTab(targetId);
       });
     });
 
@@ -3093,8 +3391,17 @@
 
   // Initial Setup
   handleOrientationChange();
+  applyFontSize(localStorage.getItem('purplez_font_size') || 'compact');
   renderChatMessages();
   setupBottomNavigation();
+  setupLogoToggleDrag();
+  setupOverlaySimulatorControls();
+  if (window.AndroidNative && typeof window.AndroidNative.getLiveViewerCount === 'function') {
+    const initialViewers = window.AndroidNative.getLiveViewerCount();
+    if (initialViewers > 0) {
+      window.updateLiveViewerCount(initialViewers);
+    }
+  }
   if (!isOverlayMode) {
     setWindowPosition(16, 48);
   }

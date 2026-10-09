@@ -241,6 +241,23 @@
           </div>
         </div>
 
+        <!-- OVERLAY CUSTOMIZATION (FULL SCREEN SIMULATOR) -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="overlayCustomizerCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">OVERLAY CUSTOMIZER</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="currentOverlayProfileBadge">LIVE PREVIEW</span>
+          </div>
+          <div class="text-[11px] font-mono text-zinc-400 leading-relaxed">
+            Configure window transparency, smaller font sizing, window presets, and test Mini Mode 1 &amp; Mini Mode 2 in real time.
+          </div>
+          <button class="control-btn-primary w-full py-2.5 text-xs font-mono font-bold flex items-center justify-center space-x-2 cursor-pointer" id="openOverlaySimulatorBtn">
+            <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span>LAUNCH OVERLAY SIMULATOR</span>
+          </button>
+        </div>
+
         <!-- APP CONTROLS -->
         <div>
           <button class="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-xl text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer font-mono text-xs font-bold uppercase tracking-wider transition-all" id="closeAppBtn">
@@ -461,7 +478,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 01-2 2M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
               </svg>
               <span>Gifter</span>
-              <span class="bg-zinc-800 text-zinc-300 text-[9px] font-mono px-1 py-0 rounded-full" id="gifterCountBadge">0</span>
+              <span class="hidden" id="gifterCountBadge">0</span>
             </button>
             <!-- Tab 2: Regular Viewer Chat (Compact - Default Active) -->
             <button class="tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all bg-white text-black shadow-sm cursor-pointer" id="tabRegular">
@@ -469,8 +486,18 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
               </svg>
               <span>All</span>
-              <span class="bg-black text-white text-[9px] font-mono px-1 py-0 rounded-full border border-black font-extrabold" id="regularCountBadge">0</span>
+              <span class="hidden" id="regularCountBadge">0</span>
             </button>
+          </div>
+
+          <!-- Center Live Viewer Count Pill (e.g. 1,400 followed by eye icon) -->
+          <div class="flex items-center space-x-1 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-200 pointer-events-auto shrink-0" id="headerViewerCountPill" title="Live Viewers">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span class="font-bold text-white font-mono" id="overlayLiveViewerCount">0</span>
+            <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
           </div>
 
           <!-- Gift list Button on right side -->
@@ -538,17 +565,66 @@
 
     </div>
 
-    <!-- Bottom Navigation Bar for Preview -->
-    <div class="relative z-30 w-full bg-black/90 border-t border-zinc-800 px-4 py-1.5 flex items-center justify-between font-mono pointer-events-auto" id="bottomNavBar">
-      <div class="text-[10px] text-zinc-500">
-        <span class="text-white font-bold" id="footerStreamerTag">@streamer</span>
-        <span class="mx-1">•</span>
-        <span>Landscape HUD</span>
-      </div>
-      <div class="flex items-center space-x-2">
-        <button class="px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-300 rounded-lg text-xs font-mono cursor-pointer" id="resetPositionBtn">
-          RESET POSITION
-        </button>
+    <!-- Dedicated Real-Time Overlay Config Dock in Simulator -->
+    <div class="relative z-30 w-full bg-black/95 border-t border-zinc-800 px-3 py-2 font-mono pointer-events-auto backdrop-blur-xl select-none" id="bottomNavBar">
+      <div class="max-w-2xl mx-auto space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2 text-[11px]">
+            <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+            <span class="text-white font-bold uppercase tracking-wider">LIVE OVERLAY CONFIG</span>
+            <span class="text-zinc-600">|</span>
+            <span class="text-zinc-400" id="footerStreamerTag">@streamer</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-lg text-[10px] font-bold cursor-pointer" id="resetPositionBtn">
+              RESET POS
+            </button>
+            <button class="px-3 py-1 bg-white hover:bg-zinc-200 text-black font-extrabold text-[11px] rounded-lg cursor-pointer uppercase tracking-wider shadow-md" id="simulatorDoneBtn">
+              DONE
+            </button>
+          </div>
+        </div>
+
+        <!-- Controls Grid: Opacity, Font Size, Test Triggers -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px]">
+          <!-- Opacity Slider -->
+          <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-1.5 space-y-1">
+            <div class="flex justify-between items-center text-zinc-400">
+              <span class="uppercase font-bold">OPACITY:</span>
+              <span class="text-white font-bold" id="simOpacityDisplay">85%</span>
+            </div>
+            <input type="range" min="20" max="100" value="85" class="w-full h-1 bg-zinc-800 rounded cursor-pointer" id="simOpacitySlider" />
+          </div>
+
+          <!-- Font Size Selector (Compact / Normal / Medium) -->
+          <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-1.5 space-y-1">
+            <div class="flex justify-between items-center text-zinc-400">
+              <span class="uppercase font-bold">TEXT SIZE:</span>
+              <span class="text-white font-bold uppercase" id="simFontSizeDisplay">COMPACT</span>
+            </div>
+            <div class="flex space-x-1">
+              <button type="button" class="flex-1 py-0.5 text-[9px] rounded font-bold bg-white text-black font-mono sim-font-btn" data-size="compact" id="simFontCompactBtn">COMPACT</button>
+              <button type="button" class="flex-1 py-0.5 text-[9px] rounded font-bold bg-zinc-800 text-zinc-400 font-mono sim-font-btn" data-size="normal" id="simFontNormalBtn">NORMAL</button>
+              <button type="button" class="flex-1 py-0.5 text-[9px] rounded font-bold bg-zinc-800 text-zinc-400 font-mono sim-font-btn" data-size="medium" id="simFontMediumBtn">MED</button>
+            </div>
+          </div>
+
+          <!-- Test Triggers: Simulate chat and gift -->
+          <div class="col-span-2 sm:col-span-1 bg-zinc-900/90 border border-zinc-800 rounded-xl p-1.5 space-y-1">
+            <div class="flex justify-between items-center text-zinc-400">
+              <span class="uppercase font-bold">TEST ACTIONS:</span>
+              <span class="text-zinc-500 text-[8px]">SIMULATE</span>
+            </div>
+            <div class="flex space-x-1">
+              <button type="button" class="flex-1 py-0.5 text-[9px] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded font-bold font-mono" id="simTestChatBtn">+CHAT</button>
+              <button type="button" class="flex-1 py-0.5 text-[9px] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded font-bold font-mono" id="simTestGiftBtn">+GIFT</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-[9px] text-zinc-500 leading-tight">
+          Mini Mode 1: Click logo to collapse chat into ticker. Mini Mode 2: Drag circle to edge (left/right/top) to hide completely.
+        </div>
       </div>
     </div>
 

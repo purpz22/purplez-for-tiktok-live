@@ -458,6 +458,49 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   border-color: #000000 !important;
 }
 
+/* Compact Typography Mode (Default for optimized floating HUD) */
+#floatingChatWindow.font-compact .chat-row {
+  padding: 0.15rem 0.35rem !important;
+  margin-top: 0.15rem !important;
+}
+#floatingChatWindow.font-compact .chat-row .badge {
+  font-size: 7.5px !important;
+  padding: 0.05rem 0.2rem !important;
+}
+#floatingChatWindow.font-compact .chat-row .chat-username {
+  font-size: 8.5px !important;
+  line-height: 1.15 !important;
+}
+#floatingChatWindow.font-compact .chat-row .chat-time {
+  font-size: 7.5px !important;
+}
+#floatingChatWindow.font-compact .chat-row .chat-text {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+/* Normal Mode */
+#floatingChatWindow.font-normal .chat-row {
+  padding: 0.2rem 0.42rem !important;
+}
+#floatingChatWindow.font-normal .chat-row .chat-username {
+  font-size: 9.5px !important;
+}
+#floatingChatWindow.font-normal .chat-row .chat-text {
+  font-size: 10px !important;
+}
+
+/* Medium Mode */
+#floatingChatWindow.font-medium .chat-row {
+  padding: 0.25rem 0.5rem !important;
+}
+#floatingChatWindow.font-medium .chat-row .chat-username {
+  font-size: 10.5px !important;
+}
+#floatingChatWindow.font-medium .chat-row .chat-text {
+  font-size: 11px !important;
+}
+
 /* Floating Chat Window: Deep Frosted Glass Container */
 #floatingChatWindow {
   background: var(--glass-bg-base) !important;
