@@ -852,6 +852,64 @@
   }
 
   const recentJoinTimes = new Map();
+  let viewerJoinOverlayTimer = null;
+  let viewerJoinHideTimer = null;
+
+  function hideTemporaryJoinOverlayImmediate() {
+    clearTimeout(viewerJoinOverlayTimer);
+    clearTimeout(viewerJoinHideTimer);
+    const overlayEl = document.getElementById('viewerJoinOverlay');
+    const pillEl = document.getElementById('viewerJoinPill');
+    if (pillEl) {
+      pillEl.classList.remove('join-pill-enter', 'join-pill-exit');
+    }
+    if (overlayEl) {
+      overlayEl.classList.add('hidden');
+    }
+  }
+
+  function showTemporaryJoinOverlay(user, nickname, avatarUrl) {
+    if (window.PurplezChatSettings && window.PurplezChatSettings.showJoins === false) {
+      hideTemporaryJoinOverlayImmediate();
+      return;
+    }
+
+    const rawUser = user || nickname || 'Viewer';
+    const cleanUser = String(rawUser).trim().replace(/^@+/, '');
+    if (!cleanUser) return;
+
+    const overlayEl = document.getElementById('viewerJoinOverlay');
+    const pillEl = document.getElementById('viewerJoinPill');
+    const usernameEl = document.getElementById('viewerJoinUsername');
+    const actionEl = document.getElementById('viewerJoinActionText');
+
+    if (!overlayEl || !pillEl || !usernameEl) return;
+
+    clearTimeout(viewerJoinOverlayTimer);
+    clearTimeout(viewerJoinHideTimer);
+
+    usernameEl.textContent = cleanUser;
+    if (actionEl) {
+      actionEl.textContent = 'joined the live stream';
+    }
+
+    overlayEl.classList.remove('hidden');
+    pillEl.classList.remove('join-pill-enter', 'join-pill-exit');
+    void pillEl.offsetWidth;
+    pillEl.classList.add('join-pill-enter');
+
+    viewerJoinOverlayTimer = setTimeout(() => {
+      pillEl.classList.remove('join-pill-enter');
+      pillEl.classList.add('join-pill-exit');
+      viewerJoinHideTimer = setTimeout(() => {
+        overlayEl.classList.add('hidden');
+        pillEl.classList.remove('join-pill-exit');
+      }, 220);
+    }, 2600);
+  }
+
+  window.showTemporaryJoinOverlay = showTemporaryJoinOverlay;
+  window.hideTemporaryJoinOverlayImmediate = hideTemporaryJoinOverlayImmediate;
 
   function handleIncomingRealJoin(data) {
     if (!data) return;
@@ -871,23 +929,16 @@
     }
 
     const avatarUrl = data.profilePictureUrl || data.avatarUrl || data.avatar || '';
-    const joinText = 'Joined the live stream!';
-    const time = new Date().toLocaleTimeString();
-
-    handleIncomingRealChat({
+    const joinPayload = {
       nickname: cleanUser,
       uniqueId: data.uniqueId || cleanUser,
-      comment: joinText,
       roleLabel: 'JOIN',
       role: 'join',
-      isGifter: false,
-      coins: 0,
       profilePictureUrl: avatarUrl
-    });
+    };
 
-    if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
-      window.AndroidNative.updateLatestChat(cleanUser, joinText, 'JOIN', time, false);
-    }
+    // Show ONLY temporarily as a bottom-of-chat overlay banner (never in mini-ticker or permanent chat list)
+    showTemporaryJoinOverlay(joinPayload.nickname, joinPayload.uniqueId, joinPayload.profilePictureUrl);
   }
 
   function handleIncomingRealChat(data) {
@@ -2022,6 +2073,13 @@
     }
 
     const row = createChatRowElement(msg);
+    row.classList.add('chat-row-enter');
+    row.addEventListener('animationend', () => {
+      row.classList.remove('chat-row-enter');
+    }, { once: true });
+    setTimeout(() => {
+      if (row.classList) row.classList.remove('chat-row-enter');
+    }, 340);
     chatContainer.appendChild(row);
 
     while (chatContainer.children.length > 500) {
@@ -2425,19 +2483,22 @@
 
   function updateMiniTicker() {
     const topList = activeTab === 'gifter' ? gifterChats : regularChats;
-    const latest = topList[topList.length - 1];
+    const nonJoinList = topList.filter(m => m && String(m.badge).toUpperCase() !== 'JOIN');
+    const latest = nonJoinList[nonJoinList.length - 1];
 
     if (latest) {
       if (miniTickerContent) {
         miniTickerContent.innerHTML = `
-          <div class="flex items-center space-x-1.5 text-zinc-300">
-            <span class="bg-white text-black font-extrabold text-[9px] px-1 py-0.2 rounded font-mono">${latest.badge}</span>
-            <span class="font-bold text-white">${latest.user}:</span>
-            <span class="truncate">${latest.gift ? `[GIFT] ${latest.gift} - ` : ''}${latest.text}</span>
-          </div>
-          <div class="text-[9px] text-zinc-500 font-mono flex items-center justify-between">
-            <span>Tap logo to restore chat</span>
-            <span class="text-white">${latest.time}</span>
+          <div class="ticker-msg-enter space-y-1">
+            <div class="flex items-center space-x-1.5 text-zinc-300">
+              <span class="bg-white text-black font-extrabold text-[9px] px-1 py-0.2 rounded font-mono">${latest.badge}</span>
+              <span class="font-bold text-white">${latest.user}:</span>
+              <span class="truncate">${latest.gift ? `[GIFT] ${latest.gift} - ` : ''}${latest.text}</span>
+            </div>
+            <div class="text-[9px] text-zinc-500 font-mono flex items-center justify-between">
+              <span>Tap logo to restore chat</span>
+              <span class="text-white">${latest.time}</span>
+            </div>
           </div>
         `;
       }
@@ -2449,8 +2510,8 @@
         }
       }
 
-      // Sync latest message to native Android ticker
-      if (window.AndroidNative && window.AndroidNative.updateLatestChat) {
+      // Sync latest message to native Android ticker (excluding JOIN events)
+      if (window.AndroidNative && window.AndroidNative.updateLatestChat && String(latest.badge).toUpperCase() !== 'JOIN') {
         const isGift = !!latest.gift;
         const textPayload = latest.gift ? `[GIFT] ${latest.gift}: ${latest.text}` : latest.text;
         window.AndroidNative.updateLatestChat(latest.user, textPayload, latest.badge, latest.time, isGift);
@@ -2728,12 +2789,18 @@
     toggle.checked = isEnabled;
     window.PurplezChatSettings = window.PurplezChatSettings || {};
     window.PurplezChatSettings.showJoins = isEnabled;
+    if (!isEnabled) {
+      hideTemporaryJoinOverlayImmediate();
+    }
 
     toggle.addEventListener('change', () => {
       const state = toggle.checked;
       localStorage.setItem('purplez_show_joins', state ? 'true' : 'false');
       window.PurplezChatSettings = window.PurplezChatSettings || {};
       window.PurplezChatSettings.showJoins = state;
+      if (!state) {
+        hideTemporaryJoinOverlayImmediate();
+      }
       showToast(state ? 'Viewer Joins: Visible' : 'Viewer Joins: Muted');
     });
   }
@@ -3305,6 +3372,12 @@
     const cleanUser = (user || 'Viewer').replace(/^@+/, '');
     const cleanBadge = badge || (isGifter ? 'Gifter' : 'Viewer');
     const msgCoins = parseInt(coins || 0, 10) || 0;
+
+    // Viewer joins only appear temporarily as a bottom-of-chat overlay banner
+    if (String(cleanBadge).toUpperCase() === 'JOIN') {
+      showTemporaryJoinOverlay(cleanUser, cleanUser, '');
+      return;
+    }
 
     const msg = {
       id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
