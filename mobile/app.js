@@ -3380,11 +3380,29 @@
       if (authRemainingTimeText) authRemainingTimeText.textContent = '';
       if (authStatusDot) authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-zinc-600';
       if (paywallModal) paywallModal.classList.add('hidden');
+
+      // Update Settings Tab Account Card
+      const settingsPlanBadge = document.getElementById('settingsPlanBadge');
+      const settingsAccountEmail = document.getElementById('settingsAccountEmail');
+      const settingsAccountRemaining = document.getElementById('settingsAccountRemaining');
+      if (settingsPlanBadge) settingsPlanBadge.textContent = 'SIGN IN';
+      if (settingsAccountEmail) settingsAccountEmail.textContent = 'Not signed in';
+      if (settingsAccountRemaining) settingsAccountRemaining.textContent = 'Locked';
+
+      // Update Details Modal
+      if (accountDetailEmail) accountDetailEmail.textContent = 'Not signed in';
+      if (accountDetailPlan) accountDetailPlan.textContent = 'NONE';
+      if (accountDetailRemaining) {
+        accountDetailRemaining.textContent = 'Locked';
+        accountDetailRemaining.className = 'text-red-400 font-bold';
+      }
+      if (accountDetailDevice) accountDetailDevice.textContent = 'None';
+
       if (!isOverlayMode) {
         const hasPerm = (window.AndroidNative && typeof window.AndroidNative.isOverlayPermissionGranted === 'function')
           ? window.AndroidNative.isOverlayPermissionGranted()
           : true;
-        if (!hasPerm) {
+        if (!hasPerm && (!authModal || authModal.classList.contains('hidden'))) {
           if (floatingPermModal) floatingPermModal.classList.remove('hidden');
           if (authModal) authModal.classList.add('hidden');
         } else {
@@ -3493,6 +3511,79 @@
       if (paywallModal) paywallModal.classList.add('hidden');
     }
   }
+
+  function performSignOut(toastMessage = 'Signed out of PurplezChat') {
+    if (window.PurplezAuth && typeof window.PurplezAuth.logout === 'function') {
+      try {
+        window.PurplezAuth.logout();
+      } catch (_) {}
+    }
+
+    try {
+      localStorage.removeItem('purplez_auth_session');
+      localStorage.removeItem('purplez_session');
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+      }
+    } catch (_) {}
+
+    if (window.AndroidNative && typeof window.AndroidNative.clearAuthSession === 'function') {
+      try {
+        window.AndroidNative.clearAuthSession();
+      } catch (_) {}
+    }
+
+    if (window.AndroidNative && typeof window.AndroidNative.stopFloatingOverlay === 'function') {
+      try {
+        window.AndroidNative.stopFloatingOverlay();
+      } catch (_) {}
+    }
+
+    cachedAuthStatus = null;
+
+    if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
+    if (paywallModal) paywallModal.classList.add('hidden');
+    if (floatingPermModal) floatingPermModal.classList.add('hidden');
+    const deviceTrialConfirmModal = document.getElementById('deviceTrialConfirmModal');
+    if (deviceTrialConfirmModal) deviceTrialConfirmModal.classList.add('hidden');
+
+    if (authEmailInput) authEmailInput.value = '';
+    if (authPasswordInput) authPasswordInput.value = '';
+    if (authErrorText) authErrorText.classList.add('hidden');
+
+    if (authPlanBadge) authPlanBadge.textContent = 'SIGN IN';
+    if (authRemainingTimeText) authRemainingTimeText.textContent = '';
+    if (authStatusDot) authStatusDot.className = 'w-1.5 h-1.5 rounded-full bg-zinc-600';
+
+    const settingsPlanBadge = document.getElementById('settingsPlanBadge');
+    const settingsAccountEmail = document.getElementById('settingsAccountEmail');
+    const settingsAccountRemaining = document.getElementById('settingsAccountRemaining');
+    if (settingsPlanBadge) settingsPlanBadge.textContent = 'SIGN IN';
+    if (settingsAccountEmail) settingsAccountEmail.textContent = 'Not signed in';
+    if (settingsAccountRemaining) settingsAccountRemaining.textContent = 'Locked';
+
+    if (accountDetailEmail) accountDetailEmail.textContent = 'Not signed in';
+    if (accountDetailPlan) accountDetailPlan.textContent = 'NONE';
+    if (accountDetailRemaining) {
+      accountDetailRemaining.textContent = 'Locked';
+      accountDetailRemaining.className = 'text-red-400 font-bold';
+    }
+    if (accountDetailDevice) accountDetailDevice.textContent = 'None';
+
+    if (typeof window.applyAuthModeUI === 'function') {
+      window.applyAuthModeUI('signin');
+    }
+
+    if (authModal && !isOverlayMode) {
+      authModal.classList.remove('hidden');
+    }
+
+    if (toastMessage) {
+      showToast(toastMessage);
+    }
+  }
+
+  window.performSignOut = performSignOut;
 
   function setupAuthEventListeners() {
     const deviceTrialWarningBanner = document.getElementById('deviceTrialWarningBanner');
@@ -3765,18 +3856,9 @@
     }
 
     if (signOutBtn) {
-      signOutBtn.addEventListener('click', () => {
-        if (window.PurplezAuth) {
-          window.PurplezAuth.logout();
-        }
-        cachedAuthStatus = null;
-        if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
-        if (authEmailInput) authEmailInput.value = '';
-        if (authPasswordInput) authPasswordInput.value = '';
-        if (authErrorText) authErrorText.classList.add('hidden');
-        applyAuthModeUI('signin');
-        updateAuthUI(window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null);
-        showToast('Signed out of PurplezChat');
+      signOutBtn.addEventListener('click', (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        performSignOut('Signed out of PurplezChat');
       });
     }
 
@@ -3824,18 +3906,9 @@
 
     const paywallSignOutBtn = document.getElementById('paywallSignOutBtn');
     if (paywallSignOutBtn) {
-      paywallSignOutBtn.addEventListener('click', () => {
-        if (window.PurplezAuth) {
-          window.PurplezAuth.logout();
-        }
-        cachedAuthStatus = null;
-        if (paywallModal) paywallModal.classList.add('hidden');
-        if (authEmailInput) authEmailInput.value = '';
-        if (authPasswordInput) authPasswordInput.value = '';
-        if (authErrorText) authErrorText.classList.add('hidden');
-        applyAuthModeUI('signin');
-        updateAuthUI(window.PurplezAuth ? window.PurplezAuth.getCurrentStatus() : null);
-        showToast('Cancelled');
+      paywallSignOutBtn.addEventListener('click', (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        performSignOut('Signed out of PurplezChat');
       });
     }
   }
@@ -3853,6 +3926,7 @@
     let isSyncingStatus = false;
     const syncStatusInBackground = async () => {
       if (isSyncingStatus) return;
+      if (!cachedAuthStatus || !cachedAuthStatus.authenticated) return;
       isSyncingStatus = true;
       try {
         const fresh = await window.PurplezAuth.refreshStatus();
@@ -3950,14 +4024,9 @@
 
     const settingsSignOutBtn = document.getElementById('settingsSignOutBtn');
     if (settingsSignOutBtn) {
-      settingsSignOutBtn.addEventListener('click', () => {
-        const signOutTarget = document.getElementById('signOutBtn');
-        if (signOutTarget) {
-          signOutTarget.click();
-        } else if (window.PurplezAuth && typeof window.PurplezAuth.logout === 'function') {
-          window.PurplezAuth.logout();
-          updateAuthUI(window.PurplezAuth.getCurrentStatus());
-        }
+      settingsSignOutBtn.addEventListener('click', (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        performSignOut('Signed out of PurplezChat');
       });
     }
   }

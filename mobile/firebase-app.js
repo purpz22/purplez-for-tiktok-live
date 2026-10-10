@@ -132,6 +132,10 @@
   function clearStoredSession() {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('purplez_session');
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+      }
     } catch (_) {}
 
     if (window.AndroidNative && typeof window.AndroidNative.clearAuthSession === 'function') {
