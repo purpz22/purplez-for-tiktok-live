@@ -2931,8 +2931,116 @@
   }
 
   // ==========================================
-  // TYPOGRAPHY SCALING & LIVE VIEWER COUNT
+  // TYPOGRAPHY & FONT SELECTOR (PHONE FONT DEFAULT)
   // ==========================================
+  const FONT_FAMILIES = {
+    phone: {
+      key: 'phone',
+      label: 'PHONE FONT',
+      css: "system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif"
+    },
+    sans: {
+      key: 'sans',
+      label: 'MODERN SANS',
+      css: "'sans-serif', 'Roboto', 'Inter', Helvetica, Arial, sans-serif"
+    },
+    medium: {
+      key: 'medium',
+      label: 'MEDIUM BOLD',
+      css: "'sans-serif-medium', 'Roboto Medium', system-ui, -apple-system, sans-serif"
+    },
+    condensed: {
+      key: 'condensed',
+      label: 'COMPACT GAMING',
+      css: "'sans-serif-condensed', 'Roboto Condensed', 'Arial Narrow', system-ui, sans-serif"
+    },
+    rounded: {
+      key: 'rounded',
+      label: 'ROUNDED SOFT',
+      css: "ui-rounded, 'SF Pro Rounded', 'Nunito', 'Quicksand', 'sans-serif', system-ui, sans-serif"
+    },
+    serif: {
+      key: 'serif',
+      label: 'CLASSIC SERIF',
+      css: "serif, 'Noto Serif', Georgia, 'Times New Roman', Times"
+    },
+    casual: {
+      key: 'casual',
+      label: 'CASUAL SCRIPT',
+      css: "'casual', 'Comic Sans MS', cursive, sans-serif"
+    },
+    mono: {
+      key: 'mono',
+      label: 'MONOSPACE TECH',
+      css: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+    }
+  };
+
+  function applyFontFamily(fontKey, notifyNative = true) {
+    const chosen = (fontKey && FONT_FAMILIES[fontKey]) ? fontKey : 'phone';
+    const preset = FONT_FAMILIES[chosen];
+    const allFontClasses = Object.keys(FONT_FAMILIES).map(k => `font-family-${k}`);
+
+    if (document.documentElement && document.documentElement.style) {
+      document.documentElement.style.setProperty('--app-font-family', preset.css);
+    }
+    if (document.body) {
+      document.body.classList.remove(...allFontClasses);
+      document.body.classList.add(`font-family-${chosen}`);
+    }
+    if (floatingWindow) {
+      floatingWindow.classList.remove(...allFontClasses);
+      floatingWindow.classList.add(`font-family-${chosen}`);
+    }
+
+    ['settingsFontSelect', 'dropdownFontSelect', 'simFontFamilySelect'].forEach(id => {
+      const selectEl = document.getElementById(id);
+      if (selectEl && selectEl.value !== chosen) {
+        selectEl.value = chosen;
+      }
+    });
+
+    ['settingsFontBadge', 'dropdownFontBadge', 'simFontFamilyDisplay'].forEach(id => {
+      const badgeEl = document.getElementById(id);
+      if (badgeEl) {
+        badgeEl.textContent = preset.label;
+      }
+    });
+
+    try {
+      localStorage.setItem('purplez_font_family', chosen);
+    } catch (_) {}
+
+    if (notifyNative && window.AndroidNative && typeof window.AndroidNative.setOverlayFontFamily === 'function') {
+      try {
+        window.AndroidNative.setOverlayFontFamily(chosen);
+      } catch (_) {}
+    }
+  }
+
+  function setupFontFamilyControls() {
+    ['settingsFontSelect', 'dropdownFontSelect', 'simFontFamilySelect'].forEach(id => {
+      const selectEl = document.getElementById(id);
+      if (selectEl) {
+        selectEl.addEventListener('change', (e) => {
+          const val = e.target.value || 'phone';
+          applyFontFamily(val, true);
+          const preset = FONT_FAMILIES[val] || FONT_FAMILIES.phone;
+          showToast(`Font changed to ${preset.label}`);
+        });
+      }
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (e && e.key === 'purplez_font_family' && e.newValue) {
+        applyFontFamily(e.newValue, false);
+      }
+    });
+  }
+
+  window.applyFontFamily = applyFontFamily;
+  window.FONT_FAMILIES = FONT_FAMILIES;
+
   function applyFontSize(size) {
     const validSizes = ['compact', 'normal', 'medium'];
     const chosen = validSizes.includes(size) ? size : 'compact';
@@ -4033,6 +4141,20 @@
 
   // Initial Setup
   handleOrientationChange();
+  let initialFontFamily = 'phone';
+  try {
+    const storedFont = localStorage.getItem('purplez_font_family');
+    if (storedFont && FONT_FAMILIES[storedFont]) {
+      initialFontFamily = storedFont;
+    } else if (window.AndroidNative && typeof window.AndroidNative.getOverlayFontFamily === 'function') {
+      const nativeFont = window.AndroidNative.getOverlayFontFamily();
+      if (nativeFont && FONT_FAMILIES[nativeFont]) {
+        initialFontFamily = nativeFont;
+      }
+    }
+  } catch (_) {}
+  applyFontFamily(initialFontFamily, false);
+  setupFontFamilyControls();
   applyFontSize(localStorage.getItem('purplez_font_size') || 'compact');
   renderChatMessages();
   setupBottomNavigation();

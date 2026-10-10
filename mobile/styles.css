@@ -2,6 +2,7 @@
 /* 100% Offline-Bundled Self-Contained Stylesheet */
 
 :root {
+  --app-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif;
   --glass-bg-base: rgba(10, 10, 14, 0.78);
   --glass-bg-card: rgba(18, 18, 26, 0.65);
   --glass-bg-card-hover: rgba(28, 28, 38, 0.78);
@@ -39,7 +40,7 @@ html, body {
     radial-gradient(circle at 20% 15%, rgba(45, 45, 65, 0.22) 0%, transparent 45%),
     radial-gradient(circle at 80% 85%, rgba(35, 35, 55, 0.18) 0%, transparent 50%);
   color: #FFFFFF;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--app-font-family);
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -71,8 +72,10 @@ body.overlay-mode #particleCanvas {
   display: none !important;
 }
 
-.font-mono {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+.font-mono,
+.font-sans,
+.font-phone {
+  font-family: var(--app-font-family);
 }
 
 /* Custom Tactical Glass Scrollbars */
@@ -378,7 +381,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: 0.75rem;
   padding: clamp(0.5rem, 2vw, 0.7rem) clamp(0.75rem, 2.5vw, 1.25rem);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--app-font-family);
   font-size: clamp(11px, 2.8vw, 13px);
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
@@ -405,7 +408,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 0.75rem;
   padding: clamp(0.4rem, 1.8vw, 0.55rem) clamp(0.6rem, 2.2vw, 0.95rem);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--app-font-family);
   font-size: clamp(10px, 2.5vw, 11px);
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
@@ -862,7 +865,7 @@ body.overlay-mode #floatingChatWindow {
   align-items: center;
   gap: 0.35rem;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--app-font-family);
 }
 
 .bottom-nav-item {
@@ -971,4 +974,60 @@ body.overlay-mode #floatingBottomNav {
   background-color: #7e22ce !important;
 }
 
+/* Font Selector & Dynamic Phone Font Typography Presets */
+body.font-family-phone,
+#floatingChatWindow.font-family-phone {
+  --app-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif;
+}
 
+body.font-family-sans,
+#floatingChatWindow.font-family-sans {
+  --app-font-family: 'sans-serif', 'Roboto', 'Inter', Helvetica, Arial, sans-serif;
+}
+
+body.font-family-medium,
+#floatingChatWindow.font-family-medium {
+  --app-font-family: 'sans-serif-medium', 'Roboto Medium', system-ui, -apple-system, sans-serif;
+}
+
+body.font-family-condensed,
+#floatingChatWindow.font-family-condensed {
+  --app-font-family: 'sans-serif-condensed', 'Roboto Condensed', 'Arial Narrow', system-ui, sans-serif;
+}
+
+body.font-family-rounded,
+#floatingChatWindow.font-family-rounded {
+  --app-font-family: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Quicksand', 'sans-serif', system-ui, sans-serif;
+}
+
+body.font-family-serif,
+#floatingChatWindow.font-family-serif {
+  --app-font-family: serif, 'Noto Serif', Georgia, 'Times New Roman', Times;
+}
+
+body.font-family-casual,
+#floatingChatWindow.font-family-casual {
+  --app-font-family: 'casual', 'Comic Sans MS', cursive, sans-serif;
+}
+
+body.font-family-mono,
+#floatingChatWindow.font-family-mono {
+  --app-font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+#floatingChatWindow,
+#floatingChatWindow *,
+.chat-row,
+.chat-row .chat-username,
+.chat-row .chat-text,
+.chat-row .chat-time,
+.chat-row .badge,
+.chat-row .gift-badge,
+#miniDock,
+#miniDock *,
+input,
+select,
+button,
+textarea {
+  font-family: var(--app-font-family) !important;
+}
