@@ -61,6 +61,31 @@
     return true;
   }
 
+  function parseMetadataFromPhotoUrl(photoUrl) {
+    if (!photoUrl || typeof photoUrl !== 'string') return {};
+    const meta = {};
+    const parts = photoUrl.split('|');
+    for (const part of parts) {
+      const idx = part.indexOf(':');
+      if (idx !== -1) {
+        const key = part.substring(0, idx).trim();
+        const val = part.substring(idx + 1).trim();
+        if (key === 'device') meta.boundDeviceId = val;
+        else if (key === 'plan') meta.plan = val;
+        else if (key === 'status') meta.status = val;
+        else if (key === 'role') meta.role = val;
+        else if (key === 'licExp') {
+          const num = parseInt(val, 10);
+          meta.licenseExpiresAt = (num && num > 0) ? num : null;
+        } else if (key === 'trialExp') {
+          const num = parseInt(val, 10);
+          meta.trialExpiresAt = (num && num > 0) ? num : null;
+        }
+      }
+    }
+    return meta;
+  }
+
   function isDeviceTrialUsed() {
     if (window.AndroidNative && typeof window.AndroidNative.isDeviceTrialUsed === 'function') {
       try {
@@ -183,7 +208,7 @@
         const diffMs = Math.max(0, session.licenseExpiresAt - now);
         const days = Math.ceil(diffMs / (24 * 3600 * 1000));
         const hours = Math.ceil(diffMs / (3600 * 1000));
-        const planName = session.plan === 'weekly' ? 'Weekly' : 'Monthly';
+        const planName = session.plan === 'weekly' ? 'Weekly' : (session.plan === 'monthly' ? 'Monthly' : (session.plan ? session.plan.toUpperCase() : 'Custom'));
         badgeText = `PRO (${planName})`;
         remainingTimeText = days > 1 ? `${days}d left` : `${hours}h left`;
         if (diffMs <= 0) {
@@ -390,7 +415,7 @@
               body: JSON.stringify({
                 idToken: idToken,
                 displayName: displayName || cleanEmail.split('@')[0],
-                photoUrl: 'device:' + deviceId,
+                photoUrl: `device:${deviceId}|plan:trial|status:unverified|licExp:0|trialExp:${Date.now() + 48 * 3600 * 1000}|role:user`,
                 returnSecureToken: true
               })
             });
@@ -482,6 +507,9 @@
       let customRole = null;
       let customPlan = null;
       let customStatus = null;
+      let customLicenseExpiresAt = null;
+      let customTrialExpiresAt = null;
+      let customBoundDeviceId = null;
 
       // 1. Direct Google Firebase Identity Login
       try {
@@ -497,7 +525,7 @@
           idToken = fbData.idToken;
           refreshToken = fbData.refreshToken;
 
-          // Check if email is verified via accounts:lookup
+          // Check if email is verified and retrieve subscription claims via accounts:lookup
           try {
             const lookupUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
             const controller = new AbortController();
@@ -522,21 +550,36 @@
                     if (claims.role) customRole = claims.role;
                     if (claims.plan) customPlan = claims.plan;
                     if (claims.status) customStatus = claims.status;
+                    if (claims.licenseExpiresAt) customLicenseExpiresAt = claims.licenseExpiresAt;
+                    if (claims.trialExpiresAt) customTrialExpiresAt = claims.trialExpiresAt;
+                    if (claims.boundDeviceId) customBoundDeviceId = claims.boundDeviceId;
                   } catch (_) {}
+                }
+                if (u.photoUrl) {
+                  const photoMeta = parseMetadataFromPhotoUrl(u.photoUrl);
+                  if (photoMeta.role && !customRole) customRole = photoMeta.role;
+                  if (photoMeta.plan && !customPlan) customPlan = photoMeta.plan;
+                  if (photoMeta.status && !customStatus) customStatus = photoMeta.status;
+                  if (photoMeta.licenseExpiresAt && !customLicenseExpiresAt) customLicenseExpiresAt = photoMeta.licenseExpiresAt;
+                  if (photoMeta.trialExpiresAt && !customTrialExpiresAt) customTrialExpiresAt = photoMeta.trialExpiresAt;
+                  if (photoMeta.boundDeviceId && !customBoundDeviceId) customBoundDeviceId = photoMeta.boundDeviceId;
                 }
               }
             }
           } catch (_) {}
 
-          // Update Firebase profile with device id
+          // Update Firebase profile with device id, preserving subscription claims
           try {
             const updateUrl = `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${encodeURIComponent(FIREBASE_CONFIG.apiKey)}`;
+            const preservedPlan = customPlan || 'trial';
+            const preservedStatus = customStatus || 'trial';
+            const updatedPhotoUrl = `device:${deviceId}|plan:${preservedPlan}|status:${preservedStatus}|licExp:${customLicenseExpiresAt || 0}|trialExp:${customTrialExpiresAt || 0}|role:${customRole || 'user'}`;
             await fetch(updateUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 idToken: idToken,
-                photoUrl: 'device:' + deviceId,
+                photoUrl: updatedPhotoUrl,
                 returnSecureToken: true
               })
             });
@@ -644,9 +687,13 @@
             status = 'pro';
             plan = customPlan || 'lifetime';
             isAccessAllowed = true;
+          } else if (customStatus === 'suspended') {
+            status = 'suspended';
+            plan = customPlan || 'none';
+            isAccessAllowed = false;
           } else {
-            status = 'trial';
-            plan = 'trial';
+            status = customStatus || 'trial';
+            plan = customPlan || 'trial';
             isAccessAllowed = true;
           }
         } else {
@@ -663,8 +710,8 @@
           status: status,
           plan: plan,
           trialHours: status === 'trial' ? 48 : 0,
-          trialExpiresAt: status === 'trial' ? (now + 48 * 3600 * 1000) : null,
-          licenseExpiresAt: (status === 'pro' && plan === 'lifetime') ? null : null,
+          trialExpiresAt: (status === 'trial') ? (customTrialExpiresAt || (now + 48 * 3600 * 1000)) : null,
+          licenseExpiresAt: (status === 'pro' && plan !== 'lifetime') ? customLicenseExpiresAt : null,
           boundDeviceId: deviceId,
           emailVerified: isVerified,
           idToken: idToken,
@@ -808,14 +855,30 @@
             if (fbUser.customAttributes) {
               try {
                 const claims = JSON.parse(fbUser.customAttributes);
-                if (claims.role) stored.role = claims.role;
+                if (claims.role && stored.role !== 'admin') stored.role = claims.role;
                 if (claims.plan) stored.plan = claims.plan;
                 if (claims.status) stored.status = claims.status;
+                if (claims.licenseExpiresAt !== undefined) stored.licenseExpiresAt = claims.licenseExpiresAt;
+                if (claims.trialExpiresAt !== undefined) stored.trialExpiresAt = claims.trialExpiresAt;
+                if (claims.boundDeviceId && !stored.boundDeviceId) stored.boundDeviceId = claims.boundDeviceId;
                 if (stored.role === 'admin' || stored.plan === 'lifetime') {
                   stored.status = 'pro';
                   stored.isAccessAllowed = true;
                 }
               } catch (_) {}
+            }
+            if (fbUser.photoUrl) {
+              const photoMeta = parseMetadataFromPhotoUrl(fbUser.photoUrl);
+              if (photoMeta.role && stored.role !== 'admin') stored.role = photoMeta.role;
+              if (photoMeta.plan) stored.plan = photoMeta.plan;
+              if (photoMeta.status) stored.status = photoMeta.status;
+              if (photoMeta.licenseExpiresAt !== undefined) stored.licenseExpiresAt = photoMeta.licenseExpiresAt;
+              if (photoMeta.trialExpiresAt !== undefined) stored.trialExpiresAt = photoMeta.trialExpiresAt;
+              if (photoMeta.boundDeviceId && !stored.boundDeviceId) stored.boundDeviceId = photoMeta.boundDeviceId;
+              if (stored.role === 'admin' || stored.plan === 'lifetime') {
+                stored.status = 'pro';
+                stored.isAccessAllowed = true;
+              }
             }
             if (stored.email && stored.email.toLowerCase() === 'darklordzm13@gmail.com') {
               stored.role = 'admin';
