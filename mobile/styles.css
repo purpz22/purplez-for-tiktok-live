@@ -15,6 +15,19 @@
   --glass-blur-sm: blur(8px);
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
   --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+
+  /* Purplez Theme Engine Customization Variables */
+  --theme-window-bg: #0F0F14;
+  --theme-header-bg: #4C1D95;
+  --theme-regular-text: #FFFFFF;
+  --theme-regular-user: #C4B5FD;
+  --theme-gifter-text: #F59E0B;
+  --theme-gifter-card-bg: #4C1D95;
+  --theme-follower-banner: #8B5CF6;
+  --theme-gift-banner: #F59E0B;
+  --theme-gameid-btn: #22C55E;
+  --theme-border-color: #8B5CF6;
+  --theme-window-opacity: 0.85;
 }
 
 * {
@@ -1117,4 +1130,155 @@ textarea {
 .viewer-join-pill.join-pill-exit {
   animation: joinOverlayExit 0.22s ease-in forwards;
 }
+
+/* ==============================================================
+   PURPLEZ THEME ENGINE & HUD EXTENSIONS (PLAIN COLOR SYSTEM)
+   ============================================================== */
+
+#floatingChatWindow.theme-applied {
+  border-color: var(--theme-border-color) !important;
+}
+
+#chatHeaderBar.theme-applied {
+  background-color: var(--theme-header-bg) !important;
+}
+
+.chat-row.theme-applied .chat-username {
+  color: var(--theme-regular-user) !important;
+}
+
+.chat-row.theme-applied .chat-text {
+  color: var(--theme-regular-text) !important;
+}
+
+.chat-row.theme-applied.gifter-card {
+  background-color: var(--theme-gifter-card-bg) !important;
+}
+
+.chat-row.theme-applied.gifter-card .chat-text {
+  color: var(--theme-gifter-text) !important;
+}
+
+#giftAlertBanner.theme-applied {
+  background-color: var(--theme-gift-banner) !important;
+  color: #000000 !important;
+}
+
+.follower-alert-banner.theme-applied {
+  background-color: var(--theme-follower-banner) !important;
+  color: #FFFFFF !important;
+}
+
+/* Dedicated Game ID Pill Button */
+.game-id-pill-btn {
+  background-color: var(--theme-gameid-btn) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.game-id-pill-btn:active {
+  transform: scale(0.93);
+  filter: brightness(1.2);
+}
+
+/* Tab Unread Pulse Animation */
+@keyframes tabUnreadPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8);
+  }
+}
+
+.tab-unread-pulse {
+  animation: tabUnreadPulse 1.2s infinite ease-in-out !important;
+}
+
+/* Master Quick Hide Panic Floating Eye Button */
+#masterQuickHideBtn {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  z-index: 60;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background: rgba(15, 15, 20, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+#masterQuickHideBtn:active {
+  transform: scale(0.92);
+}
+
+#masterQuickHideBtn.panic-hidden {
+  background: rgba(220, 38, 38, 0.88);
+  border-color: #FFFFFF;
+}
+
+/* Smart Game ID Quick-Copy Floating Bar */
+#smartGameIdQuickBar {
+  position: fixed;
+  z-index: 55;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* 9-Zone Landscape Layout Editor Styles */
+.zone-anchor-btn {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(24, 24, 32, 0.8);
+  color: #D1D5DB;
+  font-family: var(--app-font-family);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zone-anchor-btn:hover {
+  background: rgba(45, 45, 60, 0.9);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.zone-anchor-btn.active {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border-color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* MOBA and Shooter Game HUD Simulator Canvas */
+.hud-template-moba {
+  background: radial-gradient(circle at 10% 15%, rgba(30, 60, 90, 0.5) 0%, transparent 40%),
+              radial-gradient(circle at 85% 85%, rgba(70, 30, 40, 0.5) 0%, transparent 40%),
+              linear-gradient(135deg, #09101d 0%, #0d1624 50%, #070d18 100%);
+}
+
+.hud-template-shooter {
+  background: radial-gradient(circle at 50% 50%, rgba(40, 60, 50, 0.3) 0%, transparent 50%),
+              linear-gradient(135deg, #101412 0%, #171d1a 50%, #0c100e 100%);
+}
+
+/* Click-Through Pass-Through Touch Layer */
+.click-through-layer {
+  pointer-events: none !important;
+}
+
 

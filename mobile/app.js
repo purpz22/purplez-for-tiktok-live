@@ -1980,6 +1980,61 @@
   // ==========================================
   // CHAT RENDERING & AUTO-SCROLL ENGINE
   // ==========================================
+  function extractMlbbIdDetails(text) {
+    if (!text || typeof text !== 'string') return null;
+    const clean = text.trim();
+    // Match Mobile Legends ID with Zone format: 123456789 (1234) or 123456789(1234)
+    const mlbbWithZone = clean.match(/(\d{5,12})\s*\((\d{3,6})\)/);
+    if (mlbbWithZone) {
+      return {
+        full: `${mlbbWithZone[1]} (${mlbbWithZone[2]})`,
+        userId: mlbbWithZone[1],
+        zoneId: mlbbWithZone[2]
+      };
+    }
+    // Match standalone 5-12 digit ID
+    const standaloneId = clean.match(/\b\d{5,12}\b/);
+    if (standaloneId) {
+      return {
+        full: standaloneId[0],
+        userId: standaloneId[0],
+        zoneId: ''
+      };
+    }
+    return null;
+  }
+
+  function copyGameId(idStr) {
+    if (!idStr) return;
+    let copied = false;
+    if (window.AndroidNative && typeof window.AndroidNative.copyToClipboard === 'function') {
+      window.AndroidNative.copyToClipboard(idStr, '');
+      copied = true;
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(idStr).catch(() => {});
+      copied = true;
+    }
+    if (!copied) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = idStr;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (_) {}
+    }
+    showToast(`Copied ID: ${idStr}`);
+    if (window.AndroidNative && typeof window.AndroidNative.vibrate === 'function') {
+      window.AndroidNative.vibrate(35);
+    }
+  }
+  window.copyGameId = copyGameId;
+  window.extractMlbbIdDetails = extractMlbbIdDetails;
+
   function createChatRowElement(msg) {
     const isHighlighted = (highlightedMessageId === msg.id);
     const row = document.createElement('div');
@@ -1989,6 +2044,13 @@
         ? 'highlighted border-white'
         : 'bg-zinc-950/80 hover:bg-zinc-900/90 border-zinc-800'
     }`;
+
+    const idDetails = extractMlbbIdDetails(msg.text);
+    const idBtnHtml = idDetails ? `
+      <button type="button" class="game-id-pill-btn px-1.5 py-0.5 rounded text-[8.5px] uppercase font-bold shrink-0 ml-1.5 copy-game-id-btn" data-id="${idDetails.full}" onclick="event.stopPropagation(); window.copyGameId('${idDetails.full}');">
+        COPY ID
+      </button>
+    ` : '';
 
     if (activeTab === 'gifter' || msg.gift) {
       row.innerHTML = `
@@ -2008,8 +2070,9 @@
           </div>
           <span class="chat-time text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
         </div>
-        <div class="chat-text text-[10px] leading-tight text-zinc-400 font-normal pl-0.5 break-words mt-0.5">
-          ${msg.text}
+        <div class="chat-text text-[10px] leading-tight text-zinc-400 font-normal pl-0.5 break-words mt-0.5 flex items-center justify-between flex-wrap">
+          <span>${msg.text}</span>
+          ${idBtnHtml}
         </div>
       `;
     } else {
@@ -2037,8 +2100,9 @@
           </div>
           <span class="chat-time text-[8.5px] font-mono text-zinc-500 shrink-0 ml-1">${msg.time}</span>
         </div>
-        <div class="chat-text text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : (isJoin ? 'text-zinc-400 font-normal italic' : 'text-zinc-400')} pl-0.5 break-words mt-0.5">
-          ${msg.text}
+        <div class="chat-text text-[10px] leading-tight ${isFollower ? 'text-zinc-200 font-medium' : (isJoin ? 'text-zinc-400 font-normal italic' : 'text-zinc-400')} pl-0.5 break-words mt-0.5 flex items-center justify-between flex-wrap">
+          <span>${msg.text}</span>
+          ${idBtnHtml}
         </div>
       `;
     }
@@ -2093,6 +2157,21 @@
 
     if (viewerFilterQuery) {
       applyViewerFilter();
+    }
+
+    // Inactive Tab Unread Pulse Indicator
+    if (msg.isGifter && activeTab !== 'gifter') {
+      if (tabGifter) tabGifter.classList.add('tab-unread-pulse');
+    } else if (!msg.isGifter && activeTab !== 'regular') {
+      if (tabRegular) tabRegular.classList.add('tab-unread-pulse');
+    }
+
+    // Smart Game ID Quick-Copy Floating Bar Trigger
+    const idDetails = extractMlbbIdDetails(msg.text);
+    if (idDetails && window.PurplezMasterConfig && window.PurplezMasterConfig.overlays && window.PurplezMasterConfig.overlays.smartGameIdBar && window.PurplezMasterConfig.overlays.smartGameIdBar.enabled) {
+      if (typeof window.showSmartGameIdBar === 'function') {
+        window.showSmartGameIdBar(idDetails.full);
+      }
     }
 
     if (!isAutoScrollPaused && !isUserTouchingChat) {
@@ -2860,6 +2939,7 @@
     activeTab = 'gifter';
     if (tabGifter) {
       tabGifter.className = 'tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all bg-white text-black shadow-sm cursor-pointer';
+      tabGifter.classList.remove('tab-unread-pulse');
     }
     if (tabRegular) {
       tabRegular.className = 'tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all text-zinc-400 cursor-pointer';
@@ -2871,6 +2951,7 @@
     activeTab = 'regular';
     if (tabRegular) {
       tabRegular.className = 'tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all bg-white text-black shadow-sm cursor-pointer';
+      tabRegular.classList.remove('tab-unread-pulse');
     }
     if (tabGifter) {
       tabGifter.className = 'tab-btn flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all text-zinc-400 cursor-pointer';
@@ -4150,6 +4231,9 @@
   function switchNavTab(targetId) {
     const views = {
       navViewLive: document.getElementById('navViewLive'),
+      navViewThemes: document.getElementById('navViewThemes'),
+      navViewOverlays: document.getElementById('navViewOverlays'),
+      navViewLayout: document.getElementById('navViewLayout'),
       navViewAlerts: document.getElementById('navViewAlerts'),
       navViewSettings: document.getElementById('navViewSettings')
     };
@@ -4173,7 +4257,877 @@
         }
       }
     });
+    lastNavTab = targetId;
   }
+
+  // ==============================================================
+  // MASTER SYSTEM ENGINE: THEMES, MODULAR OVERLAYS & 9-ZONE LAYOUT
+  // ==============================================================
+
+  // Section 3.1 & 7.2: Plain Everyday Color Names to Hex Mapping Palette
+  const PALETTE_PLAIN_COLORS = {
+    'Purple': '#8B5CF6',
+    'Dark Purple': '#4C1D95',
+    'Light Purple': '#C4B5FD',
+    'Black': '#0F0F14',
+    'Dark Gray': '#1F2937',
+    'Gray': '#6B7280',
+    'Light Gray': '#D1D5DB',
+    'White': '#FFFFFF',
+    'Red': '#EF4444',
+    'Dark Red': '#7F1D1D',
+    'Blue': '#3B82F6',
+    'Light Blue': '#93C5FD',
+    'Dark Blue': '#1E3A8A',
+    'Green': '#22C55E',
+    'Light Green': '#86EFAC',
+    'Dark Green': '#14532D',
+    'Yellow': '#EAB308',
+    'Orange': '#F97316',
+    'Pink': '#EC4899',
+    'Hot Pink': '#DB2777',
+    'Brown': '#78350F',
+    'Gold': '#F59E0B',
+    'Silver': '#9CA3AF',
+    'None': 'transparent'
+  };
+
+  // Section 3.2: 8 Built-in Theme Presets using Strictly Plain Everyday Color Names
+  const THEME_PRESETS = {
+    'Classic Purple & Black': {
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Dark Purple',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Purple',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Purple',
+      followerAlertBannerColor: 'Purple',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Green',
+      windowBorderColor: 'Purple'
+    },
+    'Pure Black & White': {
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Dark Gray',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Gray',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Gray',
+      followerAlertBannerColor: 'White',
+      giftAlertBannerColor: 'Yellow',
+      gameIdCopyButtonColor: 'Green',
+      windowBorderColor: 'White'
+    },
+    'Blue & Dark Gray': {
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Dark Blue',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Blue',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Blue',
+      followerAlertBannerColor: 'Blue',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Blue',
+      windowBorderColor: 'Blue'
+    },
+    'Red & Black Gamer': {
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Dark Red',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Red',
+      gifterMessageTextColor: 'Orange',
+      gifterCardBackgroundColor: 'Dark Red',
+      followerAlertBannerColor: 'Red',
+      giftAlertBannerColor: 'Orange',
+      gameIdCopyButtonColor: 'Red',
+      windowBorderColor: 'Red'
+    },
+    'Green & Black Matrix': {
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Dark Green',
+      regularMessageTextColor: 'Light Green',
+      regularUsernameColor: 'Green',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Green',
+      followerAlertBannerColor: 'Green',
+      giftAlertBannerColor: 'Yellow',
+      gameIdCopyButtonColor: 'Green',
+      windowBorderColor: 'Green'
+    },
+    'Pink & White Cute': {
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Pink',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Pink',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Purple',
+      followerAlertBannerColor: 'Pink',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Pink',
+      windowBorderColor: 'Hot Pink'
+    },
+    'Orange & Dark Gray': {
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Orange',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Yellow',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Gray',
+      followerAlertBannerColor: 'Orange',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Orange',
+      windowBorderColor: 'Orange'
+    },
+    'Clean White & Gray': {
+      windowBackgroundColor: 'White',
+      headerAndTabBarColor: 'Light Gray',
+      regularMessageTextColor: 'Black',
+      regularUsernameColor: 'Dark Blue',
+      gifterMessageTextColor: 'Dark Purple',
+      gifterCardBackgroundColor: 'Light Gray',
+      followerAlertBannerColor: 'Dark Purple',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Blue',
+      windowBorderColor: 'Dark Gray'
+    }
+  };
+
+  // Section 7.1: Master System Configuration Schema Defaults
+  const DEFAULT_MASTER_CONFIG = {
+    profileName: 'MLBB Ranked Landscape Setup',
+    typography: {
+      selectedFont: 'System Phone Font',
+      availableFonts: ['System Phone Font', 'Inter', 'Roboto', 'Outfit', 'JetBrains Mono', 'Poppins'],
+      fontSizeScale: 1.0,
+      enableSmoothEntranceAnimations: true
+    },
+    themeSettings: {
+      activePresetName: 'Classic Purple & Black',
+      windowOpacityPercent: 75,
+      colors: {
+        windowBackgroundColor: 'Black',
+        headerAndTabBarColor: 'Dark Purple',
+        regularMessageTextColor: 'White',
+        regularUsernameColor: 'Light Purple',
+        gifterMessageTextColor: 'Gold',
+        gifterCardBackgroundColor: 'Dark Purple',
+        followerAlertBannerColor: 'Purple',
+        giftAlertBannerColor: 'Gold',
+        gameIdCopyButtonColor: 'Green',
+        windowBorderColor: 'Purple'
+      }
+    },
+    overlays: {
+      mainChatBox: {
+        enabled: true,
+        landscapePosition: 'Top-Center',
+        customOffsetX: -80,
+        customOffsetY: 10,
+        widthDp: 320,
+        heightDp: 190,
+        lockedTouchPassThrough: false,
+        currentMiniMode: 'NONE'
+      },
+      gifterPriorityBanner: {
+        enabled: true,
+        landscapePosition: 'Top-Center',
+        customOffsetX: -80,
+        customOffsetY: 205,
+        lockedTouchPassThrough: false
+      },
+      giftAnimationOverlay: {
+        enabled: true,
+        landscapePosition: 'Top-Right',
+        customOffsetX: -20,
+        customOffsetY: 45,
+        lockedTouchPassThrough: true
+      },
+      followerAlertOverlay: {
+        enabled: true,
+        playAudioChimeBlupMp3: true,
+        landscapePosition: 'Top-Center',
+        customOffsetX: 140,
+        customOffsetY: 15,
+        lockedTouchPassThrough: true
+      },
+      liveLikeCounter: {
+        enabled: true,
+        landscapePosition: 'Top-Right',
+        customOffsetX: -15,
+        customOffsetY: 10,
+        lockedTouchPassThrough: true
+      },
+      liveViewerCounter: {
+        enabled: true,
+        landscapePosition: 'Top-Right',
+        customOffsetX: -110,
+        customOffsetY: 10,
+        lockedTouchPassThrough: true
+      },
+      viewerJoinStrip: {
+        enabled: true,
+        landscapePosition: 'Bottom-Center',
+        dockToMainChatBottom: true,
+        lockedTouchPassThrough: true
+      },
+      smartGameIdBar: {
+        enabled: true,
+        landscapePosition: 'Bottom-Center',
+        customOffsetX: 0,
+        customOffsetY: -65,
+        lockedTouchPassThrough: false
+      },
+      viewerSearchBar: {
+        enabled: true,
+        landscapePosition: 'Middle-Right',
+        dockToMainChatRightEdge: true,
+        lockedTouchPassThrough: false
+      },
+      miniModeController: {
+        enabled: true,
+        preferredMiniStyle: 'AVATAR_BUBBLE',
+        landscapePosition: 'Middle-Right',
+        customOffsetX: -10,
+        customOffsetY: 0,
+        lockedTouchPassThrough: false
+      }
+    }
+  };
+
+  // 3 Landscape Layout Profiles
+  const DEFAULT_PROFILES = [
+    {
+      id: 'profile_1',
+      name: 'MOBA / MLBB Ranked Setup',
+      config: JSON.parse(JSON.stringify(DEFAULT_MASTER_CONFIG))
+    },
+    {
+      id: 'profile_2',
+      name: 'Shooter / Battle Royale Setup',
+      config: {
+        ...JSON.parse(JSON.stringify(DEFAULT_MASTER_CONFIG)),
+        profileName: 'Shooter / Battle Royale Setup',
+        themeSettings: {
+          ...DEFAULT_MASTER_CONFIG.themeSettings,
+          activePresetName: 'Red & Black Gamer',
+          colors: { ...THEME_PRESETS['Red & Black Gamer'] }
+        },
+        overlays: {
+          ...DEFAULT_MASTER_CONFIG.overlays,
+          mainChatBox: {
+            ...DEFAULT_MASTER_CONFIG.overlays.mainChatBox,
+            landscapePosition: 'Middle-Left',
+            customOffsetX: 15,
+            customOffsetY: 0
+          }
+        }
+      }
+    },
+    {
+      id: 'profile_3',
+      name: 'Just Chatting / Lobby Setup',
+      config: {
+        ...JSON.parse(JSON.stringify(DEFAULT_MASTER_CONFIG)),
+        profileName: 'Just Chatting / Lobby Setup',
+        themeSettings: {
+          ...DEFAULT_MASTER_CONFIG.themeSettings,
+          activePresetName: 'Clean White & Gray',
+          colors: { ...THEME_PRESETS['Clean White & Gray'] }
+        },
+        overlays: {
+          ...DEFAULT_MASTER_CONFIG.overlays,
+          mainChatBox: {
+            ...DEFAULT_MASTER_CONFIG.overlays.mainChatBox,
+            landscapePosition: 'Center',
+            customOffsetX: 0,
+            customOffsetY: 0
+          }
+        }
+      }
+    }
+  ];
+
+  let masterConfig = JSON.parse(JSON.stringify(DEFAULT_MASTER_CONFIG));
+  let layoutProfiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES));
+  let isMasterQuickHidden = false;
+
+  function hexToRgba(hex, alpha = 1.0) {
+    if (!hex || hex === 'transparent') return 'transparent';
+    let clean = hex.replace('#', '').trim();
+    if (clean.length === 3) {
+      clean = clean.split('').map(c => c + c).join('');
+    }
+    const r = parseInt(clean.substring(0, 2), 16) || 0;
+    const g = parseInt(clean.substring(2, 4), 16) || 0;
+    const b = parseInt(clean.substring(4, 6), 16) || 0;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  // Section 7.3: Landscape Screen Coordinate Calculation Algorithm
+  function calculateLandscapeCoordinates(position, offsetX = 0, offsetY = 0, elementWidth = 320, elementHeight = 190, screenW = window.innerWidth, screenH = window.innerHeight) {
+    const safeInset = { top: 12, bottom: 12, left: 16, right: 16 };
+    let left = 0;
+    let top = 0;
+
+    switch (position) {
+      case 'Top-Left':
+        left = safeInset.left + offsetX;
+        top = safeInset.top + offsetY;
+        break;
+      case 'Top-Center':
+        left = Math.round((screenW - elementWidth) / 2) + offsetX;
+        top = safeInset.top + offsetY;
+        break;
+      case 'Top-Right':
+        left = screenW - elementWidth - safeInset.right + offsetX;
+        top = safeInset.top + offsetY;
+        break;
+      case 'Middle-Left':
+        left = safeInset.left + offsetX;
+        top = Math.round((screenH - elementHeight) / 2) + offsetY;
+        break;
+      case 'Center':
+        left = Math.round((screenW - elementWidth) / 2) + offsetX;
+        top = Math.round((screenH - elementHeight) / 2) + offsetY;
+        break;
+      case 'Middle-Right':
+        left = screenW - elementWidth - safeInset.right + offsetX;
+        top = Math.round((screenH - elementHeight) / 2) + offsetY;
+        break;
+      case 'Bottom-Left':
+        left = safeInset.left + offsetX;
+        top = screenH - elementHeight - safeInset.bottom + offsetY;
+        break;
+      case 'Bottom-Center':
+        left = Math.round((screenW - elementWidth) / 2) + offsetX;
+        top = screenH - elementHeight - safeInset.bottom + offsetY;
+        break;
+      case 'Bottom-Right':
+        left = screenW - elementWidth - safeInset.right + offsetX;
+        top = screenH - elementHeight - safeInset.bottom + offsetY;
+        break;
+      default: // Custom Free-Drag
+        left = offsetX;
+        top = offsetY;
+        break;
+    }
+
+    const clampedLeft = Math.max(0, Math.min(screenW - elementWidth, left));
+    const clampedTop = Math.max(0, Math.min(screenH - elementHeight, top));
+    return { left: clampedLeft, top: clampedTop };
+  }
+
+  function loadMasterConfig() {
+    try {
+      const stored = localStorage.getItem('purplez_master_config');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          // Merge with defaults to ensure safety
+          masterConfig = {
+            ...DEFAULT_MASTER_CONFIG,
+            ...parsed,
+            typography: { ...DEFAULT_MASTER_CONFIG.typography, ...(parsed.typography || {}) },
+            themeSettings: {
+              ...DEFAULT_MASTER_CONFIG.themeSettings,
+              ...(parsed.themeSettings || {}),
+              colors: { ...DEFAULT_MASTER_CONFIG.themeSettings.colors, ...((parsed.themeSettings && parsed.themeSettings.colors) || {}) }
+            },
+            overlays: {
+              ...DEFAULT_MASTER_CONFIG.overlays,
+              ...(parsed.overlays || {})
+            }
+          };
+        }
+      } else if (window.AndroidNative && typeof window.AndroidNative.getConfiguration === 'function') {
+        const nativeCfg = window.AndroidNative.getConfiguration();
+        if (nativeCfg && nativeCfg.length > 5) {
+          const parsedNative = JSON.parse(nativeCfg);
+          masterConfig = { ...DEFAULT_MASTER_CONFIG, ...parsedNative };
+        }
+      }
+
+      const storedProfiles = localStorage.getItem('purplez_layout_profiles');
+      if (storedProfiles) {
+        const parsedP = JSON.parse(storedProfiles);
+        if (Array.isArray(parsedP) && parsedP.length > 0) {
+          layoutProfiles = parsedP;
+        }
+      }
+    } catch (e) {
+      console.warn('Error loading master configuration:', e);
+    }
+    window.PurplezMasterConfig = masterConfig;
+  }
+
+  function saveMasterConfig() {
+    try {
+      const str = JSON.stringify(masterConfig);
+      localStorage.setItem('purplez_master_config', str);
+      if (window.AndroidNative && typeof window.AndroidNative.saveConfiguration === 'function') {
+        window.AndroidNative.saveConfiguration(str);
+      }
+    } catch (e) {
+      console.warn('Error saving master configuration:', e);
+    }
+    window.PurplezMasterConfig = masterConfig;
+  }
+
+  function applyTheme(presetName, customColors = null, opacityPercent = null, notifyNative = true) {
+    if (presetName && THEME_PRESETS[presetName]) {
+      masterConfig.themeSettings.activePresetName = presetName;
+      if (!customColors) {
+        masterConfig.themeSettings.colors = { ...THEME_PRESETS[presetName] };
+      }
+    }
+    if (customColors) {
+      masterConfig.themeSettings.colors = {
+        ...masterConfig.themeSettings.colors,
+        ...customColors
+      };
+    }
+    if (typeof opacityPercent === 'number') {
+      masterConfig.themeSettings.windowOpacityPercent = Math.max(15, Math.min(100, Math.round(opacityPercent)));
+    }
+
+    const colors = masterConfig.themeSettings.colors;
+    const opacity = masterConfig.themeSettings.windowOpacityPercent / 100.0;
+
+    const bgHex = PALETTE_PLAIN_COLORS[colors.windowBackgroundColor] || '#0F0F14';
+    const headerHex = PALETTE_PLAIN_COLORS[colors.headerAndTabBarColor] || '#4C1D95';
+    const regTextHex = PALETTE_PLAIN_COLORS[colors.regularMessageTextColor] || '#FFFFFF';
+    const regUserHex = PALETTE_PLAIN_COLORS[colors.regularUsernameColor] || '#C4B5FD';
+    const gifterTextHex = PALETTE_PLAIN_COLORS[colors.gifterMessageTextColor] || '#F59E0B';
+    const gifterCardBgHex = PALETTE_PLAIN_COLORS[colors.gifterCardBackgroundColor] || '#4C1D95';
+    const followerBannerHex = PALETTE_PLAIN_COLORS[colors.followerAlertBannerColor] || '#8B5CF6';
+    const giftBannerHex = PALETTE_PLAIN_COLORS[colors.giftAlertBannerColor] || '#F59E0B';
+    const gameIdBtnHex = PALETTE_PLAIN_COLORS[colors.gameIdCopyButtonColor] || '#22C55E';
+    const borderHex = PALETTE_PLAIN_COLORS[colors.windowBorderColor] || '#8B5CF6';
+
+    const root = document.documentElement;
+    root.style.setProperty('--theme-window-bg', bgHex);
+    root.style.setProperty('--theme-header-bg', headerHex);
+    root.style.setProperty('--theme-regular-text', regTextHex);
+    root.style.setProperty('--theme-regular-user', regUserHex);
+    root.style.setProperty('--theme-gifter-text', gifterTextHex);
+    root.style.setProperty('--theme-gifter-card-bg', gifterCardBgHex);
+    root.style.setProperty('--theme-follower-banner', followerBannerHex);
+    root.style.setProperty('--theme-gift-banner', giftBannerHex);
+    root.style.setProperty('--theme-gameid-btn', gameIdBtnHex);
+    root.style.setProperty('--theme-border-color', borderHex);
+    root.style.setProperty('--theme-window-opacity', opacity.toString());
+
+    // Apply to Floating HUD Window
+    if (floatingWindow) {
+      floatingWindow.style.backgroundColor = hexToRgba(bgHex, opacity);
+      floatingWindow.style.borderColor = borderHex;
+      floatingWindow.classList.add('theme-applied');
+    }
+    if (chatHeaderBar) {
+      chatHeaderBar.style.backgroundColor = headerHex;
+      chatHeaderBar.classList.add('theme-applied');
+    }
+    if (giftAlertBanner) {
+      giftAlertBanner.style.backgroundColor = giftBannerHex;
+      giftAlertBanner.classList.add('theme-applied');
+    }
+
+    // Update Theme UI badges & controls
+    const presetBadge = document.getElementById('currentPresetBadge');
+    if (presetBadge) presetBadge.textContent = masterConfig.themeSettings.activePresetName.toUpperCase();
+
+    const opacityValEl = document.getElementById('themeOpacityValue');
+    if (opacityValEl) opacityValEl.textContent = `${masterConfig.themeSettings.windowOpacityPercent}%`;
+    const opacitySliderEl = document.getElementById('themeMasterOpacitySlider');
+    if (opacitySliderEl) opacitySliderEl.value = masterConfig.themeSettings.windowOpacityPercent;
+
+    // Synchronize Custom Color Mixer Select Dropdowns
+    const mixerSelectMap = {
+      windowBackgroundColor: document.getElementById('colorMixerWindowBg'),
+      headerAndTabBarColor: document.getElementById('colorMixerHeaderBg'),
+      regularMessageTextColor: document.getElementById('colorMixerRegularText'),
+      regularUsernameColor: document.getElementById('colorMixerRegularUser'),
+      gifterMessageTextColor: document.getElementById('colorMixerGifterText'),
+      gifterCardBackgroundColor: document.getElementById('colorMixerGifterCardBg'),
+      followerAlertBannerColor: document.getElementById('colorMixerFollowerBanner'),
+      giftAlertBannerColor: document.getElementById('colorMixerGiftBanner'),
+      gameIdCopyButtonColor: document.getElementById('colorMixerGameIdBtn'),
+      windowBorderColor: document.getElementById('colorMixerBorderColor')
+    };
+
+    Object.keys(mixerSelectMap).forEach(key => {
+      const sel = mixerSelectMap[key];
+      if (sel && colors[key]) {
+        sel.value = colors[key];
+      }
+    });
+
+    // Update Interactive Live Landscape Mock Preview
+    const mockChat = document.getElementById('mockChatWindow');
+    if (mockChat) {
+      mockChat.style.backgroundColor = hexToRgba(bgHex, opacity);
+      mockChat.style.borderColor = borderHex;
+    }
+    const mockHeader = document.getElementById('mockHeaderBar');
+    if (mockHeader) mockHeader.style.backgroundColor = headerHex;
+    const mockRegUser = document.getElementById('mockRegularUser');
+    if (mockRegUser) mockRegUser.style.color = regUserHex;
+    const mockRegText = document.getElementById('mockRegularText');
+    if (mockRegText) mockRegText.style.color = regTextHex;
+    const mockGifterRow = document.getElementById('mockGifterRow');
+    if (mockGifterRow) mockGifterRow.style.backgroundColor = gifterCardBgHex;
+    const mockGifterText = document.getElementById('mockGifterText');
+    if (mockGifterText) mockGifterText.style.color = gifterTextHex;
+    const mockGameId = document.getElementById('mockGameIdBtn');
+    if (mockGameId) mockGameId.style.backgroundColor = gameIdBtnHex;
+    const mockFollower = document.getElementById('mockFollowerAlert');
+    if (mockFollower) mockFollower.style.backgroundColor = followerBannerHex;
+
+    saveMasterConfig();
+
+    if (notifyNative && window.AndroidNative && typeof window.AndroidNative.setOverlayAlpha === 'function') {
+      window.AndroidNative.setOverlayAlpha(opacity);
+    }
+  }
+
+  function setupThemeControls() {
+    // 1. One-tap Preset Buttons
+    document.querySelectorAll('.theme-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.getAttribute('data-preset');
+        if (preset && THEME_PRESETS[preset]) {
+          applyTheme(preset, null, null, true);
+          showToast(`Theme Applied: ${preset}`);
+        }
+      });
+    });
+
+    // 2. Master Opacity Slider
+    const opacitySlider = document.getElementById('themeMasterOpacitySlider');
+    if (opacitySlider) {
+      opacitySlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        applyTheme(masterConfig.themeSettings.activePresetName, null, val, true);
+      });
+    }
+
+    document.querySelectorAll('.theme-opacity-quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = parseInt(btn.getAttribute('data-opacity'), 10);
+        applyTheme(masterConfig.themeSettings.activePresetName, null, val, true);
+      });
+    });
+
+    // 3. Font Selector
+    const fontSelect = document.getElementById('themeFontSelect');
+    if (fontSelect) {
+      fontSelect.value = masterConfig.typography.selectedFont || 'System Phone Font';
+      fontSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        masterConfig.typography.selectedFont = val;
+        const fontKeyMap = {
+          'System Phone Font': 'phone',
+          'Inter': 'sans',
+          'Roboto': 'medium',
+          'Outfit': 'rounded',
+          'JetBrains Mono': 'mono',
+          'Poppins': 'sans'
+        };
+        const key = fontKeyMap[val] || 'phone';
+        applyFontFamily(key, true);
+        const badge = document.getElementById('themeFontBadge');
+        if (badge) badge.textContent = val.toUpperCase();
+        saveMasterConfig();
+        showToast(`Font Applied: ${val}`);
+      });
+    }
+
+    // 4. Custom Color Mixer Select Dropdowns
+    document.querySelectorAll('.theme-color-select').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const elementKey = e.target.getAttribute('data-element');
+        const chosenColorName = e.target.value;
+        if (elementKey && chosenColorName) {
+          const update = {};
+          update[elementKey] = chosenColorName;
+          applyTheme(masterConfig.themeSettings.activePresetName, update, null, true);
+          showToast(`${elementKey}: ${chosenColorName}`);
+        }
+      });
+    });
+
+    // 5. Reset Mixer to Default Preset
+    const resetMixerBtn = document.getElementById('resetMixerToDefaultBtn');
+    if (resetMixerBtn) {
+      resetMixerBtn.addEventListener('click', () => {
+        applyTheme('Classic Purple & Black', { ...THEME_PRESETS['Classic Purple & Black'] }, 75, true);
+        showToast('Reset to Classic Purple & Black');
+      });
+    }
+  }
+
+  function setupOverlayManagerControls() {
+    // 10 Overlay Module Toggles
+    document.querySelectorAll('.overlay-toggle').forEach(toggle => {
+      const moduleKey = toggle.getAttribute('data-module');
+      if (moduleKey && masterConfig.overlays[moduleKey]) {
+        toggle.checked = masterConfig.overlays[moduleKey].enabled !== false;
+      }
+      toggle.addEventListener('change', (e) => {
+        const mKey = e.target.getAttribute('data-module');
+        if (!mKey || !masterConfig.overlays[mKey]) return;
+        const state = e.target.checked;
+        masterConfig.overlays[mKey].enabled = state;
+
+        if (mKey === 'mainChatBox') {
+          if (floatingWindow) {
+            floatingWindow.style.display = state ? 'flex' : 'none';
+          }
+        } else if (mKey === 'liveLikeCounter') {
+          const pill = document.getElementById('headerLikeCountPill');
+          if (pill) pill.style.display = state ? 'flex' : 'none';
+        } else if (mKey === 'liveViewerCounter') {
+          const pill = document.getElementById('headerViewerCountPill');
+          if (pill) pill.style.display = state ? 'flex' : 'none';
+        } else if (mKey === 'viewerSearchBar') {
+          const btn = document.getElementById('searchViewerToggleBtn');
+          if (btn) btn.style.display = state ? 'flex' : 'none';
+        } else if (mKey === 'viewerJoinStrip') {
+          window.PurplezChatSettings = window.PurplezChatSettings || {};
+          window.PurplezChatSettings.showJoins = state;
+        }
+
+        saveMasterConfig();
+        showToast(`${mKey}: ${state ? 'ENABLED' : 'DISABLED'}`);
+      });
+    });
+
+    // Position Dropdowns
+    document.querySelectorAll('.overlay-position-select').forEach(sel => {
+      const moduleKey = sel.getAttribute('data-module');
+      if (moduleKey && masterConfig.overlays[moduleKey]) {
+        sel.value = masterConfig.overlays[moduleKey].landscapePosition || 'Top-Center';
+      }
+      sel.addEventListener('change', (e) => {
+        const mKey = e.target.getAttribute('data-module');
+        if (!mKey || !masterConfig.overlays[mKey]) return;
+        masterConfig.overlays[mKey].landscapePosition = e.target.value;
+        saveMasterConfig();
+        if (mKey === 'mainChatBox' && window.AndroidNative && typeof window.AndroidNative.updateOverlayPosition === 'function') {
+          window.AndroidNative.updateOverlayPosition('mainChatBox', e.target.value, masterConfig.overlays.mainChatBox.customOffsetX, masterConfig.overlays.mainChatBox.customOffsetY);
+        }
+        showToast(`Position: ${e.target.value}`);
+      });
+    });
+
+    // Lock Touch Pass-Through
+    document.querySelectorAll('.overlay-lock-touch').forEach(chk => {
+      const moduleKey = chk.getAttribute('data-module');
+      if (moduleKey && masterConfig.overlays[moduleKey]) {
+        chk.checked = !!masterConfig.overlays[moduleKey].lockedTouchPassThrough;
+      }
+      chk.addEventListener('change', (e) => {
+        const mKey = e.target.getAttribute('data-module');
+        if (!mKey || !masterConfig.overlays[mKey]) return;
+        const state = e.target.checked;
+        masterConfig.overlays[mKey].lockedTouchPassThrough = state;
+        saveMasterConfig();
+        if (window.AndroidNative && typeof window.AndroidNative.setOverlayTouchPassThrough === 'function') {
+          window.AndroidNative.setOverlayTouchPassThrough(state);
+        }
+        showToast(`Touch Lock: ${state ? 'LOCKED (PASS-THROUGH)' : 'INTERACTIVE'}`);
+      });
+    });
+
+    // Mute Follower Sound Sub-toggle
+    const muteSoundToggle = document.getElementById('muteFollowerSoundOnlyToggle');
+    if (muteSoundToggle) {
+      muteSoundToggle.checked = !masterConfig.overlays.followerAlertOverlay.playAudioChimeBlupMp3;
+      muteSoundToggle.addEventListener('change', (e) => {
+        masterConfig.overlays.followerAlertOverlay.playAudioChimeBlupMp3 = !e.target.checked;
+        saveMasterConfig();
+        showToast(e.target.checked ? 'Follower Sound: MUTED' : 'Follower Sound: ACTIVE (blup.mp3)');
+      });
+    }
+  }
+
+  function setupMasterPanicControls() {
+    const panicFloatingBtn = document.getElementById('masterQuickHideBtn');
+    const panicCardBtn = document.getElementById('masterQuickHideToggleBtn');
+
+    function toggleMasterPanicHide() {
+      isMasterQuickHidden = !isMasterQuickHidden;
+
+      if (isMasterQuickHidden) {
+        if (floatingWindow) floatingWindow.style.display = 'none';
+        if (miniDock) miniDock.classList.add('hidden');
+        const gameIdBar = document.getElementById('smartGameIdQuickBar');
+        if (gameIdBar) gameIdBar.classList.add('hidden');
+
+        panicFloatingBtn?.classList.add('panic-hidden');
+        if (panicCardBtn) {
+          panicCardBtn.textContent = 'RESTORE OVERLAYS';
+          panicCardBtn.className = 'px-3 py-1.5 rounded-xl font-mono text-xs font-extrabold uppercase tracking-wider cursor-pointer transition-all bg-red-600 text-white active:scale-95';
+        }
+        if (window.AndroidNative && typeof window.AndroidNative.setMasterQuickHide === 'function') {
+          window.AndroidNative.setMasterQuickHide(true);
+        }
+        showToast('Panic Mode: All Overlays Hidden');
+      } else {
+        if (masterConfig.overlays.mainChatBox.enabled !== false && floatingWindow) {
+          floatingWindow.style.display = 'flex';
+        }
+        panicFloatingBtn?.classList.remove('panic-hidden');
+        if (panicCardBtn) {
+          panicCardBtn.textContent = 'ALL VISIBLE';
+          panicCardBtn.className = 'px-3 py-1.5 rounded-xl font-mono text-xs font-extrabold uppercase tracking-wider cursor-pointer transition-all bg-white text-black active:scale-95';
+        }
+        if (window.AndroidNative && typeof window.AndroidNative.setMasterQuickHide === 'function') {
+          window.AndroidNative.setMasterQuickHide(false);
+        }
+        showToast('All Overlays Restored');
+      }
+    }
+
+    if (panicFloatingBtn) panicFloatingBtn.addEventListener('click', toggleMasterPanicHide);
+    if (panicCardBtn) panicCardBtn.addEventListener('click', toggleMasterPanicHide);
+  }
+
+  function setupLandscapeEditorControls() {
+    const openBtn = document.getElementById('openLandscapeEditorBtn');
+    const closeBtn = document.getElementById('closeLandscapeEditorBtn');
+    const saveBtn = document.getElementById('saveLandscapeLayoutBtn');
+    const editorModal = document.getElementById('landscapeLayoutEditorModal');
+    const templateSelect = document.getElementById('editorHudTemplateSelect');
+    const canvas = document.getElementById('landscapeEditorCanvas');
+    const offsetDisplay = document.getElementById('editorOffsetDisplay');
+    const offsetXSlider = document.getElementById('editorOffsetXSlider');
+    const offsetYSlider = document.getElementById('editorOffsetYSlider');
+
+    let currentSelectedModule = 'mainChatBox';
+
+    if (openBtn && editorModal) {
+      openBtn.addEventListener('click', () => {
+        editorModal.classList.remove('hidden');
+        if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
+          window.AndroidNative.toggleOrientation(true);
+        }
+        showToast('Landscape Layout Editor Opened');
+      });
+    }
+
+    if (closeBtn && editorModal) {
+      closeBtn.addEventListener('click', () => {
+        editorModal.classList.add('hidden');
+      });
+    }
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        saveMasterConfig();
+        editorModal?.classList.add('hidden');
+        showToast('Landscape Layout Saved & Applied');
+      });
+    }
+
+    if (templateSelect && canvas) {
+      templateSelect.addEventListener('change', (e) => {
+        canvas.className = `relative flex-1 overflow-hidden hud-template-${e.target.value}`;
+      });
+    }
+
+    // 9-Zone Anchor Snap Buttons
+    document.querySelectorAll('.zone-anchor-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.zone-anchor-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const zone = btn.getAttribute('data-zone');
+        if (zone && masterConfig.overlays[currentSelectedModule]) {
+          masterConfig.overlays[currentSelectedModule].landscapePosition = zone;
+          const box = document.querySelector(`.editor-draggable-box[data-module="${currentSelectedModule}"]`);
+          if (box) {
+            const coords = calculateLandscapeCoordinates(zone, masterConfig.overlays[currentSelectedModule].customOffsetX || 0, masterConfig.overlays[currentSelectedModule].customOffsetY || 0, box.offsetWidth, box.offsetHeight, canvas.clientWidth || 600, canvas.clientHeight || 300);
+            box.style.left = `${coords.left}px`;
+            box.style.top = `${coords.top}px`;
+          }
+          showToast(`Snapped ${currentSelectedModule} to ${zone}`);
+        }
+      });
+    });
+
+    if (offsetXSlider && offsetYSlider) {
+      offsetXSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        if (masterConfig.overlays[currentSelectedModule]) {
+          masterConfig.overlays[currentSelectedModule].customOffsetX = val;
+          if (offsetDisplay) offsetDisplay.textContent = `X: ${val}px | Y: ${offsetYSlider.value}px`;
+        }
+      });
+      offsetYSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        if (masterConfig.overlays[currentSelectedModule]) {
+          masterConfig.overlays[currentSelectedModule].customOffsetY = val;
+          if (offsetDisplay) offsetDisplay.textContent = `X: ${offsetXSlider.value}px | Y: ${val}px`;
+        }
+      });
+    }
+  }
+
+  function setupLayoutProfileControls() {
+    document.querySelectorAll('.load-profile-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pId = btn.getAttribute('data-profile');
+        const profile = layoutProfiles.find(p => p.id === pId);
+        if (profile) {
+          masterConfig = JSON.parse(JSON.stringify(profile.config));
+          applyTheme(masterConfig.themeSettings.activePresetName, masterConfig.themeSettings.colors, masterConfig.themeSettings.windowOpacityPercent, true);
+          const badge = document.getElementById('activeProfileBadge');
+          if (badge) badge.textContent = pId.replace('_', ' ').toUpperCase();
+          showToast(`Loaded: ${profile.name}`);
+        }
+      });
+    });
+
+    document.querySelectorAll('.save-profile-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const pId = btn.getAttribute('data-profile');
+        const pIdx = layoutProfiles.findIndex(p => p.id === pId);
+        if (pIdx !== -1) {
+          layoutProfiles[pIdx].config = JSON.parse(JSON.stringify(masterConfig));
+          localStorage.setItem('purplez_layout_profiles', JSON.stringify(layoutProfiles));
+          if (window.AndroidNative && typeof window.AndroidNative.saveLayoutProfiles === 'function') {
+            window.AndroidNative.saveLayoutProfiles(JSON.stringify(layoutProfiles));
+          }
+          showToast(`Saved layout into ${layoutProfiles[pIdx].name}`);
+        }
+      });
+    });
+  }
+
+  function showSmartGameIdBar(idStr) {
+    const bar = document.getElementById('smartGameIdQuickBar');
+    const textEl = document.getElementById('smartGameIdText');
+    const copyBtn = document.getElementById('smartGameIdCopyBtn');
+    const dismissBtn = document.getElementById('smartGameIdDismissBtn');
+    if (!bar || !textEl) return;
+
+    textEl.textContent = idStr;
+    if (copyBtn) {
+      copyBtn.onclick = (e) => {
+        e.stopPropagation();
+        copyGameId(idStr);
+        bar.classList.add('hidden');
+      };
+    }
+    if (dismissBtn) {
+      dismissBtn.onclick = (e) => {
+        e.stopPropagation();
+        bar.classList.add('hidden');
+      };
+    }
+    bar.classList.remove('hidden');
+  }
+  window.showSmartGameIdBar = showSmartGameIdBar;
 
   function setupBottomNavigation() {
     const navItems = document.querySelectorAll('.bottom-nav-item');
@@ -4214,6 +5168,7 @@
 
   // Initial Setup
   handleOrientationChange();
+  loadMasterConfig();
   let initialFontFamily = 'phone';
   try {
     const storedFont = localStorage.getItem('purplez_font_family');
@@ -4229,6 +5184,12 @@
   applyFontFamily(initialFontFamily, false);
   setupFontFamilyControls();
   applyFontSize(localStorage.getItem('purplez_font_size') || 'compact');
+  applyTheme(masterConfig.themeSettings.activePresetName, masterConfig.themeSettings.colors, masterConfig.themeSettings.windowOpacityPercent, false);
+  setupThemeControls();
+  setupOverlayManagerControls();
+  setupMasterPanicControls();
+  setupLandscapeEditorControls();
+  setupLayoutProfileControls();
   renderChatMessages();
   setupBottomNavigation();
   setupLogoToggleDrag();
@@ -4251,7 +5212,14 @@
   }
 
   window.extractMlbbIdOrText = extractMlbbIdOrText;
+  window.extractMlbbIdDetails = extractMlbbIdDetails;
   window.applyViewerFilter = applyViewerFilter;
   window.setupViewerSearchFilter = setupViewerSearchFilter;
+  window.PALETTE_PLAIN_COLORS = PALETTE_PLAIN_COLORS;
+  window.THEME_PRESETS = THEME_PRESETS;
+  window.DEFAULT_MASTER_CONFIG = DEFAULT_MASTER_CONFIG;
+  window.calculateLandscapeCoordinates = calculateLandscapeCoordinates;
+  window.applyTheme = applyTheme;
+  window.PurplezMasterConfig = masterConfig;
 
 })();

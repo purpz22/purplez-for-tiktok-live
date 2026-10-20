@@ -113,6 +113,763 @@
         </div>
       </div>
 
+      <!-- TAB 2: THEMES (8 Plain-Color Presets, Opacity & 10-Element Color Mixer) -->
+      <div id="navViewThemes" class="space-y-4 hidden">
+        <!-- 8 READY-TO-USE THEME PRESETS -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="themePresetsCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">THEME PRESETS (ONE-TAP)</span>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="currentPresetBadge">CLASSIC PURPLE & BLACK</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs font-mono" id="themePresetsGrid">
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Classic Purple & Black">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#4C1D95] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#8B5CF6] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#F59E0B] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Classic Purple & Black</span>
+              <span class="text-[9px] text-zinc-400">Signature streamer theme</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Pure Black & White">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#1F2937] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#FFFFFF] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#EAB308] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Pure Black & White</span>
+              <span class="text-[9px] text-zinc-400">High contrast stealth</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Blue & Dark Gray">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#1E3A8A] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#3B82F6] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#F59E0B] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Blue & Dark Gray</span>
+              <span class="text-[9px] text-zinc-400">Cool cyber esports</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Red & Black Gamer">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#7F1D1D] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#EF4444] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#F97316] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Red & Black Gamer</span>
+              <span class="text-[9px] text-zinc-400">Aggressive action gaming</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Green & Black Matrix">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#14532D] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#22C55E] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#EAB308] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Green & Black Matrix</span>
+              <span class="text-[9px] text-zinc-400">Terminal matrix HUD</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Pink & White Cute">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#EC4899] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#DB2777] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#F59E0B] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Pink & White Cute</span>
+              <span class="text-[9px] text-zinc-400">Playful pastel stream</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Orange & Dark Gray">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#F97316] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#EAB308] border border-white/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#F59E0B] border border-white/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Orange & Dark Gray</span>
+              <span class="text-[9px] text-zinc-400">Warm vibrant glow</span>
+            </button>
+            <button type="button" class="theme-preset-btn p-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-white text-left transition-all cursor-pointer flex flex-col space-y-1 active:scale-95" data-preset="Clean White & Gray">
+              <div class="flex items-center space-x-1">
+                <span class="w-3 h-3 rounded-full bg-[#FFFFFF] border border-black/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#D1D5DB] border border-black/40 shrink-0"></span>
+                <span class="w-3 h-3 rounded-full bg-[#1E3A8A] border border-black/40 shrink-0"></span>
+              </div>
+              <span class="font-bold text-white text-[11px]">Clean White & Gray</span>
+              <span class="text-[9px] text-zinc-400">High daylight visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- MASTER WINDOW OPACITY SLIDER (15% TO 100%) -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="themeOpacityCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">MASTER WINDOW OPACITY</span>
+            <span class="text-xs font-mono font-bold text-white" id="themeOpacityValue">75%</span>
+          </div>
+          <input type="range" id="themeMasterOpacitySlider" min="15" max="100" value="75" class="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer" />
+          <div class="flex items-center justify-between gap-1 pt-1 font-mono text-[10px]">
+            <button type="button" class="flex-1 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 theme-opacity-quick-btn cursor-pointer" data-opacity="30">30%</button>
+            <button type="button" class="flex-1 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 theme-opacity-quick-btn cursor-pointer" data-opacity="50">50%</button>
+            <button type="button" class="flex-1 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 theme-opacity-quick-btn cursor-pointer" data-opacity="75">75%</button>
+            <button type="button" class="flex-1 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 theme-opacity-quick-btn cursor-pointer" data-opacity="90">90%</button>
+            <button type="button" class="flex-1 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 theme-opacity-quick-btn cursor-pointer" data-opacity="100">100%</button>
+          </div>
+        </div>
+
+        <!-- TYPOGRAPHY FONT SELECTOR -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="themeFontCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">STREAM TYPOGRAPHY FONT</span>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="themeFontBadge">SYSTEM PHONE FONT</span>
+          </div>
+          <select id="themeFontSelect" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-white focus:outline-none">
+            <option value="System Phone Font">System Phone Font (Default Native)</option>
+            <option value="Inter">Inter (Ultra Legible)</option>
+            <option value="Roboto">Roboto (Android Standard)</option>
+            <option value="Outfit">Outfit (Modern Bold)</option>
+            <option value="JetBrains Mono">JetBrains Mono (Tech Esports)</option>
+            <option value="Poppins">Poppins (Clean Rounded)</option>
+          </select>
+        </div>
+
+        <!-- CUSTOM COLOR MIXER (10 ELEMENTS USING PLAIN EVERYDAY COLOR NAMES ONLY) -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="themeMixerCard">
+          <div class="flex items-center justify-between pb-1 border-b border-zinc-800">
+            <div>
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">CUSTOM COLOR MIXER</span>
+              <p class="text-[10px] text-zinc-500 font-mono">Plain everyday color names only (no hex codes)</p>
+            </div>
+            <button type="button" class="text-[10px] font-mono px-2 py-0.5 bg-zinc-900 border border-zinc-700 rounded text-zinc-300 hover:text-white cursor-pointer" id="resetMixerToDefaultBtn">
+              RESET MIXER
+            </button>
+          </div>
+
+          <div class="space-y-2 text-xs font-mono">
+            <!-- 1. Window Background Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">1. Window Background</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="windowBackgroundColor" id="colorMixerWindowBg">
+                <option value="Black">Black</option>
+                <option value="Dark Gray">Dark Gray</option>
+                <option value="Gray">Gray</option>
+                <option value="White">White</option>
+                <option value="Dark Purple">Dark Purple</option>
+                <option value="Dark Blue">Dark Blue</option>
+                <option value="Dark Red">Dark Red</option>
+                <option value="Dark Green">Dark Green</option>
+              </select>
+            </div>
+
+            <!-- 2. Top Header & Tab Bar Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">2. Header & Tab Bar</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="headerAndTabBarColor" id="colorMixerHeaderBg">
+                <option value="Purple">Purple</option>
+                <option value="Dark Purple">Dark Purple</option>
+                <option value="Black">Black</option>
+                <option value="Dark Gray">Dark Gray</option>
+                <option value="Blue">Blue</option>
+                <option value="Red">Red</option>
+                <option value="Green">Green</option>
+                <option value="Pink">Pink</option>
+                <option value="Orange">Orange</option>
+              </select>
+            </div>
+
+            <!-- 3. Regular Viewer Message Text Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">3. Regular Message Text</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="regularMessageTextColor" id="colorMixerRegularText">
+                <option value="White">White</option>
+                <option value="Light Gray">Light Gray</option>
+                <option value="Black">Black</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Light Blue">Light Blue</option>
+                <option value="Light Green">Light Green</option>
+                <option value="Pink">Pink</option>
+              </select>
+            </div>
+
+            <!-- 4. Regular Viewer Username Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">4. Regular Username</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="regularUsernameColor" id="colorMixerRegularUser">
+                <option value="Light Purple">Light Purple</option>
+                <option value="Light Blue">Light Blue</option>
+                <option value="Light Green">Light Green</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Orange">Orange</option>
+                <option value="Pink">Pink</option>
+                <option value="White">White</option>
+                <option value="Gray">Gray</option>
+              </select>
+            </div>
+
+            <!-- 5. Gifter / VIP Tab Message Text Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">5. Gifter Message Text</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="gifterMessageTextColor" id="colorMixerGifterText">
+                <option value="Gold">Gold</option>
+                <option value="Yellow">Yellow</option>
+                <option value="White">White</option>
+                <option value="Light Purple">Light Purple</option>
+                <option value="Light Blue">Light Blue</option>
+                <option value="Pink">Pink</option>
+              </select>
+            </div>
+
+            <!-- 6. Gifter / VIP Card Background Tint -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">6. Gifter Card Background</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="gifterCardBackgroundColor" id="colorMixerGifterCardBg">
+                <option value="Dark Purple">Dark Purple</option>
+                <option value="Dark Blue">Dark Blue</option>
+                <option value="Dark Red">Dark Red</option>
+                <option value="Dark Green">Dark Green</option>
+                <option value="Brown">Brown</option>
+                <option value="Dark Gray">Dark Gray</option>
+              </select>
+            </div>
+
+            <!-- 7. Follower Alert Banner Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">7. Follower Alert Banner</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="followerAlertBannerColor" id="colorMixerFollowerBanner">
+                <option value="Purple">Purple</option>
+                <option value="Green">Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Red">Red</option>
+                <option value="Pink">Pink</option>
+                <option value="Orange">Orange</option>
+                <option value="Gold">Gold</option>
+                <option value="White">White</option>
+              </select>
+            </div>
+
+            <!-- 8. Gift Alert Banner Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">8. Gift Alert Banner</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="giftAlertBannerColor" id="colorMixerGiftBanner">
+                <option value="Gold">Gold</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Purple">Purple</option>
+                <option value="Pink">Pink</option>
+                <option value="Red">Red</option>
+                <option value="Orange">Orange</option>
+                <option value="Blue">Blue</option>
+              </select>
+            </div>
+
+            <!-- 9. Extracted Game ID Pill Button Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">9. Game ID Copy Button</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="gameIdCopyButtonColor" id="colorMixerGameIdBtn">
+                <option value="Green">Green</option>
+                <option value="Blue">Blue</option>
+                <option value="Purple">Purple</option>
+                <option value="Orange">Orange</option>
+                <option value="Red">Red</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Pink">Pink</option>
+              </select>
+            </div>
+
+            <!-- 10. Window Border Outline Color -->
+            <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/70 border border-zinc-800">
+              <span class="text-zinc-300 font-bold">10. Window Border Outline</span>
+              <select class="theme-color-select bg-black border border-zinc-700 text-white rounded-lg px-2 py-1 text-xs focus:border-white" data-element="windowBorderColor" id="colorMixerBorderColor">
+                <option value="Purple">Purple</option>
+                <option value="White">White</option>
+                <option value="Gray">Gray</option>
+                <option value="Red">Red</option>
+                <option value="Blue">Blue</option>
+                <option value="Green">Green</option>
+                <option value="Yellow">Yellow</option>
+                <option value="Pink">Pink</option>
+                <option value="Hot Pink">Hot Pink</option>
+                <option value="Gold">Gold</option>
+                <option value="None">None (No Border)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE LIVE LANDSCAPE MOCK PREVIEW CARD -->
+        <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" id="themeMockPreviewCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">LIVE LANDSCAPE MOCK PREVIEW</span>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300">REAL-TIME</span>
+          </div>
+
+          <div class="relative w-full rounded-xl overflow-hidden border border-zinc-800 bg-slate-950 p-2 text-xs font-mono" style="min-height: 180px;" id="themeMockContainer">
+            <!-- Simulated Game Elements -->
+            <div class="absolute top-1 left-2 text-[9px] font-bold text-zinc-500">[MINIMAP ZONE]</div>
+            <div class="absolute top-1 right-2 text-[9px] font-bold text-zinc-500">[SETTINGS / KDA]</div>
+            <div class="absolute bottom-1 left-2 text-[9px] font-bold text-zinc-500">[JOYSTICK ZONE]</div>
+            <div class="absolute bottom-1 right-2 text-[9px] font-bold text-zinc-500">[SKILL BUTTONS]</div>
+
+            <!-- Simulated Floating HUD Chat Box -->
+            <div class="relative mx-auto my-2 rounded-xl border-2 p-2 max-w-xs shadow-2xl transition-all" id="mockChatWindow" style="background-color: rgba(15, 15, 20, 0.85); border-color: #8B5CF6;">
+              <!-- Simulated Header -->
+              <div class="flex items-center justify-between pb-1 border-b border-white/10 px-1 -mx-1 -mt-1 pt-1 rounded-t-lg mb-1.5" id="mockHeaderBar" style="background-color: #4C1D95;">
+                <div class="flex items-center space-x-1">
+                  <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-white text-black">All</span>
+                  <span class="px-1.5 py-0.2 rounded text-[9px] font-bold text-zinc-300">Gifter</span>
+                </div>
+                <span class="text-[9px] font-bold text-white">1.4K VIEWERS</span>
+              </div>
+
+              <!-- Simulated Regular Message with Game ID -->
+              <div class="p-1 rounded bg-black/40 border border-white/10 mb-1" id="mockRegularRow">
+                <div class="flex items-center space-x-1">
+                  <span class="text-[9px] font-bold px-1 rounded bg-zinc-800 text-zinc-300">FAN</span>
+                  <span class="text-[9.5px] font-bold" id="mockRegularUser" style="color: #C4B5FD;">@GamerPro_PH</span>
+                </div>
+                <div class="text-[10px] mt-0.5 leading-tight flex items-center justify-between" id="mockRegularText" style="color: #FFFFFF;">
+                  <span>Lobby invite: 123456789 (1234)</span>
+                  <button type="button" class="game-id-pill-btn px-1.5 py-0.5 rounded text-[8.5px] uppercase font-bold shrink-0 ml-1" id="mockGameIdBtn" style="background-color: #22C55E;">COPY ID</button>
+                </div>
+              </div>
+
+              <!-- Simulated Gifter Message -->
+              <div class="p-1 rounded border border-white/10" id="mockGifterRow" style="background-color: #4C1D95;">
+                <div class="flex items-center space-x-1">
+                  <span class="text-[8.5px] font-bold px-1 rounded bg-amber-400 text-black">VIP</span>
+                  <span class="text-[9.5px] font-bold text-amber-300">@DragonKing</span>
+                  <span class="text-[8.5px] px-1 rounded bg-black/50 text-amber-200">Lion x1</span>
+                </div>
+                <div class="text-[10px] mt-0.5 font-bold" id="mockGifterText" style="color: #F59E0B;">
+                  Awesome gameplay, take the victory!
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated Follower Alert -->
+            <div class="mx-auto max-w-xs text-center py-1 px-2 rounded-lg text-white font-bold text-[10px] shadow-lg transition-all" id="mockFollowerAlert" style="background-color: #8B5CF6;">
+              New Follower: @LegendaryStreamer followed!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: OVERLAYS (10 Independent Modules & Master Panic Hide) -->
+      <div id="navViewOverlays" class="space-y-4 hidden">
+        <!-- MASTER QUICK HIDE PANIC BUTTON CARD -->
+        <div class="control-card space-y-3 bg-zinc-950 border-2 border-white/60" id="masterPanicCard">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">MASTER QUICK HIDE (PANIC BUTTON)</span>
+              <p class="text-[10px] text-zinc-400 font-mono">Temporarily hide all active overlays with one tap during intense teamfights</p>
+            </div>
+            <button type="button" class="px-3 py-1.5 rounded-xl font-mono text-xs font-extrabold uppercase tracking-wider cursor-pointer transition-all bg-white text-black active:scale-95" id="masterQuickHideToggleBtn">
+              ALL VISIBLE
+            </button>
+          </div>
+        </div>
+
+        <!-- 10 MODULAR OVERLAY MODULE CARDS -->
+        <div class="space-y-3 font-mono" id="overlayModulesContainer">
+          <!-- 1. Main Chat Box Overlay -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="mainChatBox">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                <span class="text-xs font-bold text-white uppercase">1. MAIN CHAT BOX (DUAL-TAB)</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="mainChatBox" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Resizable floating chat with Gifter/VIP and Regular tabs.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Landscape Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="mainChatBox">
+                  <option value="Top-Left">Top-Left (Minimap)</option>
+                  <option value="Top-Center" selected>Top-Center (Timer/Score)</option>
+                  <option value="Top-Right">Top-Right (KDA/Settings)</option>
+                  <option value="Middle-Left">Middle-Left (Hero Icons)</option>
+                  <option value="Center">Center (Action Area)</option>
+                  <option value="Middle-Right">Middle-Right (Search Bar)</option>
+                  <option value="Bottom-Left">Bottom-Left (Joystick)</option>
+                  <option value="Bottom-Center">Bottom-Center (Recall)</option>
+                  <option value="Bottom-Right">Bottom-Right (Skills)</option>
+                  <option value="Custom Free-Drag">Custom Free-Drag</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="mainChatBox">
+                  <span class="text-[10px] text-zinc-300">Lock Touch</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Gifter / VIP Priority Overlay Banner -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="gifterPriorityBanner">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                <span class="text-xs font-bold text-white uppercase">2. GIFTER / VIP PRIORITY BANNER</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="gifterPriorityBanner" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Displays top-priority notification when VIP/supporters message.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="gifterPriorityBanner">
+                  <option value="Top-Center" selected>Top-Center</option>
+                  <option value="Top-Left">Top-Left</option>
+                  <option value="Top-Right">Top-Right</option>
+                  <option value="Middle-Right">Middle-Right</option>
+                  <option value="Bottom-Center">Bottom-Center</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="gifterPriorityBanner">
+                  <span class="text-[10px] text-zinc-300">Lock Touch</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Live Gift Animation & Streak Overlay -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="giftAnimationOverlay">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+                <span class="text-xs font-bold text-white uppercase">3. LIVE GIFT ANIMATION & STREAK</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="giftAnimationOverlay" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Animated gift popups, coins, and combo multipliers.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="giftAnimationOverlay">
+                  <option value="Top-Right" selected>Top-Right</option>
+                  <option value="Top-Center">Top-Center</option>
+                  <option value="Middle-Right">Middle-Right</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="giftAnimationOverlay" checked>
+                  <span class="text-[10px] text-zinc-300">Click-Through</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. New Follower Alert Overlay & Sound -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="followerAlertOverlay">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                <span class="text-xs font-bold text-white uppercase">4. NEW FOLLOWER ALERT & SOUND</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="followerAlertOverlay" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Floating banner and audio chime on verified follow events.</p>
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" class="overlay-subtoggle" id="muteFollowerSoundOnlyToggle">
+                <span class="text-[10px] text-zinc-300">Mute Follower Sound Only (Banner ON, Sound OFF)</span>
+              </label>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="followerAlertOverlay">
+                  <option value="Top-Center" selected>Top-Center</option>
+                  <option value="Top-Left">Top-Left</option>
+                  <option value="Top-Right">Top-Right</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="followerAlertOverlay" checked>
+                  <span class="text-[10px] text-zinc-300">Click-Through</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Live Like Counter Overlay -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="liveLikeCounter">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span class="text-xs font-bold text-white uppercase">5. LIVE LIKE COUNTER</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="liveLikeCounter" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Real-time total stream like count with heart icon.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="liveLikeCounter">
+                  <option value="Top-Right" selected>Top-Right</option>
+                  <option value="Top-Center">Top-Center</option>
+                  <option value="Middle-Right">Middle-Right</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="liveLikeCounter" checked>
+                  <span class="text-[10px] text-zinc-300">Click-Through</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. Live Viewer Count Pill Overlay -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="liveViewerCounter">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span class="text-xs font-bold text-white uppercase">6. LIVE VIEWER COUNT PILL</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="liveViewerCounter" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Concurrent live viewers indicator badge.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="liveViewerCounter">
+                  <option value="Top-Right" selected>Top-Right</option>
+                  <option value="Top-Center">Top-Center</option>
+                  <option value="Top-Left">Top-Left</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="liveViewerCounter" checked>
+                  <span class="text-[10px] text-zinc-300">Click-Through</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. Temporary Viewer Join Strip -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="viewerJoinStrip">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-zinc-400"></span>
+                <span class="text-xs font-bold text-white uppercase">7. TEMPORARY VIEWER JOIN STRIP</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="viewerJoinStrip" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Shows temporary fading strip when users join without cluttering chat history.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="viewerJoinStrip">
+                  <option value="Bottom-Center" selected>Bottom of Chat Window</option>
+                  <option value="Bottom-Left">Bottom-Left</option>
+                  <option value="Bottom-Right">Bottom-Right</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="viewerJoinStrip" checked>
+                  <span class="text-[10px] text-zinc-300">Click-Through</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8. Smart Game ID Quick-Copy Bar Overlay -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="smartGameIdBar">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <span class="text-xs font-bold text-white uppercase">8. SMART GAME ID QUICK-COPY BAR</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="smartGameIdBar" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Floating chip popup for one-tap copying MLBB IDs even when chat is minimized.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="smartGameIdBar">
+                  <option value="Bottom-Center" selected>Bottom-Center</option>
+                  <option value="Middle-Right">Middle-Right</option>
+                  <option value="Top-Center">Top-Center</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="smartGameIdBar">
+                  <span class="text-[10px] text-zinc-300">Interactive</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 9. Viewer Search & Filter Bar Overlay -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="viewerSearchBar">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                <span class="text-xs font-bold text-white uppercase">9. VIEWER SEARCH & FILTER BAR</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="viewerSearchBar" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Right-edge button to search and filter messages with soft keyboard focus.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="viewerSearchBar">
+                  <option value="Middle-Right" selected>Middle-Right</option>
+                  <option value="Top-Right">Top-Right</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Touch Pass-Through</label>
+                <label class="flex items-center space-x-1.5 pt-1 cursor-pointer">
+                  <input type="checkbox" class="overlay-lock-touch" data-module="viewerSearchBar">
+                  <span class="text-[10px] text-zinc-300">Interactive</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 10. Mini Mode Floating Controller -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="miniModeController">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
+                <span class="text-xs font-bold text-white uppercase">10. MINI MODE CONTROLLER</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="miniModeController" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Allows collapsing HUD into single-line Pill Bar or circular Avatar Bubble.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Preferred Mini Style</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px]" id="miniModeStyleSelect">
+                  <option value="AVATAR_BUBBLE" selected>Avatar Bubble Mode</option>
+                  <option value="PILL_BAR">Pill Bar Mode</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 uppercase block mb-1">Position</label>
+                <select class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1 text-white text-[10px] overlay-position-select" data-module="miniModeController">
+                  <option value="Middle-Right" selected>Middle-Right (Edge-Snapped)</option>
+                  <option value="Top-Left">Top-Left</option>
+                  <option value="Top-Right">Top-Right</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: LAYOUT (Landscape 9-Zone Positioning & Interactive Editor) -->
+      <div id="navViewLayout" class="space-y-4 hidden">
+        <!-- LAUNCH FULL-SCREEN LANDSCAPE LAYOUT EDITOR -->
+        <div class="control-card space-y-3 bg-zinc-950 border-2 border-white/80" id="layoutEditorLaunchCard">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">LANDSCAPE LAYOUT EDITOR</span>
+              <p class="text-[10px] text-zinc-400 font-mono">Test and position overlays directly over real mobile game HUD templates</p>
+            </div>
+          </div>
+          <button type="button" class="control-btn-primary w-full py-3 text-xs font-mono font-extrabold tracking-wider flex items-center justify-center space-x-2 cursor-pointer" id="openLandscapeEditorBtn">
+            <svg class="w-4 h-4 text-black shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+            </svg>
+            <span>OPEN LANDSCAPE LAYOUT EDITOR</span>
+          </button>
+        </div>
+
+        <!-- 3 LANDSCAPE LAYOUT PROFILES -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="layoutProfilesCard">
+          <div class="flex items-center justify-between pb-1 border-b border-zinc-800">
+            <div>
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-white">LAYOUT PROFILES (UP TO 3)</span>
+              <p class="text-[10px] text-zinc-500 font-mono">Save custom positioning per game genre</p>
+            </div>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="activeProfileBadge">PROFILE 1</span>
+          </div>
+
+          <div class="space-y-2 font-mono">
+            <!-- Profile 1 -->
+            <div class="p-2 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-between" id="profileRow1">
+              <div>
+                <div class="text-xs font-bold text-white">Profile 1: MOBA / MLBB Ranked</div>
+                <div class="text-[9px] text-zinc-400">Minimap top-left safe, chat top-center</div>
+              </div>
+              <div class="flex space-x-1.5">
+                <button type="button" class="load-profile-btn px-2.5 py-1 text-[10px] font-bold rounded bg-white text-black cursor-pointer" data-profile="profile_1">LOAD</button>
+                <button type="button" class="save-profile-btn px-2 py-1 text-[10px] font-bold rounded bg-zinc-800 text-zinc-300 border border-zinc-700 cursor-pointer" data-profile="profile_1">SAVE</button>
+              </div>
+            </div>
+
+            <!-- Profile 2 -->
+            <div class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-between" id="profileRow2">
+              <div>
+                <div class="text-xs font-bold text-white">Profile 2: Shooter / Battle Royale</div>
+                <div class="text-[9px] text-zinc-400">Middle-left chat, radar & crosshair clear</div>
+              </div>
+              <div class="flex space-x-1.5">
+                <button type="button" class="load-profile-btn px-2.5 py-1 text-[10px] font-bold rounded bg-zinc-800 hover:bg-white text-zinc-300 hover:text-black cursor-pointer" data-profile="profile_2">LOAD</button>
+                <button type="button" class="save-profile-btn px-2 py-1 text-[10px] font-bold rounded bg-zinc-800 text-zinc-300 border border-zinc-700 cursor-pointer" data-profile="profile_2">SAVE</button>
+              </div>
+            </div>
+
+            <!-- Profile 3 -->
+            <div class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-between" id="profileRow3">
+              <div>
+                <div class="text-xs font-bold text-white">Profile 3: Just Chatting / Lobby</div>
+                <div class="text-[9px] text-zinc-400">Centered prominent chat and alert banners</div>
+              </div>
+              <div class="flex space-x-1.5">
+                <button type="button" class="load-profile-btn px-2.5 py-1 text-[10px] font-bold rounded bg-zinc-800 hover:bg-white text-zinc-300 hover:text-black cursor-pointer" data-profile="profile_3">LOAD</button>
+                <button type="button" class="save-profile-btn px-2 py-1 text-[10px] font-bold rounded bg-zinc-800 text-zinc-300 border border-zinc-700 cursor-pointer" data-profile="profile_3">SAVE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- TAB 2: ALERTS (Audio Sounds & Test Notifications) -->
       <div id="navViewAlerts" class="space-y-4 hidden">
         <!-- FOLLOWER NOTIFICATION SOUND SETTINGS -->
@@ -292,23 +1049,41 @@
       </div>
 
       <!-- FLOATING PILL BOTTOM NAVIGATION DOCK -->
-      <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/90 backdrop-blur-md border border-zinc-700/80 rounded-full px-2 py-1.5 flex items-center space-x-1.5 shadow-2xl font-mono" id="floatingBottomNav">
-        <button type="button" class="bottom-nav-item active flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer" data-target="navViewLive" id="bottomNavLiveBtn">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <nav class="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 bg-zinc-950/95 backdrop-blur-xl border border-zinc-700/80 rounded-full px-1.5 py-1 flex items-center space-x-1 shadow-2xl font-mono max-w-[96vw] overflow-x-auto" id="floatingBottomNav">
+        <button type="button" class="bottom-nav-item active flex items-center space-x-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer shrink-0" data-target="navViewLive" id="bottomNavLiveBtn">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
           </svg>
           <span>LIVE</span>
         </button>
-        <button type="button" class="bottom-nav-item flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all cursor-pointer" data-target="navViewAlerts" id="bottomNavAlertsBtn">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="button" class="bottom-nav-item flex items-center space-x-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0" data-target="navViewThemes" id="bottomNavThemesBtn">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 5 5 0 013-4.5 4 4 0 017.5-1.5 5 5 0 014.5 3 4 4 0 01-4 7H7z"></path>
+          </svg>
+          <span>THEMES</span>
+        </button>
+        <button type="button" class="bottom-nav-item flex items-center space-x-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0" data-target="navViewOverlays" id="bottomNavOverlaysBtn">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+          </svg>
+          <span>OVERLAYS</span>
+        </button>
+        <button type="button" class="bottom-nav-item flex items-center space-x-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0" data-target="navViewLayout" id="bottomNavLayoutBtn">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+          </svg>
+          <span>LAYOUT</span>
+        </button>
+        <button type="button" class="bottom-nav-item flex items-center space-x-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0" data-target="navViewAlerts" id="bottomNavAlertsBtn">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
           </svg>
           <span>ALERTS</span>
         </button>
-        <button type="button" class="bottom-nav-item flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-all cursor-pointer" data-target="navViewSettings" id="bottomNavSettingsBtn">
-          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <button type="button" class="bottom-nav-item flex items-center space-x-1 px-3 py-1.5 rounded-full text-[11px] font-bold text-zinc-400 hover:text-white transition-all cursor-pointer shrink-0" data-target="navViewSettings" id="bottomNavSettingsBtn">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
           <span>SETTINGS</span>
         </button>
@@ -667,6 +1442,29 @@
 
       </div>
 
+      <!-- SMART GAME ID QUICK-COPY FLOATING BAR -->
+      <div class="hidden fixed pointer-events-auto z-45 flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-black/95 border-2 border-emerald-400 shadow-2xl backdrop-blur-xl font-mono text-xs select-none transition-all" id="smartGameIdQuickBar" style="bottom: 56px; left: 50%; transform: translateX(-50%);">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="text-[10px] text-zinc-400 uppercase font-bold">GAME ID:</span>
+          <span class="text-white font-extrabold text-[11px]" id="smartGameIdText">123456789 (1234)</span>
+        </div>
+        <button type="button" class="game-id-pill-btn px-2 py-0.5 rounded text-[9px] uppercase font-bold cursor-pointer" id="smartGameIdCopyBtn">
+          COPY ID
+        </button>
+        <button type="button" class="text-zinc-400 hover:text-white text-[10px] p-0.5 cursor-pointer" id="smartGameIdDismissBtn">
+          X
+        </button>
+      </div>
+
+      <!-- MASTER QUICK HIDE PANIC FLOATING EYE BUTTON -->
+      <button type="button" class="pointer-events-auto" id="masterQuickHideBtn" title="Panic: Quick Hide All Overlays">
+        <svg class="w-5 h-5 text-white" id="masterQuickHideIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+        </svg>
+      </button>
+
     </div>
 
     <!-- Dedicated Real-Time Overlay Config Dock in Simulator -->
@@ -751,6 +1549,132 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL: INTERACTIVE LANDSCAPE LAYOUT EDITOR -->
+  <div class="fixed inset-0 z-50 bg-black flex flex-col select-none overflow-hidden hidden" id="landscapeLayoutEditorModal">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-3 py-2 bg-zinc-950 border-b border-zinc-800 font-mono text-xs">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        <span class="text-white font-bold uppercase tracking-wider">LANDSCAPE LAYOUT EDITOR</span>
+        <span class="text-zinc-600">|</span>
+        <span class="text-zinc-400" id="editorSelectedModuleName">Selected: Main Chat Box</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <!-- Template selector -->
+        <select id="editorHudTemplateSelect" class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-white text-[10px]">
+          <option value="moba">MOBA / MLBB HUD Template</option>
+          <option value="shooter">Shooter HUD Template</option>
+          <option value="dark">Clean Dark Grid</option>
+        </select>
+        <!-- Save and Close -->
+        <button type="button" class="px-2.5 py-1 bg-white text-black font-extrabold rounded text-[10px] uppercase cursor-pointer" id="saveLandscapeLayoutBtn">
+          SAVE LAYOUT
+        </button>
+        <button type="button" class="px-2 py-1 bg-zinc-900 text-zinc-300 border border-zinc-700 rounded text-[10px] uppercase cursor-pointer" id="closeLandscapeEditorBtn">
+          CLOSE
+        </button>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="relative flex-1 overflow-hidden hud-template-moba" id="landscapeEditorCanvas">
+      <!-- Simulated In-Game HUD Elements for Visual Orientation -->
+      <div class="absolute top-2 left-3 p-2 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none" style="width: 120px; height: 100px;">
+        <span class="text-[9px] font-mono text-zinc-400 font-bold block">MINIMAP ZONE</span>
+        <span class="text-[8px] text-zinc-500">Top-Left</span>
+      </div>
+      <div class="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 border border-white/20 text-center pointer-events-none">
+        <span class="text-[9px] font-mono text-zinc-400 font-bold">MATCH SCORE & TIMER [Top-Center]</span>
+      </div>
+      <div class="absolute top-2 right-3 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
+        <span class="text-[9px] font-mono text-zinc-400 font-bold">KDA & SETTINGS [Top-Right]</span>
+      </div>
+      <div class="absolute bottom-3 left-4 w-28 h-28 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
+        <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">JOYSTICK<br>ZONE</span>
+      </div>
+      <div class="absolute bottom-3 right-4 w-36 h-36 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
+        <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">SKILLS & ATTACK<br>ZONE</span>
+      </div>
+      <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
+        <span class="text-[9px] font-mono text-zinc-400 font-bold">RECALL & REGEN [Bottom-Center]</span>
+      </div>
+
+      <!-- Draggable Overlay Boxes on Canvas -->
+      <!-- 1. Main Chat Box -->
+      <div class="absolute rounded-xl border-2 border-purple-500 bg-purple-950/60 p-2 shadow-2xl cursor-move flex flex-col justify-between editor-draggable-box active-module-box" data-module="mainChatBox" id="editorBoxChat" style="width: 260px; height: 150px; top: 30px; left: 160px;">
+        <div class="flex items-center justify-between text-[10px] font-mono font-bold text-white bg-purple-900/80 px-1.5 py-0.5 rounded">
+          <span>MAIN CHAT (DUAL-TAB)</span>
+          <span class="text-[8px] bg-purple-700 px-1 rounded">DRAG</span>
+        </div>
+        <div class="text-[9px] text-zinc-300 font-mono text-center">Live Chat & Alerts Feed</div>
+        <div class="text-[8px] text-purple-300 font-mono text-right" id="editorPosChat">Pos: Top-Center</div>
+      </div>
+
+      <!-- 2. Gifter Priority Banner -->
+      <div class="absolute rounded-lg border-2 border-amber-400 bg-amber-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="gifterPriorityBanner" id="editorBoxGifter" style="width: 220px; height: 32px; top: 185px; left: 180px;">
+        <span class="text-[9px] font-mono font-bold text-amber-200">VIP BANNER</span>
+        <span class="text-[8px] font-mono text-amber-400" id="editorPosGifter">Top-Center</span>
+      </div>
+
+      <!-- 3. Gift Animation Overlay -->
+      <div class="absolute rounded-lg border-2 border-yellow-400 bg-yellow-950/60 p-1.5 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="giftAnimationOverlay" id="editorBoxGift" style="width: 140px; height: 42px; top: 40px; right: 20px;">
+        <span class="text-[9px] font-mono font-bold text-yellow-200">GIFT ALERT (x10)</span>
+        <span class="text-[8px] font-mono text-yellow-400" id="editorPosGift">Top-Right</span>
+      </div>
+
+      <!-- 4. Follower Alert Overlay -->
+      <div class="absolute rounded-lg border-2 border-purple-400 bg-purple-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 180px; height: 32px; top: 8px; left: 180px;">
+        <span class="text-[9px] font-mono font-bold text-purple-200">NEW FOLLOWER</span>
+        <span class="text-[8px] font-mono text-purple-400" id="editorPosFollower">Top-Center</span>
+      </div>
+
+      <!-- 5. Like & Viewer Counters -->
+      <div class="absolute rounded-lg border-2 border-rose-400 bg-rose-950/60 px-2 py-1 shadow-xl cursor-move flex items-center space-x-2 editor-draggable-box" data-module="liveLikeCounter" id="editorBoxCounters" style="width: 130px; height: 30px; top: 8px; right: 140px;">
+        <span class="text-[9px] font-mono font-bold text-rose-200">LIKES & VIEWERS</span>
+      </div>
+
+      <!-- 6. Smart Game ID Bar -->
+      <div class="absolute rounded-lg border-2 border-emerald-400 bg-emerald-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="smartGameIdBar" id="editorBoxGameId" style="width: 210px; height: 32px; bottom: 45px; left: 50%; transform: translateX(-50%);">
+        <span class="text-[9px] font-mono font-bold text-emerald-200">GAME ID COPY BAR</span>
+        <span class="text-[8px] font-mono text-emerald-400" id="editorPosGameId">Bottom-Center</span>
+      </div>
+    </div>
+
+    <!-- Bottom Dock with 9-Zone Snapping Grid & Offset Sliders -->
+    <div class="bg-zinc-950 border-t border-zinc-800 p-2 font-mono text-xs flex flex-col space-y-1.5">
+      <div class="flex items-center justify-between text-[11px]">
+        <span class="text-zinc-400 font-bold uppercase">SNAP TO 9-ZONE SCREEN ANCHOR:</span>
+        <div class="flex items-center space-x-2">
+          <span class="text-zinc-500 text-[10px]">OFFSET:</span>
+          <span class="text-white font-bold text-[10px]" id="editorOffsetDisplay">X: 0px | Y: 0px</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-9 gap-1 text-center">
+        <button type="button" class="zone-anchor-btn" data-zone="Top-Left">Top-Left</button>
+        <button type="button" class="zone-anchor-btn active" data-zone="Top-Center">Top-Center</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Top-Right">Top-Right</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Middle-Left">Mid-Left</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Center">Center</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Middle-Right">Mid-Right</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Bottom-Left">Bot-Left</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Bottom-Center">Bot-Center</button>
+        <button type="button" class="zone-anchor-btn" data-zone="Bottom-Right">Bot-Right</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-1 text-[10px]">
+        <div class="flex items-center space-x-2">
+          <span class="text-zinc-500 uppercase shrink-0">X Fine-Tune (-200 to +200):</span>
+          <input type="range" min="-200" max="200" value="0" class="w-full h-1 bg-zinc-800 rounded" id="editorOffsetXSlider">
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-zinc-500 uppercase shrink-0">Y Fine-Tune (-200 to +200):</span>
+          <input type="range" min="-200" max="200" value="0" class="w-full h-1 bg-zinc-800 rounded" id="editorOffsetYSlider">
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL 0: FLOATING PERMISSION REQUEST (FIRST TIME ONBOARDING) -->
