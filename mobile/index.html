@@ -983,6 +983,48 @@
               </select>
             </div>
           </div>
+
+          <!-- 11. Interactive PNGTuber Pop Cat Avatar Module (4 Slots) -->
+          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="pngTuberAvatar">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                <span class="text-xs font-bold text-white uppercase">11. PNGTUBER AVATAR (POP CAT)</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer overlay-toggle" data-module="pngTuberAvatar" id="pngTuberOverlayToggle" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white"></div>
+              </label>
+            </div>
+            <p class="text-[10px] text-zinc-400">Reactive Pop Cat avatar floating on screen during MLBB streams with 4 reactive states.</p>
+            <div class="grid grid-cols-4 gap-1.5 pt-1 font-mono text-[8px] text-center">
+              <div class="p-1.5 rounded bg-zinc-900 border border-zinc-800">
+                <div class="font-bold text-amber-300">1. IDLE</div>
+                <div class="text-zinc-500">Mouth Close</div>
+              </div>
+              <div class="p-1.5 rounded bg-zinc-900 border border-zinc-800">
+                <div class="font-bold text-amber-300">2. IDLE BLINK</div>
+                <div class="text-zinc-500">Eye Blink</div>
+              </div>
+              <div class="p-1.5 rounded bg-zinc-900 border border-zinc-800">
+                <div class="font-bold text-amber-300">3. TALK</div>
+                <div class="text-zinc-500">Mouth Open</div>
+              </div>
+              <div class="p-1.5 rounded bg-zinc-900 border border-zinc-800">
+                <div class="font-bold text-amber-300">4. TALK BLINK</div>
+                <div class="text-zinc-500">Speak + Blink</div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <button type="button" id="testMobilePngTuberVoiceBtn" class="px-2.5 py-1 bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-white rounded text-[9px] font-mono font-bold cursor-pointer">
+                TEST POP CAT VOICE
+              </button>
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="checkbox" class="overlay-lock-touch" data-module="pngTuberAvatar">
+                <span class="text-[10px] text-zinc-400">Click-Through</span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1150,7 +1192,7 @@
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.26</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.27</span>
           </div>
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-zinc-400">STATUS:</span>
@@ -1169,7 +1211,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.26</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.27</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.
@@ -1662,6 +1704,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
         </svg>
       </button>
+
+      <!-- FLOATING PNGTUBER POP CAT AVATAR (Interactive 4-Slot Avatar: Idle, Idle Blink, Talk, Talk Blink) -->
+      <div id="floatingPngTuberAvatar" class="fixed pointer-events-auto z-40 select-none cursor-grab transition-all duration-100" style="bottom: 24px; right: 24px; width: 88px; height: 88px;">
+        <img id="floatingPngTuberImg" src="pngtuber/popcat_closed.png" class="w-full h-full object-contain pointer-events-none drop-shadow-xl" alt="PNGTuber" />
+        <div id="floatingPngTuberSpeech" class="hidden absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg bg-zinc-950/95 border border-purple-400 text-white font-mono text-[9px] font-bold whitespace-nowrap shadow-lg">POP!</div>
+      </div>
 
     </div>
 

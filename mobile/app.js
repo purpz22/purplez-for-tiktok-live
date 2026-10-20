@@ -4989,6 +4989,13 @@
         customOffsetX: -10,
         customOffsetY: 0,
         lockedTouchPassThrough: false
+      },
+      pngTuberAvatar: {
+        enabled: true,
+        landscapePosition: 'Bottom-Right',
+        customOffsetX: -20,
+        customOffsetY: -20,
+        lockedTouchPassThrough: false
       }
     }
   };
@@ -5661,6 +5668,9 @@
         } else if (mKey === 'viewerJoinStrip') {
           window.PurplezChatSettings = window.PurplezChatSettings || {};
           window.PurplezChatSettings.showJoins = state;
+        } else if (mKey === 'pngTuberAvatar') {
+          const avatar = document.getElementById('floatingPngTuberAvatar');
+          if (avatar) avatar.style.display = state ? 'block' : 'none';
         }
 
         saveMasterConfig();
@@ -6194,6 +6204,112 @@
     }
   }
 
+  // Section 7.15: Mobile Interactive PNGTuber Engine (4 Slots: Idle, Idle Blink, Talk, Talk Blink)
+  function setupPngTuberMobileEngine() {
+    const avatarEl = document.getElementById('floatingPngTuberAvatar');
+    const avatarImg = document.getElementById('floatingPngTuberImg');
+    const speechEl = document.getElementById('floatingPngTuberSpeech');
+    const testBtn = document.getElementById('testMobilePngTuberVoiceBtn');
+
+    if (!avatarEl || !avatarImg) return;
+
+    let isSpeaking = false;
+    let isBlinking = false;
+    let speechTimer = null;
+
+    const slots = {
+      idle: 'pngtuber/popcat_closed.png',
+      idleBlink: 'pngtuber/popcat_blink.png',
+      talk: 'pngtuber/popcat_open.png',
+      talkBlink: 'pngtuber/popcat_talk_blink.png'
+    };
+
+    function updateState() {
+      if (!avatarImg) return;
+      let target = slots.idle;
+      if (isSpeaking) {
+        target = isBlinking ? slots.talkBlink : slots.talk;
+        avatarEl.style.transform = 'translateY(-6px) scale(1.05)';
+      } else {
+        target = isBlinking ? slots.idleBlink : slots.idle;
+        avatarEl.style.transform = 'none';
+      }
+      if (avatarImg.src !== target && !avatarImg.src.endsWith(target)) {
+        avatarImg.src = target;
+      }
+    }
+
+    function scheduleBlink() {
+      const delay = 2500 + Math.random() * 3500;
+      setTimeout(() => {
+        isBlinking = true;
+        updateState();
+        setTimeout(() => {
+          isBlinking = false;
+          updateState();
+          scheduleBlink();
+        }, 160);
+      }, delay);
+    }
+    scheduleBlink();
+
+    function triggerVoiceTest(comment = 'POP POP POP!', duration = 1200) {
+      isSpeaking = true;
+      updateState();
+      if (speechEl) {
+        speechEl.textContent = comment;
+        speechEl.classList.remove('hidden');
+      }
+      if (speechTimer) clearTimeout(speechTimer);
+      speechTimer = setTimeout(() => {
+        isSpeaking = false;
+        updateState();
+        if (speechEl) speechEl.classList.add('hidden');
+      }, duration);
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        triggerVoiceTest('POP POP POP!');
+      });
+    }
+
+    // Touch Dragging for Mobile Floating Avatar
+    let isDragging = false;
+    let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+    avatarEl.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      isDragging = true;
+      const rect = avatarEl.getBoundingClientRect();
+      startX = touch.clientX;
+      startY = touch.clientY;
+      initialLeft = rect.left;
+      initialTop = rect.top;
+      avatarEl.style.right = 'auto';
+      avatarEl.style.bottom = 'auto';
+      avatarEl.style.left = `${initialLeft}px`;
+      avatarEl.style.top = `${initialTop}px`;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      const newX = Math.max(0, Math.min(window.innerWidth - 88, initialLeft + dx));
+      const newY = Math.max(0, Math.min(window.innerHeight - 88, initialTop + dy));
+      avatarEl.style.left = `${newX}px`;
+      avatarEl.style.top = `${newY}px`;
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+
+    window.triggerPngTuberSpeaking = triggerVoiceTest;
+  }
+
   // Initial Setup
   handleOrientationChange();
   loadMasterConfig();
@@ -6223,6 +6339,7 @@
   setupLogoToggleDrag();
   setupOverlaySimulatorControls();
   setupViewerSearchFilter();
+  setupPngTuberMobileEngine();
   if (window.AndroidNative && typeof window.AndroidNative.getLiveViewerCount === 'function') {
     const initialViewers = window.AndroidNative.getLiveViewerCount();
     if (initialViewers > 0) {
