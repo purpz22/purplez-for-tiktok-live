@@ -1244,6 +1244,111 @@ textarea {
   filter: brightness(1.2);
 }
 
+/* Background Wallpaper Layer inside Floating Window */
+#floatingWindowBgLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  background-repeat: repeat;
+  z-index: 0;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+/* Cute Design Theme Aesthetics */
+.theme-design-cute #floatingChatWindow {
+  border-radius: 26px !important;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 0 20px -3px var(--theme-border-color) !important;
+}
+.theme-design-cute #chatHeaderBar {
+  border-top-left-radius: 24px !important;
+  border-top-right-radius: 24px !important;
+  padding: 6px 12px !important;
+}
+.theme-design-cute .tab-btn {
+  border-radius: 9999px !important;
+  padding: 3px 10px !important;
+}
+.theme-design-cute .chat-row {
+  border-radius: 18px !important;
+  padding: 6px 10px !important;
+  margin-bottom: 5px !important;
+  border-width: 1.5px !important;
+  backdrop-filter: blur(8px);
+}
+.theme-design-cute .badge {
+  border-radius: 9999px !important;
+  padding: 2px 7px !important;
+}
+.theme-design-cute .game-id-pill-btn {
+  border-radius: 9999px !important;
+}
+.theme-design-cute #giftAlertBanner {
+  border-radius: 16px !important;
+  margin: 4px 6px !important;
+}
+
+/* Minimal Design Theme Aesthetics */
+.theme-design-minimal #floatingChatWindow {
+  border-radius: 6px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7) !important;
+  border-width: 1px !important;
+}
+.theme-design-minimal #chatHeaderBar {
+  border-radius: 0 !important;
+  padding: 4px 8px !important;
+  border-bottom-width: 1px !important;
+}
+.theme-design-minimal .tab-btn {
+  border-radius: 4px !important;
+  padding: 2px 8px !important;
+}
+.theme-design-minimal .chat-row {
+  border-radius: 4px !important;
+  padding: 4.5px 8px !important;
+  margin-bottom: 3px !important;
+  border-width: 1px !important;
+  backdrop-filter: blur(4px);
+}
+.theme-design-minimal .badge {
+  border-radius: 3px !important;
+  padding: 1px 5px !important;
+  letter-spacing: 0.05em !important;
+}
+.theme-design-minimal .game-id-pill-btn {
+  border-radius: 3px !important;
+}
+.theme-design-minimal #giftAlertBanner {
+  border-radius: 4px !important;
+  margin: 2px 4px !important;
+}
+
+/* Theme Category Filter Pills */
+.theme-category-pill {
+  transition: all 0.15s ease;
+}
+.theme-category-pill.active {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Preset Aesthetic Badge Tags */
+.theme-badge-cute {
+  background: linear-gradient(135deg, #EC4899, #8B5CF6);
+  color: #FFFFFF;
+}
+.theme-badge-minimal {
+  background: #27272A;
+  color: #E4E4E7;
+  border: 1px solid #3F3F46;
+}
+.theme-badge-classic {
+  background: #18181B;
+  color: #A1A1AA;
+}
+
 /* Tab Unread Pulse Animation */
 @keyframes tabUnreadPulse {
   0%, 100% {

@@ -4574,9 +4574,29 @@
     'None': 'transparent'
   };
 
-  // Section 3.2: 8 Built-in Theme Presets using Strictly Plain Everyday Color Names
+  // Section 3.1.5: Built-in Lightweight Background Patterns (SVG Data URIs)
+  const THEME_BACKGROUND_PATTERNS = {
+    'none': '',
+    'strawberry-milk': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><circle cx='10' cy='10' r='1.5' fill='%23FB7185' opacity='0.25'/><circle cx='30' cy='30' r='1.5' fill='%23FB7185' opacity='0.25'/><path d='M20 18l1 2 2 1-2 1-1 2-1-2-2-1 2-1z' fill='%23F472B6' opacity='0.3'/></svg>",
+    'lavender-cloud': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><circle cx='15' cy='15' r='12' fill='%23C084FC' opacity='0.08'/><circle cx='45' cy='45' r='16' fill='%23DDD6FE' opacity='0.06'/><circle cx='35' cy='18' r='1.5' fill='%23FFFFFF' opacity='0.3'/><circle cx='18' cy='48' r='1.5' fill='%23FFFFFF' opacity='0.3'/></svg>",
+    'matcha-mint': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><circle cx='12' cy='12' r='2' fill='%2334D399' opacity='0.18'/><circle cx='36' cy='36' r='2' fill='%2334D399' opacity='0.18'/><path d='M24 16c4 0 6 4 6 8s-4 6-8 6' stroke='%2310B981' stroke-width='1.2' fill='none' opacity='0.12'/></svg>",
+    'honey-peach': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'><polygon points='18,2 32,10 32,26 18,34 4,26 4,10' fill='none' stroke='%23FB923C' stroke-width='0.8' opacity='0.12'/><circle cx='18' cy='18' r='2' fill='%23FBBF24' opacity='0.2'/></svg>",
+    'cyber-kitty': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><path d='M0 20h40M20 0v40' stroke='%23F43F5E' stroke-width='0.5' opacity='0.15'/><circle cx='20' cy='20' r='1.5' fill='%2338BDF8' opacity='0.4'/></svg>",
+    'obsidian-monolith': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='0.8' fill='%23FFFFFF' opacity='0.08'/></svg>",
+    'slate-titanium': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M0 32L32 0M0 0h32v32H0z' stroke='%23475569' stroke-width='0.6' fill='none' opacity='0.09'/></svg>",
+    'frosted-vapor': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%23FFFFFF' opacity='0.03'/><circle cx='12' cy='48' r='18' fill='%2371717A' opacity='0.04'/></svg>",
+    'nordic-daylight': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><rect width='20' height='20' fill='none' stroke='%23CBD5E1' stroke-width='0.5' opacity='0.4'/></svg>",
+    'tokyo-midnight': "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><path d='M0 0l24 24M24 24l24-24M0 48l24-24M24 24l24 24' stroke='%233B82F6' stroke-width='0.6' fill='none' opacity='0.08'/></svg>"
+  };
+
+  // Section 3.2: 18 Built-in Theme Presets (8 Classic, 5 Cute, 5 Minimal)
   const THEME_PRESETS = {
+    // Classic Presets (Preserved for backwards-compatibility)
     'Classic Purple & Black': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'Signature streamer theme',
       windowBackgroundColor: 'Black',
       headerAndTabBarColor: 'Dark Purple',
       regularMessageTextColor: 'White',
@@ -4589,6 +4609,10 @@
       windowBorderColor: 'Purple'
     },
     'Pure Black & White': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'High contrast stealth',
       windowBackgroundColor: 'Black',
       headerAndTabBarColor: 'Dark Gray',
       regularMessageTextColor: 'White',
@@ -4601,6 +4625,10 @@
       windowBorderColor: 'White'
     },
     'Blue & Dark Gray': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'Cool cyber esports',
       windowBackgroundColor: 'Dark Gray',
       headerAndTabBarColor: 'Dark Blue',
       regularMessageTextColor: 'White',
@@ -4613,6 +4641,10 @@
       windowBorderColor: 'Blue'
     },
     'Red & Black Gamer': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'Aggressive action gaming',
       windowBackgroundColor: 'Black',
       headerAndTabBarColor: 'Dark Red',
       regularMessageTextColor: 'White',
@@ -4625,6 +4657,10 @@
       windowBorderColor: 'Red'
     },
     'Green & Black Matrix': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'Terminal matrix HUD',
       windowBackgroundColor: 'Black',
       headerAndTabBarColor: 'Dark Green',
       regularMessageTextColor: 'Light Green',
@@ -4637,6 +4673,10 @@
       windowBorderColor: 'Green'
     },
     'Pink & White Cute': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'Playful pastel stream',
       windowBackgroundColor: 'Dark Gray',
       headerAndTabBarColor: 'Pink',
       regularMessageTextColor: 'White',
@@ -4649,6 +4689,10 @@
       windowBorderColor: 'Hot Pink'
     },
     'Orange & Dark Gray': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'Warm vibrant glow',
       windowBackgroundColor: 'Dark Gray',
       headerAndTabBarColor: 'Orange',
       regularMessageTextColor: 'White',
@@ -4661,6 +4705,10 @@
       windowBorderColor: 'Orange'
     },
     'Clean White & Gray': {
+      category: 'classic',
+      designStyle: 'classic',
+      backgroundPattern: 'none',
+      description: 'High daylight visibility',
       windowBackgroundColor: 'White',
       headerAndTabBarColor: 'Light Gray',
       regularMessageTextColor: 'Black',
@@ -4671,6 +4719,170 @@
       giftAlertBannerColor: 'Gold',
       gameIdCopyButtonColor: 'Blue',
       windowBorderColor: 'Dark Gray'
+    },
+
+    // 5 New Cute Presets with Full Custom Aesthetic & Embedded Background
+    'Strawberry Milk Cute': {
+      category: 'cute',
+      designStyle: 'cute',
+      backgroundPattern: 'strawberry-milk',
+      description: 'Sweet berry cream with bubble curves',
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Pink',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Pink',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Purple',
+      followerAlertBannerColor: 'Pink',
+      giftAlertBannerColor: 'Yellow',
+      gameIdCopyButtonColor: 'Pink',
+      windowBorderColor: 'Hot Pink'
+    },
+    'Pastel Lavender Cloud': {
+      category: 'cute',
+      designStyle: 'cute',
+      backgroundPattern: 'lavender-cloud',
+      description: 'Dreamy lilac stardust with soft pill glow',
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Dark Purple',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Purple',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Purple',
+      followerAlertBannerColor: 'Purple',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Purple',
+      windowBorderColor: 'Purple'
+    },
+    'Matcha Latte & Mint': {
+      category: 'cute',
+      designStyle: 'cute',
+      backgroundPattern: 'matcha-mint',
+      description: 'Soothing matcha foam with rounded bubble cards',
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Dark Green',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Green',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Green',
+      followerAlertBannerColor: 'Green',
+      giftAlertBannerColor: 'Yellow',
+      gameIdCopyButtonColor: 'Green',
+      windowBorderColor: 'Light Green'
+    },
+    'Honey Peach & Cream': {
+      category: 'cute',
+      designStyle: 'cute',
+      backgroundPattern: 'honey-peach',
+      description: 'Warm peach blossom with rounded bubbles',
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Orange',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Yellow',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Gray',
+      followerAlertBannerColor: 'Orange',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Orange',
+      windowBorderColor: 'Orange'
+    },
+    'Cyber Kitty Kawaii': {
+      category: 'cute',
+      designStyle: 'cute',
+      backgroundPattern: 'cyber-kitty',
+      description: 'Neon cyberpunk kawaii with glowing bubbles',
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Hot Pink',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Blue',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Purple',
+      followerAlertBannerColor: 'Hot Pink',
+      giftAlertBannerColor: 'Yellow',
+      gameIdCopyButtonColor: 'Hot Pink',
+      windowBorderColor: 'Hot Pink'
+    },
+
+    // 5 New Minimal Presets with Full Custom Aesthetic & Embedded Background
+    'Obsidian Monolith Minimal': {
+      category: 'minimal',
+      designStyle: 'minimal',
+      backgroundPattern: 'obsidian-monolith',
+      description: 'Pitch stealth obsidian with hairline graphite borders',
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Black',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Gray',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Black',
+      followerAlertBannerColor: 'White',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Green',
+      windowBorderColor: 'Dark Gray'
+    },
+    'Slate Titanium Minimal': {
+      category: 'minimal',
+      designStyle: 'minimal',
+      backgroundPattern: 'slate-titanium',
+      description: 'Architectural cold slate with crisp compact lines',
+      windowBackgroundColor: 'Dark Gray',
+      headerAndTabBarColor: 'Dark Blue',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Blue',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Gray',
+      followerAlertBannerColor: 'Blue',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Blue',
+      windowBorderColor: 'Gray'
+    },
+    'Frosted Glass Vapor Minimal': {
+      category: 'minimal',
+      designStyle: 'minimal',
+      backgroundPattern: 'frosted-vapor',
+      description: 'Translucent smoked glass with razor-thin outline',
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Dark Gray',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Silver',
+      gifterMessageTextColor: 'Yellow',
+      gifterCardBackgroundColor: 'Dark Gray',
+      followerAlertBannerColor: 'Silver',
+      giftAlertBannerColor: 'Yellow',
+      gameIdCopyButtonColor: 'Silver',
+      windowBorderColor: 'Silver'
+    },
+    'Nordic Daylight Minimal': {
+      category: 'minimal',
+      designStyle: 'minimal',
+      backgroundPattern: 'nordic-daylight',
+      description: 'Studio daylight white with precision graph lines',
+      windowBackgroundColor: 'White',
+      headerAndTabBarColor: 'Light Gray',
+      regularMessageTextColor: 'Black',
+      regularUsernameColor: 'Dark Blue',
+      gifterMessageTextColor: 'Dark Red',
+      gifterCardBackgroundColor: 'Light Gray',
+      followerAlertBannerColor: 'Black',
+      giftAlertBannerColor: 'Dark Red',
+      gameIdCopyButtonColor: 'Dark Blue',
+      windowBorderColor: 'Light Gray'
+    },
+    'Tokyo Midnight Cyber Minimal': {
+      category: 'minimal',
+      designStyle: 'minimal',
+      backgroundPattern: 'tokyo-midnight',
+      description: 'Midnight void with electric hairline accent dividers',
+      windowBackgroundColor: 'Black',
+      headerAndTabBarColor: 'Dark Blue',
+      regularMessageTextColor: 'White',
+      regularUsernameColor: 'Light Blue',
+      gifterMessageTextColor: 'Gold',
+      gifterCardBackgroundColor: 'Dark Blue',
+      followerAlertBannerColor: 'Blue',
+      giftAlertBannerColor: 'Gold',
+      gameIdCopyButtonColor: 'Blue',
+      windowBorderColor: 'Blue'
     }
   };
 
@@ -4686,6 +4898,11 @@
     themeSettings: {
       activePresetName: 'Classic Purple & Black',
       windowOpacityPercent: 75,
+      designStyle: 'classic',
+      activeBackgroundPattern: 'none',
+      customBackgroundImage: '',
+      customBackgroundOpacity: 85,
+      customBackgroundBlur: 0,
       colors: {
         windowBackgroundColor: 'Black',
         headerAndTabBarColor: 'Dark Purple',
@@ -4955,11 +5172,127 @@
     window.PurplezMasterConfig = masterConfig;
   }
 
+  function updateThemeBackgroundLayers() {
+    const ts = masterConfig.themeSettings;
+    const bgLayer = document.getElementById('floatingWindowBgLayer');
+    const previewLayer = document.getElementById('themeBgPreviewLayer');
+    const mockBgLayer = document.getElementById('mockChatBgLayer');
+
+    let bgImageCss = 'none';
+    let bgSizeCss = 'auto';
+    let bgRepeatCss = 'repeat';
+    let bgPosCss = 'center center';
+    const bgOpacity = (typeof ts.customBackgroundOpacity === 'number' ? ts.customBackgroundOpacity : 85) / 100.0;
+    const bgBlur = typeof ts.customBackgroundBlur === 'number' ? ts.customBackgroundBlur : 0;
+
+    if (ts.customBackgroundImage && ts.customBackgroundImage.trim().length > 0) {
+      bgImageCss = `url("${ts.customBackgroundImage}")`;
+      bgSizeCss = 'cover';
+      bgRepeatCss = 'no-repeat';
+    } else if (ts.activeBackgroundPattern && THEME_BACKGROUND_PATTERNS[ts.activeBackgroundPattern]) {
+      const patSvg = THEME_BACKGROUND_PATTERNS[ts.activeBackgroundPattern];
+      if (patSvg) {
+        bgImageCss = `url("${patSvg}")`;
+        bgSizeCss = 'auto';
+        bgRepeatCss = 'repeat';
+      }
+    }
+
+    const applyToEl = (el) => {
+      if (!el) return;
+      el.style.backgroundImage = bgImageCss;
+      el.style.backgroundSize = bgSizeCss;
+      el.style.backgroundRepeat = bgRepeatCss;
+      el.style.backgroundPosition = bgPosCss;
+      el.style.opacity = bgOpacity.toString();
+      el.style.filter = bgBlur > 0 ? `blur(${bgBlur}px)` : 'none';
+    };
+
+    applyToEl(bgLayer);
+    applyToEl(previewLayer);
+    applyToEl(mockBgLayer);
+
+    // Update Theme Background Control Card Badges & Values
+    const bgStatusEl = document.getElementById('themeBgStatusText');
+    if (bgStatusEl) {
+      if (ts.customBackgroundImage) {
+        bgStatusEl.textContent = 'CUSTOM WALLPAPER ACTIVE';
+        bgStatusEl.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold';
+      } else if (ts.activeBackgroundPattern && ts.activeBackgroundPattern !== 'none') {
+        bgStatusEl.textContent = `PATTERN: ${ts.activeBackgroundPattern.toUpperCase()}`;
+        bgStatusEl.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold';
+      } else {
+        bgStatusEl.textContent = 'NO BACKGROUND PATTERN';
+        bgStatusEl.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-500 font-bold';
+      }
+    }
+
+    const bgOpacityVal = document.getElementById('themeBgOpacityValue');
+    if (bgOpacityVal) bgOpacityVal.textContent = `${ts.customBackgroundOpacity || 85}%`;
+    const bgOpacitySlider = document.getElementById('themeBgOpacitySlider');
+    if (bgOpacitySlider) bgOpacitySlider.value = ts.customBackgroundOpacity || 85;
+
+    const bgBlurVal = document.getElementById('themeBgBlurValue');
+    if (bgBlurVal) bgBlurVal.textContent = `${ts.customBackgroundBlur || 0}px`;
+    const bgBlurSlider = document.getElementById('themeBgBlurSlider');
+    if (bgBlurSlider) bgBlurSlider.value = ts.customBackgroundBlur || 0;
+
+    // Highlight active pattern chip in settings card
+    document.querySelectorAll('.theme-pattern-chip').forEach(chip => {
+      const pat = chip.getAttribute('data-pattern');
+      if (pat === ts.activeBackgroundPattern && !ts.customBackgroundImage) {
+        chip.classList.add('border-purple-500', 'bg-purple-950/60', 'text-white');
+        chip.classList.remove('border-zinc-800', 'bg-zinc-900', 'text-zinc-400');
+      } else {
+        chip.classList.remove('border-purple-500', 'bg-purple-950/60', 'text-white');
+        chip.classList.add('border-zinc-800', 'bg-zinc-900', 'text-zinc-400');
+      }
+    });
+  }
+
+  function compressImageToDataUrl(file, maxWidth = 1280, maxHeight = 1280, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) {
+        return reject(new Error('Selected file is not an image'));
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => reject(new Error('Image decode error'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('File read error'));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function applyTheme(presetName, customColors = null, opacityPercent = null, notifyNative = true) {
     if (presetName && THEME_PRESETS[presetName]) {
+      const presetObj = THEME_PRESETS[presetName];
       masterConfig.themeSettings.activePresetName = presetName;
+      if (presetObj.designStyle) {
+        masterConfig.themeSettings.designStyle = presetObj.designStyle;
+      }
+      if (presetObj.backgroundPattern && !masterConfig.themeSettings.customBackgroundImage) {
+        masterConfig.themeSettings.activeBackgroundPattern = presetObj.backgroundPattern;
+      }
       if (!customColors) {
-        masterConfig.themeSettings.colors = { ...THEME_PRESETS[presetName] };
+        masterConfig.themeSettings.colors = { ...presetObj };
       }
     }
     if (customColors) {
@@ -4974,6 +5307,7 @@
 
     const colors = masterConfig.themeSettings.colors;
     const opacity = masterConfig.themeSettings.windowOpacityPercent / 100.0;
+    const designStyle = masterConfig.themeSettings.designStyle || 'classic';
 
     const bgHex = PALETTE_PLAIN_COLORS[colors.windowBackgroundColor] || '#0F0F14';
     const headerHex = PALETTE_PLAIN_COLORS[colors.headerAndTabBarColor] || '#4C1D95';
@@ -4999,6 +5333,21 @@
     root.style.setProperty('--theme-border-color', borderHex);
     root.style.setProperty('--theme-window-opacity', opacity.toString());
 
+    // Toggle Design Style Classes (Cute / Minimal / Classic)
+    const mockChat = document.getElementById('mockChatWindow');
+    const allDesignTargets = [root, floatingWindow, mockChat].filter(Boolean);
+
+    allDesignTargets.forEach(target => {
+      target.classList.remove('theme-design-cute', 'theme-design-minimal', 'theme-design-classic');
+      if (designStyle === 'cute') {
+        target.classList.add('theme-design-cute');
+      } else if (designStyle === 'minimal') {
+        target.classList.add('theme-design-minimal');
+      } else {
+        target.classList.add('theme-design-classic');
+      }
+    });
+
     // Apply to Floating HUD Window
     if (floatingWindow) {
       floatingWindow.style.backgroundColor = hexToRgba(bgHex, opacity);
@@ -5014,9 +5363,24 @@
       giftAlertBanner.classList.add('theme-applied');
     }
 
+    // Apply Custom Wallpaper or Preset Background Pattern
+    updateThemeBackgroundLayers();
+
     // Update Theme UI badges & controls
     const presetBadge = document.getElementById('currentPresetBadge');
     if (presetBadge) presetBadge.textContent = masterConfig.themeSettings.activePresetName.toUpperCase();
+
+    const designBadge = document.getElementById('themeCurrentDesignBadge');
+    if (designBadge) {
+      designBadge.textContent = designStyle.toUpperCase();
+      if (designStyle === 'cute') {
+        designBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-pink-950 border border-pink-500 text-pink-300 font-bold';
+      } else if (designStyle === 'minimal') {
+        designBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-600 text-zinc-300 font-bold';
+      } else {
+        designBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded bg-purple-950 border border-purple-500 text-purple-300 font-bold';
+      }
+    }
 
     const opacityValEl = document.getElementById('themeOpacityValue');
     if (opacityValEl) opacityValEl.textContent = `${masterConfig.themeSettings.windowOpacityPercent}%`;
@@ -5045,7 +5409,6 @@
     });
 
     // Update Interactive Live Landscape Mock Preview
-    const mockChat = document.getElementById('mockChatWindow');
     if (mockChat) {
       mockChat.style.backgroundColor = hexToRgba(bgHex, opacity);
       mockChat.style.borderColor = borderHex;
@@ -5073,6 +5436,30 @@
   }
 
   function setupThemeControls() {
+    // 0. Preset Category Filter Pills (All / Cute / Minimal / Classic)
+    document.querySelectorAll('.theme-category-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const cat = pill.getAttribute('data-category');
+        document.querySelectorAll('.theme-category-pill').forEach(p => {
+          if (p === pill) {
+            p.classList.add('bg-white', 'text-black', 'border-white');
+            p.classList.remove('bg-zinc-900', 'text-zinc-400', 'border-zinc-800');
+          } else {
+            p.classList.remove('bg-white', 'text-black', 'border-white');
+            p.classList.add('bg-zinc-900', 'text-zinc-400', 'border-zinc-800');
+          }
+        });
+        document.querySelectorAll('.theme-preset-btn').forEach(btn => {
+          const btnCat = btn.getAttribute('data-category') || 'classic';
+          if (cat === 'all' || btnCat === cat) {
+            btn.classList.remove('hidden');
+          } else {
+            btn.classList.add('hidden');
+          }
+        });
+      });
+    });
+
     // 1. One-tap Preset Buttons
     document.querySelectorAll('.theme-preset-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -5084,7 +5471,10 @@
       });
     });
 
-    // 2. Master Opacity Slider
+    // 2. Streamer Custom Background Controls (Wallpaper Upload, URL, Patterns, Opacity, Blur)
+    setupThemeCustomBackgroundControls();
+
+    // 3. Master Opacity Slider
     const opacitySlider = document.getElementById('themeMasterOpacitySlider');
     if (opacitySlider) {
       opacitySlider.addEventListener('input', (e) => {
@@ -5100,7 +5490,7 @@
       });
     });
 
-    // 3. Font Selector
+    // 4. Font Selector
     const fontSelect = document.getElementById('themeFontSelect');
     if (fontSelect) {
       fontSelect.value = masterConfig.typography.selectedFont || 'System Phone Font';
@@ -5124,7 +5514,7 @@
       });
     }
 
-    // 4. Custom Color Mixer Select Dropdowns
+    // 5. Custom Color Mixer Select Dropdowns
     document.querySelectorAll('.theme-color-select').forEach(sel => {
       sel.addEventListener('change', (e) => {
         const elementKey = e.target.getAttribute('data-element');
@@ -5138,12 +5528,106 @@
       });
     });
 
-    // 5. Reset Mixer to Default Preset
+    // 6. Reset Mixer to Default Preset
     const resetMixerBtn = document.getElementById('resetMixerToDefaultBtn');
     if (resetMixerBtn) {
       resetMixerBtn.addEventListener('click', () => {
         applyTheme('Classic Purple & Black', { ...THEME_PRESETS['Classic Purple & Black'] }, 75, true);
         showToast('Reset to Classic Purple & Black');
+      });
+    }
+  }
+
+  function setupThemeCustomBackgroundControls() {
+    // 1. File Upload with Canvas Compression
+    const fileInput = document.getElementById('themeBgFileInput');
+    const uploadTriggerBtn = document.getElementById('themeBgUploadTriggerBtn');
+    if (uploadTriggerBtn && fileInput) {
+      uploadTriggerBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          showToast('Processing image...');
+          const dataUrl = await compressImageToDataUrl(file);
+          masterConfig.themeSettings.customBackgroundImage = dataUrl;
+          updateThemeBackgroundLayers();
+          saveMasterConfig();
+          showToast('Custom Wallpaper Applied');
+        } catch (err) {
+          console.error('Custom background upload failed:', err);
+          showToast('Failed to load image');
+        }
+        fileInput.value = '';
+      });
+    }
+
+    // 2. Wallpaper Direct URL Input
+    const urlInput = document.getElementById('themeBgUrlInput');
+    const applyUrlBtn = document.getElementById('themeApplyUrlBtn');
+    if (applyUrlBtn && urlInput) {
+      applyUrlBtn.addEventListener('click', () => {
+        const url = urlInput.value.trim();
+        if (url) {
+          masterConfig.themeSettings.customBackgroundImage = url;
+          updateThemeBackgroundLayers();
+          saveMasterConfig();
+          showToast('Wallpaper URL Applied');
+          urlInput.value = '';
+        }
+      });
+    }
+
+    // 3. Quick Pattern Chips
+    document.querySelectorAll('.theme-pattern-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const patternKey = chip.getAttribute('data-pattern');
+        if (patternKey) {
+          masterConfig.themeSettings.activeBackgroundPattern = patternKey;
+          masterConfig.themeSettings.customBackgroundImage = '';
+          updateThemeBackgroundLayers();
+          saveMasterConfig();
+          showToast(`Pattern Applied: ${patternKey}`);
+        }
+      });
+    });
+
+    // 4. Background Opacity Slider
+    const bgOpacitySlider = document.getElementById('themeBgOpacitySlider');
+    if (bgOpacitySlider) {
+      bgOpacitySlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        masterConfig.themeSettings.customBackgroundOpacity = Math.max(10, Math.min(100, val));
+        updateThemeBackgroundLayers();
+        saveMasterConfig();
+      });
+    }
+
+    // 5. Background Blur Slider
+    const bgBlurSlider = document.getElementById('themeBgBlurSlider');
+    if (bgBlurSlider) {
+      bgBlurSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        masterConfig.themeSettings.customBackgroundBlur = Math.max(0, Math.min(20, val));
+        updateThemeBackgroundLayers();
+        saveMasterConfig();
+      });
+    }
+
+    // 6. Remove Custom Background / Revert to Default Pattern
+    const removeBgBtn = document.getElementById('themeRemoveCustomBgBtn');
+    if (removeBgBtn) {
+      removeBgBtn.addEventListener('click', () => {
+        masterConfig.themeSettings.customBackgroundImage = '';
+        const activePreset = masterConfig.themeSettings.activePresetName;
+        if (THEME_PRESETS[activePreset] && THEME_PRESETS[activePreset].backgroundPattern) {
+          masterConfig.themeSettings.activeBackgroundPattern = THEME_PRESETS[activePreset].backgroundPattern;
+        } else {
+          masterConfig.themeSettings.activeBackgroundPattern = 'none';
+        }
+        updateThemeBackgroundLayers();
+        saveMasterConfig();
+        showToast('Background Reset to Default');
       });
     }
   }
@@ -5760,6 +6244,7 @@
   window.applyViewerFilter = applyViewerFilter;
   window.setupViewerSearchFilter = setupViewerSearchFilter;
   window.PALETTE_PLAIN_COLORS = PALETTE_PLAIN_COLORS;
+  window.THEME_BACKGROUND_PATTERNS = THEME_BACKGROUND_PATTERNS;
   window.THEME_PRESETS = THEME_PRESETS;
   window.DEFAULT_MASTER_CONFIG = DEFAULT_MASTER_CONFIG;
   window.calculateLandscapeCoordinates = calculateLandscapeCoordinates;
