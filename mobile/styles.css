@@ -655,8 +655,9 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.2) !important;
 }
 
-/* Gift Alert Dropdown Banner */
-.gift-alert-banner {
+/* Gift & Follower Alert Dropdown Banners */
+.gift-alert-banner,
+.follower-alert-banner {
   animation: giftAlertSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes giftAlertSlide {

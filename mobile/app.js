@@ -1888,6 +1888,17 @@
         e.target.releasePointerCapture(e.pointerId);
       } catch (_) {}
     }
+
+    if (floatingWindow && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
+      const rect = floatingWindow.getBoundingClientRect();
+      masterConfig.overlays.mainChatBox.landscapePosition = 'Custom Free-Drag';
+      masterConfig.overlays.mainChatBox.customOffsetX = Math.round(rect.left);
+      masterConfig.overlays.mainChatBox.customOffsetY = Math.round(rect.top);
+      saveMasterConfig();
+      if (window.AndroidNative && typeof window.AndroidNative.updateOverlayPosition === 'function') {
+        window.AndroidNative.updateOverlayPosition('mainChatBox', 'Custom Free-Drag', masterConfig.overlays.mainChatBox.customOffsetX, masterConfig.overlays.mainChatBox.customOffsetY);
+      }
+    }
   }
 
   [chatDragHeader, chatHeaderBar].forEach(handle => {
@@ -2979,14 +2990,30 @@
       }
     }
 
-    // 3. Primary Follower Notification: Native System Floating Pill outside chat window
+    // 3. Prominent Follower Dropdown Banner in Chat Window
+    const followerBanner = document.getElementById('followerAlertBanner');
+    const followerBannerText = document.getElementById('followerAlertText');
+    if (followerBanner && followerBannerText) {
+      followerBannerText.textContent = `NEW FOLLOWER: @${cleanUser}`;
+      followerBanner.classList.remove('hidden');
+      if (window.followerAlertTimeout) clearTimeout(window.followerAlertTimeout);
+      window.followerAlertTimeout = setTimeout(() => {
+        followerBanner.classList.add('hidden');
+      }, 4500);
+    }
+
+    // 4. Inject Follower Notification into Live Chat Feed
+    const followText = 'Started following the streamer!';
+    window.addChatMessage(cleanUser, 'FOLLOWER', followText, false, null, 0);
+
+    // 5. Primary Follower Notification: Native System Floating Pill outside chat window
     if (window.AndroidNative && typeof window.AndroidNative.showNativeFollowerAlert === 'function') {
       window.AndroidNative.showNativeFollowerAlert(cleanUser);
     }
 
-    // 4. Update mini-ticker for landscape/minimized HUD
+    // 6. Update mini-ticker for landscape/minimized HUD
     if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
-      window.AndroidNative.updateLatestChat(cleanUser, 'Started following the streamer!', 'FOLLOWER', new Date().toLocaleTimeString(), false);
+      window.AndroidNative.updateLatestChat(cleanUser, followText, 'FOLLOWER', new Date().toLocaleTimeString(), false);
     }
   }
   window.triggerFollowAlert = triggerFollowAlert;
@@ -4503,9 +4530,9 @@
     overlays: {
       mainChatBox: {
         enabled: true,
-        landscapePosition: 'Top-Center',
-        customOffsetX: -80,
-        customOffsetY: 10,
+        landscapePosition: 'Custom Free-Drag',
+        customOffsetX: 16,
+        customOffsetY: 48,
         widthDp: 320,
         heightDp: 190,
         lockedTouchPassThrough: false,
@@ -4599,9 +4626,9 @@
           ...DEFAULT_MASTER_CONFIG.overlays,
           mainChatBox: {
             ...DEFAULT_MASTER_CONFIG.overlays.mainChatBox,
-            landscapePosition: 'Middle-Left',
-            customOffsetX: 15,
-            customOffsetY: 0
+            landscapePosition: 'Custom Free-Drag',
+            customOffsetX: 16,
+            customOffsetY: 48
           }
         }
       }
@@ -4621,9 +4648,9 @@
           ...DEFAULT_MASTER_CONFIG.overlays,
           mainChatBox: {
             ...DEFAULT_MASTER_CONFIG.overlays.mainChatBox,
-            landscapePosition: 'Center',
-            customOffsetX: 0,
-            customOffsetY: 0
+            landscapePosition: 'Custom Free-Drag',
+            customOffsetX: 16,
+            customOffsetY: 48
           }
         }
       }
