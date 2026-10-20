@@ -2751,6 +2751,9 @@
     if (playSound) {
       playGiftNotificationSound();
     }
+    if (typeof window.triggerPngTuberSpeaking === 'function') {
+      window.triggerPngTuberSpeaking(`TY @${cleanUser}!`, 2500, true);
+    }
     if (window.AndroidNative) {
       if (typeof window.AndroidNative.triggerHapticFeedback === 'function') {
         window.AndroidNative.triggerHapticFeedback(120);
@@ -3428,6 +3431,9 @@
     // 1. Play follower notification sound if not muted
     if (playSound) {
       playFollowNotificationSound();
+    }
+    if (typeof window.triggerPngTuberSpeaking === 'function') {
+      window.triggerPngTuberSpeaking(`WELCOME @${cleanUser}!`, 2000, false);
     }
 
     // 2. Physical haptic vibration
@@ -6538,13 +6544,70 @@
     const avatarImg = document.getElementById('floatingPngTuberImg');
     const speechEl = document.getElementById('floatingPngTuberSpeech');
     const testBtn = document.getElementById('testMobilePngTuberVoiceBtn');
+    const resizeHandle = document.getElementById('floatingPngTuberResizeHandle');
+    const dragBody = document.getElementById('floatingPngTuberBody') || avatarEl;
+    const sizeDownBtn = document.getElementById('pngTuberSizeDownBtn');
+    const sizeUpBtn = document.getElementById('pngTuberSizeUpBtn');
+    const sizeDisplay = document.getElementById('pngTuberSizeDisplay');
 
     if (!avatarEl || !avatarImg) return;
 
+    // Visibility: ALWAYS VISIBLE by default across all views and tabs
+    const isEnabled = masterConfig && masterConfig.overlays && masterConfig.overlays.pngTuberAvatar
+      ? masterConfig.overlays.pngTuberAvatar.enabled !== false
+      : true;
+    avatarEl.style.display = isEnabled ? 'block' : 'none';
+
+    // State Variables
     let isSpeaking = false;
     let isBlinking = false;
+    let isCelebrating = false;
     let speechTimer = null;
+    let currentSize = 100;
 
+    // Load Saved Size
+    try {
+      const savedSize = localStorage.getItem('purplez_pngtuber_size');
+      if (savedSize) {
+        currentSize = parseInt(savedSize, 10) || 100;
+      }
+    } catch (_) {}
+
+    function applySize(newSize) {
+      currentSize = Math.max(60, Math.min(280, newSize));
+      avatarEl.style.width = `${currentSize}px`;
+      avatarEl.style.height = `${currentSize}px`;
+      if (sizeDisplay) sizeDisplay.textContent = `${currentSize}px`;
+      try {
+        localStorage.setItem('purplez_pngtuber_size', currentSize);
+      } catch (_) {}
+    }
+    applySize(currentSize);
+
+    // Load Saved Position
+    try {
+      const savedPos = localStorage.getItem('purplez_pngtuber_pos');
+      if (savedPos) {
+        const parsed = JSON.parse(savedPos);
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          const clampedX = Math.max(0, Math.min(window.innerWidth - currentSize, parsed.x));
+          const clampedY = Math.max(0, Math.min(window.innerHeight - currentSize, parsed.y));
+          avatarEl.style.right = 'auto';
+          avatarEl.style.bottom = 'auto';
+          avatarEl.style.left = `${clampedX}px`;
+          avatarEl.style.top = `${clampedY}px`;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback Image Protection: Never allow avatar to be invisible
+    const FALLBACK_POPCAT_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="%23fcd34d"/><polygon points="25,18 35,40 15,35" fill="%23f59e0b"/><polygon points="75,18 65,40 85,35" fill="%23f59e0b"/><ellipse cx="38" cy="45" rx="5" ry="7" fill="%231e293b"/><ellipse cx="62" cy="45" rx="5" ry="7" fill="%231e293b"/><ellipse cx="50" cy="65" rx="14" ry="10" fill="%23b91c1c"/></svg>';
+    avatarImg.onerror = () => {
+      avatarImg.onerror = null;
+      avatarImg.src = FALLBACK_POPCAT_SVG;
+    };
+
+    // 4 Slots Asset Matrix
     const slots = {
       idle: 'pngtuber/popcat_closed.png',
       idleBlink: 'pngtuber/popcat_blink.png',
@@ -6555,9 +6618,12 @@
     function updateState() {
       if (!avatarImg) return;
       let target = slots.idle;
-      if (isSpeaking) {
+      if (isCelebrating) {
+        target = slots.talk;
+        avatarEl.style.transform = 'translateY(-12px) scale(1.12)';
+      } else if (isSpeaking) {
         target = isBlinking ? slots.talkBlink : slots.talk;
-        avatarEl.style.transform = 'translateY(-6px) scale(1.05)';
+        avatarEl.style.transform = 'translateY(-6px) scale(1.06)';
       } else {
         target = isBlinking ? slots.idleBlink : slots.idle;
         avatarEl.style.transform = 'none';
@@ -6567,6 +6633,7 @@
       }
     }
 
+    // Natural Periodic Blink Cycle
     function scheduleBlink() {
       const delay = 2500 + Math.random() * 3500;
       setTimeout(() => {
@@ -6581,8 +6648,10 @@
     }
     scheduleBlink();
 
-    function triggerVoiceTest(comment = 'POP POP POP!', duration = 1200) {
+    // Voice & Celebration Triggers
+    function triggerVoiceTest(comment = 'POP POP POP!', duration = 1200, celebrating = false) {
       isSpeaking = true;
+      if (celebrating) isCelebrating = true;
       updateState();
       if (speechEl) {
         speechEl.textContent = comment;
@@ -6591,6 +6660,7 @@
       if (speechTimer) clearTimeout(speechTimer);
       speechTimer = setTimeout(() => {
         isSpeaking = false;
+        isCelebrating = false;
         updateState();
         if (speechEl) speechEl.classList.add('hidden');
       }, duration);
@@ -6602,38 +6672,132 @@
       });
     }
 
-    // Touch Dragging for Mobile Floating Avatar
-    let isDragging = false;
-    let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+    // Size Buttons (+ / -)
+    if (sizeDownBtn) {
+      sizeDownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applySize(currentSize - 20);
+      });
+    }
+    if (sizeUpBtn) {
+      sizeUpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applySize(currentSize + 20);
+      });
+    }
 
-    avatarEl.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
+    // ==========================================
+    // RESIZE LOGIC (Resizable Anytime via Handle)
+    // ==========================================
+    let isResizing = false;
+    let resizeStartX = 0, resizeStartY = 0, resizeStartSize = 100;
+
+    const startResize = (clientX, clientY) => {
+      isResizing = true;
+      resizeStartX = clientX;
+      resizeStartY = clientY;
+      resizeStartSize = currentSize;
+    };
+
+    if (resizeHandle) {
+      resizeHandle.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        const t = e.touches[0];
+        startResize(t.clientX, t.clientY);
+      }, { passive: false });
+
+      resizeHandle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        startResize(e.clientX, e.clientY);
+      });
+    }
+
+    // ==========================================
+    // DRAG LOGIC (Movable Anytime Anywhere)
+    // ==========================================
+    let isDragging = false;
+    let dragStartX = 0, dragStartY = 0, initialLeft = 0, initialTop = 0;
+    let dragDistance = 0;
+
+    const startDrag = (clientX, clientY) => {
       isDragging = true;
+      dragDistance = 0;
+      dragStartX = clientX;
+      dragStartY = clientY;
       const rect = avatarEl.getBoundingClientRect();
-      startX = touch.clientX;
-      startY = touch.clientY;
       initialLeft = rect.left;
       initialTop = rect.top;
       avatarEl.style.right = 'auto';
       avatarEl.style.bottom = 'auto';
       avatarEl.style.left = `${initialLeft}px`;
       avatarEl.style.top = `${initialTop}px`;
+    };
+
+    dragBody.addEventListener('touchstart', (e) => {
+      if (e.target.closest('#floatingPngTuberResizeHandle') || e.target.closest('#floatingPngTuberControls')) return;
+      const t = e.touches[0];
+      startDrag(t.clientX, t.clientY);
     }, { passive: true });
+
+    dragBody.addEventListener('mousedown', (e) => {
+      if (e.target.closest('#floatingPngTuberResizeHandle') || e.target.closest('#floatingPngTuberControls')) return;
+      startDrag(e.clientX, e.clientY);
+    });
+
+    // Global Movement Handlers (Touch & Mouse)
+    const handleMove = (clientX, clientY) => {
+      if (isResizing) {
+        const deltaX = clientX - resizeStartX;
+        const deltaY = clientY - resizeStartY;
+        const delta = Math.max(deltaX, deltaY);
+        applySize(resizeStartSize + delta);
+      } else if (isDragging) {
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+        dragDistance += Math.abs(dx) + Math.abs(dy);
+        const clampedX = Math.max(0, Math.min(window.innerWidth - currentSize, initialLeft + dx));
+        const clampedY = Math.max(0, Math.min(window.innerHeight - currentSize, initialTop + dy));
+        avatarEl.style.left = `${clampedX}px`;
+        avatarEl.style.top = `${clampedY}px`;
+      }
+    };
+
+    const handleEnd = () => {
+      if (isResizing) {
+        isResizing = false;
+      }
+      if (isDragging) {
+        isDragging = false;
+        // Tap detected without significant drag: Pop Cat reaction!
+        if (dragDistance < 12) {
+          triggerVoiceTest('POP POP POP!', 1200);
+          if (typeof playCoinSound === 'function') playCoinSound();
+        }
+        // Save Position
+        try {
+          const rect = avatarEl.getBoundingClientRect();
+          localStorage.setItem('purplez_pngtuber_pos', JSON.stringify({
+            x: Math.round(rect.left),
+            y: Math.round(rect.top)
+          }));
+        } catch (_) {}
+      }
+    };
 
     window.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      const touch = e.touches[0];
-      const dx = touch.clientX - startX;
-      const dy = touch.clientY - startY;
-      const newX = Math.max(0, Math.min(window.innerWidth - 88, initialLeft + dx));
-      const newY = Math.max(0, Math.min(window.innerHeight - 88, initialTop + dy));
-      avatarEl.style.left = `${newX}px`;
-      avatarEl.style.top = `${newY}px`;
+      if (!isDragging && !isResizing) return;
+      if (e.touches && e.touches[0]) {
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
     }, { passive: true });
 
-    window.addEventListener('touchend', () => {
-      isDragging = false;
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging && !isResizing) return;
+      handleMove(e.clientX, e.clientY);
     });
+
+    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('mouseup', handleEnd);
 
     window.triggerPngTuberSpeaking = triggerVoiceTest;
   }

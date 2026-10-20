@@ -1235,7 +1235,7 @@
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.28</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.29</span>
           </div>
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-zinc-400">STATUS:</span>
@@ -1254,7 +1254,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.28</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.29</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.
@@ -1764,12 +1764,6 @@
         </svg>
       </button>
 
-      <!-- FLOATING PNGTUBER POP CAT AVATAR (Interactive 4-Slot Avatar: Idle, Idle Blink, Talk, Talk Blink) -->
-      <div id="floatingPngTuberAvatar" class="fixed pointer-events-auto z-40 select-none cursor-grab transition-all duration-100" style="bottom: 24px; right: 24px; width: 88px; height: 88px;">
-        <img id="floatingPngTuberImg" src="pngtuber/popcat_closed.png" class="w-full h-full object-contain pointer-events-none drop-shadow-xl" alt="PNGTuber" />
-        <div id="floatingPngTuberSpeech" class="hidden absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-lg bg-zinc-950/95 border border-purple-400 text-white font-mono text-[9px] font-bold whitespace-nowrap shadow-lg">POP!</div>
-      </div>
-
     </div>
 
     <!-- Dedicated Real-Time Overlay Config Dock in Simulator -->
@@ -2246,6 +2240,31 @@
         <button class="w-full py-1.5 bg-transparent text-zinc-500 hover:text-zinc-400 text-[11px] uppercase cursor-pointer" id="cancelTrialModalBtn">
           CANCEL
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOBAL FLOATING PNGTUBER AVATAR (Always Visible, Movable & Resizable Anytime) -->
+  <div id="floatingPngTuberAvatar" class="fixed pointer-events-auto select-none touch-none" style="z-index: 99999; bottom: 90px; right: 24px; width: 100px; height: 100px;">
+    <!-- Speech Bubble -->
+    <div id="floatingPngTuberSpeech" class="hidden absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-lg bg-black/95 border border-purple-400 text-white font-mono text-[10px] font-bold whitespace-nowrap shadow-2xl pointer-events-none z-10">POP!</div>
+    
+    <!-- Avatar Body Container (Draggable) -->
+    <div class="relative w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center" id="floatingPngTuberBody">
+      <img id="floatingPngTuberImg" src="pngtuber/popcat_closed.png" class="w-full h-full object-contain pointer-events-none drop-shadow-2xl transition-transform duration-75" alt="PNGTuber Pop Cat" />
+
+      <!-- Quick Size Buttons & Indicator Pill -->
+      <div id="floatingPngTuberControls" class="opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity absolute -top-6 right-0 flex items-center space-x-1 bg-black/95 border border-zinc-700 rounded-md px-1.5 py-0.5 text-[9px] font-mono text-zinc-300 shadow-lg">
+        <button type="button" id="pngTuberSizeDownBtn" class="px-1 py-0 hover:text-white cursor-pointer font-bold text-xs" title="Decrease Size">-</button>
+        <span id="pngTuberSizeDisplay" class="font-bold text-[9px]">100px</span>
+        <button type="button" id="pngTuberSizeUpBtn" class="px-1 py-0 hover:text-white cursor-pointer font-bold text-xs" title="Increase Size">+</button>
+      </div>
+
+      <!-- Corner Resize Handle Grip (Movable & Resizable Anytime) -->
+      <div id="floatingPngTuberResizeHandle" class="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-purple-600 hover:bg-purple-500 active:bg-purple-400 border-2 border-white rounded-full flex items-center justify-center cursor-nwse-resize shadow-xl touch-none z-20" title="Drag to Resize Avatar">
+        <svg class="w-3 h-3 text-white pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v6m0 0h-6m6 0l-7-7M3 9V3m0 0h6M3 3l7 7" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
       </div>
     </div>
   </div>
