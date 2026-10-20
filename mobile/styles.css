@@ -1357,6 +1357,39 @@ textarea {
 .w-36 { width: 9rem !important; }
 .h-36 { height: 9rem !important; }
 
+/* Module Switcher Pills in Landscape Layout Editor */
+.editor-module-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(24, 24, 32, 0.8) !important;
+  color: #9CA3AF !important;
+  font-family: var(--app-font-family);
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+  user-select: none !important;
+}
+
+.editor-module-pill:hover {
+  background: rgba(45, 45, 60, 0.95) !important;
+  color: #FFFFFF !important;
+}
+
+.editor-module-pill.active {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border-color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4) !important;
+}
+
 /* Landscape Layout Editor Full-Screen Modal & Canvas */
 #landscapeLayoutEditorModal {
   position: fixed;

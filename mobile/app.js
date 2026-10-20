@@ -160,7 +160,19 @@
       injectSamplePreviewChats();
     }
     renderChatMessages();
-    setWindowPosition(16, 48);
+    isLandscape = window.innerWidth > window.innerHeight;
+    if (isLandscape && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
+      const chatCfg = masterConfig.overlays.mainChatBox;
+      const zone = chatCfg.landscapePosition || 'Top-Left';
+      const ox = chatCfg.customOffsetX || 0;
+      const oy = chatCfg.customOffsetY || 0;
+      const w = floatingWindow ? (floatingWindow.offsetWidth || 320) : 320;
+      const h = floatingWindow ? (floatingWindow.offsetHeight || 190) : 190;
+      const coords = calculateLandscapeCoordinates(zone, ox, oy, w, h, window.innerWidth, window.innerHeight);
+      setWindowPosition(coords.left, coords.top);
+    } else {
+      setWindowPosition(16, 48);
+    }
   }
 
   function injectSamplePreviewChats() {
@@ -1973,15 +1985,40 @@
     if (deviceOrientationBadge) deviceOrientationBadge.textContent = tag;
     if (landscapeStatus) landscapeStatus.textContent = `${tag} HUD`;
 
-    enforceWindowScreenBounds();
+    if (isLandscape && inAppPreviewView && !inAppPreviewView.classList.contains('hidden') && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
+      const chatCfg = masterConfig.overlays.mainChatBox;
+      const zone = chatCfg.landscapePosition || 'Top-Left';
+      const ox = chatCfg.customOffsetX || 0;
+      const oy = chatCfg.customOffsetY || 0;
+      const w = floatingWindow ? (floatingWindow.offsetWidth || 320) : 320;
+      const h = floatingWindow ? (floatingWindow.offsetHeight || 190) : 190;
+      const coords = calculateLandscapeCoordinates(zone, ox, oy, w, h, window.innerWidth, window.innerHeight);
+      setWindowPosition(coords.left, coords.top);
+    } else {
+      enforceWindowScreenBounds();
+    }
   }
 
   window.onAndroidOrientationChanged = function(isLand) {
     isLandscape = isLand;
     handleOrientationChange();
     if (floatingWindow && !isOverlayMode) {
-      const rect = floatingWindow.getBoundingClientRect();
-      setWindowPosition(rect.left, rect.top);
+      if (isLandscape && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
+        const chatCfg = masterConfig.overlays.mainChatBox;
+        const coords = calculateLandscapeCoordinates(
+          chatCfg.landscapePosition || 'Top-Left',
+          chatCfg.customOffsetX || 0,
+          chatCfg.customOffsetY || 0,
+          floatingWindow.offsetWidth || 320,
+          floatingWindow.offsetHeight || 190,
+          window.innerWidth,
+          window.innerHeight
+        );
+        setWindowPosition(coords.left, coords.top);
+      } else {
+        const rect = floatingWindow.getBoundingClientRect();
+        setWindowPosition(rect.left, rect.top);
+      }
     }
   };
 
@@ -5042,6 +5079,7 @@
   function setupLandscapeEditorControls() {
     const openBtn = document.getElementById('openLandscapeEditorBtn');
     const closeBtn = document.getElementById('closeLandscapeEditorBtn');
+    const closeMobileBtn = document.getElementById('closeLandscapeEditorBtnMobile');
     const saveBtn = document.getElementById('saveLandscapeLayoutBtn');
     const editorModal = document.getElementById('landscapeLayoutEditorModal');
     const templateSelect = document.getElementById('editorHudTemplateSelect');
@@ -5072,6 +5110,14 @@
           box.classList.add('active-module-box');
         } else {
           box.classList.remove('active-module-box');
+        }
+      });
+
+      document.querySelectorAll('.editor-module-pill').forEach(pill => {
+        if (pill.getAttribute('data-module') === moduleId) {
+          pill.classList.add('active');
+        } else {
+          pill.classList.remove('active');
         }
       });
 
@@ -5119,6 +5165,16 @@
       });
     }
 
+    const closeEditor = () => {
+      if (editorModal) {
+        editorModal.classList.add('hidden');
+        editorModal.style.display = 'none';
+      }
+      if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
+        window.AndroidNative.toggleOrientation(false);
+      }
+    };
+
     if (openBtn && editorModal) {
       openBtn.addEventListener('click', () => {
         editorModal.classList.remove('hidden');
@@ -5134,29 +5190,33 @@
       });
     }
 
-    if (closeBtn && editorModal) {
-      closeBtn.addEventListener('click', () => {
-        editorModal.classList.add('hidden');
-        editorModal.style.display = 'none';
-        if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
-          window.AndroidNative.toggleOrientation(false);
-        }
-      });
-    }
+    if (closeBtn) closeBtn.addEventListener('click', closeEditor);
+    if (closeMobileBtn) closeMobileBtn.addEventListener('click', closeEditor);
 
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
         saveMasterConfig();
-        if (editorModal) {
-          editorModal.classList.add('hidden');
-          editorModal.style.display = 'none';
+        if (masterConfig.overlays && masterConfig.overlays.mainChatBox && window.AndroidNative && typeof window.AndroidNative.updateOverlayPosition === 'function') {
+          window.AndroidNative.updateOverlayPosition(
+            'mainChatBox',
+            masterConfig.overlays.mainChatBox.landscapePosition || 'Top-Left',
+            masterConfig.overlays.mainChatBox.customOffsetX || 0,
+            masterConfig.overlays.mainChatBox.customOffsetY || 0
+          );
         }
-        if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
-          window.AndroidNative.toggleOrientation(false);
-        }
+        closeEditor();
         showToast('Landscape Layout Saved & Applied');
       });
     }
+
+    // Module Switcher Tabs / Pills
+    document.querySelectorAll('.editor-module-pill').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const modId = pill.getAttribute('data-module');
+        if (modId) selectModule(modId);
+      });
+    });
 
     if (templateSelect && canvas) {
       templateSelect.addEventListener('change', (e) => {

@@ -991,7 +991,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.15</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.18</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.
@@ -1559,28 +1559,37 @@
 
   <!-- MODAL: INTERACTIVE LANDSCAPE LAYOUT EDITOR -->
   <div class="fixed inset-0 z-50 bg-black flex flex-col select-none overflow-hidden hidden" id="landscapeLayoutEditorModal" style="display: none;">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-3 py-2 bg-zinc-950 border-b border-zinc-800 font-mono text-xs flex-wrap gap-2" id="landscapeEditorHeader">
-      <div class="flex items-center space-x-2 shrink-0">
-        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        <span class="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">LANDSCAPE LAYOUT EDITOR</span>
-        <span class="text-zinc-600 hidden md:inline">|</span>
-        <span class="text-zinc-400 text-[11px] hidden md:inline" id="editorSelectedModuleName">Selected: Main Chat Box</span>
+    <!-- Responsive Header: 2 Clean Rows on Mobile Portrait, 1 Row on Widescreen -->
+    <div class="px-3 py-2 bg-zinc-950 border-b border-zinc-800 font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 shrink-0" id="landscapeEditorHeader">
+      <div class="flex items-center justify-between w-full sm:w-auto">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+          <span class="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">LANDSCAPE LAYOUT EDITOR</span>
+        </div>
+        <!-- Prominent Close Button at Top-Right on Mobile -->
+        <button type="button" class="sm:hidden px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 rounded text-xs font-bold uppercase cursor-pointer flex items-center space-x-1" id="closeLandscapeEditorBtnMobile">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+          <span>CLOSE</span>
+        </button>
       </div>
-      <div class="flex items-center space-x-2 shrink-0">
-        <!-- Template selector -->
-        <select id="editorHudTemplateSelect" class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-white text-[10px]">
-          <option value="moba">MOBA / MLBB HUD</option>
-          <option value="shooter">Shooter HUD</option>
-          <option value="dark">Clean Dark Grid</option>
-        </select>
-        <!-- Save and Close -->
-        <button type="button" class="px-2.5 py-1 bg-white text-black font-extrabold rounded text-[10px] uppercase cursor-pointer" id="saveLandscapeLayoutBtn">
-          SAVE LAYOUT
-        </button>
-        <button type="button" class="px-2 py-1 bg-zinc-900 text-zinc-300 border border-zinc-700 rounded text-[10px] uppercase cursor-pointer" id="closeLandscapeEditorBtn">
-          CLOSE
-        </button>
+
+      <div class="flex items-center justify-between sm:justify-end space-x-2 w-full sm:w-auto">
+        <div class="flex items-center space-x-1.5 flex-1 sm:flex-none">
+          <span class="text-[10px] text-zinc-400 uppercase hidden xs:inline">HUD:</span>
+          <select id="editorHudTemplateSelect" class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-white text-[10px] flex-1 sm:flex-none">
+            <option value="moba">MOBA / MLBB HUD</option>
+            <option value="shooter">Shooter HUD</option>
+            <option value="dark">Clean Dark Grid</option>
+          </select>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <button type="button" class="px-3 py-1 bg-white hover:bg-zinc-200 text-black font-extrabold rounded text-[10px] uppercase cursor-pointer" id="saveLandscapeLayoutBtn">
+            SAVE LAYOUT
+          </button>
+          <button type="button" class="hidden sm:inline-block px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 rounded text-[10px] uppercase cursor-pointer" id="closeLandscapeEditorBtn">
+            CLOSE
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1594,25 +1603,27 @@
     <div id="landscapeEditorCanvasWrapper" class="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-black relative">
       <!-- Canvas -->
       <div class="relative overflow-hidden hud-template-moba" id="landscapeEditorCanvas">
-        <!-- Simulated In-Game HUD Elements for Visual Orientation -->
-        <div class="absolute p-2 rounded-xl bg-black/60 border border-white/20 text-center pointer-events-none" style="top: 12px; left: 14px; width: 130px; height: 95px;">
-          <span class="text-[9px] font-mono text-zinc-300 font-bold block">MINIMAP ZONE</span>
-          <span class="text-[8px] text-zinc-400">Top-Left</span>
+        <!-- Watermark Simulated Game HUD Background Elements -->
+        <div class="absolute p-2 rounded-xl bg-white/[0.03] border border-dashed border-white/20 text-center pointer-events-none" style="top: 10px; left: 14px; width: 130px; height: 95px;">
+          <span class="text-[9px] font-mono text-zinc-500 font-bold block">[GAME MINIMAP]</span>
+          <span class="text-[8px] text-zinc-600">Keep Clear</span>
         </div>
-        <div class="absolute px-3 py-1 rounded-full bg-black/60 border border-white/20 text-center pointer-events-none" style="top: 12px; left: 50%; transform: translateX(-50%);">
-          <span class="text-[9px] font-mono text-zinc-300 font-bold">MATCH SCORE & TIMER [Top-Center]</span>
+        <div class="absolute px-3 py-1 rounded-full bg-white/[0.03] border border-dashed border-white/20 text-center pointer-events-none" style="top: 10px; left: 50%; transform: translateX(-50%);">
+          <span class="text-[9px] font-mono text-zinc-500 font-bold">[GAME SCORE & TIMER]</span>
         </div>
-        <div class="absolute px-3 py-1 rounded-xl bg-black/60 border border-white/20 text-center pointer-events-none" style="top: 12px; right: 14px;">
-          <span class="text-[9px] font-mono text-zinc-300 font-bold">KDA & SETTINGS [Top-Right]</span>
+        <div class="absolute px-3 py-1 rounded-xl bg-white/[0.03] border border-dashed border-white/20 text-center pointer-events-none" style="top: 10px; right: 14px;">
+          <span class="text-[9px] font-mono text-zinc-500 font-bold">[KDA & SETTINGS]</span>
         </div>
-        <div class="absolute rounded-full border-2 border-dashed border-white/30 flex items-center justify-center pointer-events-none bg-black/40" style="bottom: 14px; left: 16px; width: 115px; height: 115px;">
-          <span class="text-[9px] font-mono text-zinc-300 font-bold text-center">JOYSTICK<br>ZONE</span>
+        <div class="absolute rounded-full border-2 border-dashed border-white/20 flex flex-col items-center justify-center pointer-events-none bg-white/[0.02]" style="bottom: 14px; left: 16px; width: 115px; height: 115px;">
+          <span class="text-[9px] font-mono text-zinc-500 font-bold text-center">[JOYSTICK<br>ZONE]</span>
+          <span class="text-[7px] text-zinc-600">Keep Clear</span>
         </div>
-        <div class="absolute rounded-full border-2 border-dashed border-white/30 flex items-center justify-center pointer-events-none bg-black/40" style="bottom: 14px; right: 16px; width: 140px; height: 140px;">
-          <span class="text-[9px] font-mono text-zinc-300 font-bold text-center">SKILLS & ATTACK<br>ZONE</span>
+        <div class="absolute rounded-full border-2 border-dashed border-white/20 flex flex-col items-center justify-center pointer-events-none bg-white/[0.02]" style="bottom: 14px; right: 16px; width: 140px; height: 140px;">
+          <span class="text-[9px] font-mono text-zinc-500 font-bold text-center">[SKILLS & ATTACK]</span>
+          <span class="text-[7px] text-zinc-600">Keep Clear</span>
         </div>
-        <div class="absolute px-3 py-1 rounded-xl bg-black/60 border border-white/20 text-center pointer-events-none" style="bottom: 14px; left: 50%; transform: translateX(-50%);">
-          <span class="text-[9px] font-mono text-zinc-300 font-bold">RECALL & REGEN [Bottom-Center]</span>
+        <div class="absolute px-3 py-1 rounded-xl bg-white/[0.03] border border-dashed border-white/20 text-center pointer-events-none" style="bottom: 14px; left: 50%; transform: translateX(-50%);">
+          <span class="text-[9px] font-mono text-zinc-500 font-bold">[RECALL & REGEN]</span>
         </div>
 
         <!-- Draggable Overlay Boxes on Canvas -->
@@ -1639,9 +1650,9 @@
         </div>
 
         <!-- 4. Follower Alert Overlay -->
-        <div class="absolute rounded-lg border-2 border-purple-400 bg-purple-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 170px; height: 32px; top: 90px; right: 20px;">
-          <span class="text-[9px] font-mono font-bold text-purple-200">NEW FOLLOWER</span>
-          <span class="text-[8px] font-mono text-purple-400" id="editorPosFollower">Top-Center</span>
+        <div class="absolute rounded-lg border-2 border-fuchsia-400 bg-fuchsia-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 170px; height: 32px; top: 90px; right: 20px;">
+          <span class="text-[9px] font-mono font-bold text-fuchsia-200">NEW FOLLOWER</span>
+          <span class="text-[8px] font-mono text-fuchsia-400" id="editorPosFollower">Top-Right</span>
         </div>
 
         <!-- 5. Like & Viewer Counters -->
@@ -1657,11 +1668,39 @@
       </div>
     </div>
 
-    <!-- Bottom Dock with 9-Zone Snapping Grid & Offset Sliders -->
+    <!-- Bottom Dock with Module Switcher, 9-Zone Snapping Grid & Offset Sliders -->
     <div class="bg-zinc-950 border-t border-zinc-800 p-2 font-mono text-xs flex flex-col space-y-1.5 shrink-0" id="landscapeEditorBottomDock">
+      <!-- Module Switcher Pills -->
+      <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none" id="editorModuleSwitcherBar">
+        <button type="button" class="editor-module-pill active" data-module="mainChatBox">
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+          <span>Main Chat</span>
+        </button>
+        <button type="button" class="editor-module-pill" data-module="gifterPriorityBanner">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          <span>VIP Banner</span>
+        </button>
+        <button type="button" class="editor-module-pill" data-module="giftAnimationOverlay">
+          <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+          <span>Gift Alert</span>
+        </button>
+        <button type="button" class="editor-module-pill" data-module="followerAlertOverlay">
+          <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span>
+          <span>Follower</span>
+        </button>
+        <button type="button" class="editor-module-pill" data-module="liveLikeCounter">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+          <span>Likes/Viewers</span>
+        </button>
+        <button type="button" class="editor-module-pill" data-module="smartGameIdBar">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span>Game ID</span>
+        </button>
+      </div>
+
       <div class="flex items-center justify-between text-[11px]">
         <div class="flex items-center space-x-2">
-          <span class="text-zinc-400 font-bold uppercase">SNAP TO 9-ZONE SCREEN ANCHOR:</span>
+          <span class="text-zinc-400 font-bold uppercase">SNAP ANCHOR:</span>
           <span class="text-purple-400 font-bold text-[10px]" id="editorSelectedModuleNameMobile">Main Chat</span>
         </div>
         <div class="flex items-center space-x-2">
