@@ -184,6 +184,9 @@ body.overlay-mode #particleCanvas {
 .grid { display: grid; }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.grid-cols-9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
 .gap-1 { gap: 0.25rem; }
 .gap-1\.5 { gap: 0.375rem; }
 .gap-2 { gap: 0.5rem; }
@@ -1294,23 +1297,41 @@ textarea {
 }
 
 /* 9-Zone Landscape Layout Editor Styles */
+.zone-anchor-grid {
+  display: grid !important;
+  grid-template-columns: repeat(9, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 .zone-anchor-btn {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(24, 24, 32, 0.8);
-  color: #D1D5DB;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: rgba(24, 24, 32, 0.85) !important;
+  color: #D1D5DB !important;
   font-family: var(--app-font-family);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 6px 2px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 5px 2px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+  user-select: none !important;
 }
 
 .zone-anchor-btn:hover {
-  background: rgba(45, 45, 60, 0.9);
-  color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(45, 45, 60, 0.95) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 .zone-anchor-btn.active {
@@ -1319,6 +1340,33 @@ textarea {
   border-color: #FFFFFF !important;
   font-weight: 800 !important;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Landscape Layout Editor Full-Screen Canvas & Dock */
+#landscapeLayoutEditorModal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  z-index: 50 !important;
+}
+
+#landscapeEditorCanvas {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+#landscapeEditorBottomDock {
+  flex-shrink: 0 !important;
+  max-height: 90px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* MOBA and Shooter Game HUD Simulator Canvas */

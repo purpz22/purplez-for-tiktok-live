@@ -1649,7 +1649,7 @@
     </div>
 
     <!-- Bottom Dock with 9-Zone Snapping Grid & Offset Sliders -->
-    <div class="bg-zinc-950 border-t border-zinc-800 p-2 font-mono text-xs flex flex-col space-y-1.5">
+    <div class="bg-zinc-950 border-t border-zinc-800 p-2 font-mono text-xs flex flex-col space-y-1.5 shrink-0" id="landscapeEditorBottomDock">
       <div class="flex items-center justify-between text-[11px]">
         <span class="text-zinc-400 font-bold uppercase">SNAP TO 9-ZONE SCREEN ANCHOR:</span>
         <div class="flex items-center space-x-2">
@@ -1658,7 +1658,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-9 gap-1 text-center">
+      <div class="grid grid-cols-9 gap-1 text-center zone-anchor-grid" id="editorZoneAnchorRow">
         <button type="button" class="zone-anchor-btn" data-zone="Top-Left">Top-Left</button>
         <button type="button" class="zone-anchor-btn active" data-zone="Top-Center">Top-Center</button>
         <button type="button" class="zone-anchor-btn" data-zone="Top-Right">Top-Right</button>
