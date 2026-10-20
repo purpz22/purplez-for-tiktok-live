@@ -163,15 +163,24 @@
     isLandscape = window.innerWidth > window.innerHeight;
     if (isLandscape && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
       const chatCfg = masterConfig.overlays.mainChatBox;
-      const zone = chatCfg.landscapePosition || 'Top-Left';
-      const ox = chatCfg.customOffsetX || 0;
-      const oy = chatCfg.customOffsetY || 0;
-      const w = floatingWindow ? (floatingWindow.offsetWidth || 320) : 320;
-      const h = floatingWindow ? (floatingWindow.offsetHeight || 190) : 190;
-      const coords = calculateLandscapeCoordinates(zone, ox, oy, w, h, window.innerWidth, window.innerHeight);
-      setWindowPosition(coords.left, coords.top);
+      if (chatCfg.landscapePosition === 'Custom Free-Drag' && (chatCfg.customOffsetX || chatCfg.customOffsetY)) {
+        setWindowPosition(chatCfg.customOffsetX, chatCfg.customOffsetY);
+      } else {
+        const zone = chatCfg.landscapePosition || 'Top-Left';
+        const ox = chatCfg.customOffsetX || 0;
+        const oy = chatCfg.customOffsetY || 0;
+        const w = floatingWindow ? (floatingWindow.offsetWidth || 320) : 320;
+        const h = floatingWindow ? (floatingWindow.offsetHeight || 190) : 190;
+        const coords = calculateLandscapeCoordinates(zone, ox, oy, w, h, window.innerWidth, window.innerHeight);
+        setWindowPosition(coords.left, coords.top);
+      }
     } else {
-      setWindowPosition(16, 48);
+      const rect = floatingWindow ? floatingWindow.getBoundingClientRect() : null;
+      if (rect && (rect.left > 0 || rect.top > 0)) {
+        setWindowPosition(rect.left, rect.top);
+      } else {
+        setWindowPosition(16, 48);
+      }
     }
   }
 
@@ -1790,10 +1799,9 @@
   function triggerTestFollow() {
     const testNames = ['SuperFan_99', 'TikTok_Explorer', 'Purplez_VIP', 'StarGazer', 'GamerPro_PH'];
     const randomUser = testNames[Math.floor(Math.random() * testNames.length)];
+    triggerFollowAlert(randomUser, randomUser, '');
     if (window.AndroidNative && typeof window.AndroidNative.simulateFollowAlert === 'function') {
       window.AndroidNative.simulateFollowAlert(randomUser);
-    } else {
-      triggerFollowAlert(randomUser, randomUser, '');
     }
   }
 
@@ -2012,13 +2020,17 @@
 
     if (isLandscape && inAppPreviewView && !inAppPreviewView.classList.contains('hidden') && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
       const chatCfg = masterConfig.overlays.mainChatBox;
-      const zone = chatCfg.landscapePosition || 'Top-Left';
-      const ox = chatCfg.customOffsetX || 0;
-      const oy = chatCfg.customOffsetY || 0;
-      const w = floatingWindow ? (floatingWindow.offsetWidth || 320) : 320;
-      const h = floatingWindow ? (floatingWindow.offsetHeight || 190) : 190;
-      const coords = calculateLandscapeCoordinates(zone, ox, oy, w, h, window.innerWidth, window.innerHeight);
-      setWindowPosition(coords.left, coords.top);
+      if (chatCfg.landscapePosition === 'Custom Free-Drag' && (chatCfg.customOffsetX || chatCfg.customOffsetY)) {
+        setWindowPosition(chatCfg.customOffsetX, chatCfg.customOffsetY);
+      } else {
+        const zone = chatCfg.landscapePosition || 'Top-Left';
+        const ox = chatCfg.customOffsetX || 0;
+        const oy = chatCfg.customOffsetY || 0;
+        const w = floatingWindow ? (floatingWindow.offsetWidth || 320) : 320;
+        const h = floatingWindow ? (floatingWindow.offsetHeight || 190) : 190;
+        const coords = calculateLandscapeCoordinates(zone, ox, oy, w, h, window.innerWidth, window.innerHeight);
+        setWindowPosition(coords.left, coords.top);
+      }
     } else {
       enforceWindowScreenBounds();
     }
@@ -2030,16 +2042,20 @@
     if (floatingWindow && !isOverlayMode) {
       if (isLandscape && masterConfig && masterConfig.overlays && masterConfig.overlays.mainChatBox) {
         const chatCfg = masterConfig.overlays.mainChatBox;
-        const coords = calculateLandscapeCoordinates(
-          chatCfg.landscapePosition || 'Top-Left',
-          chatCfg.customOffsetX || 0,
-          chatCfg.customOffsetY || 0,
-          floatingWindow.offsetWidth || 320,
-          floatingWindow.offsetHeight || 190,
-          window.innerWidth,
-          window.innerHeight
-        );
-        setWindowPosition(coords.left, coords.top);
+        if (chatCfg.landscapePosition === 'Custom Free-Drag' && (chatCfg.customOffsetX || chatCfg.customOffsetY)) {
+          setWindowPosition(chatCfg.customOffsetX, chatCfg.customOffsetY);
+        } else {
+          const coords = calculateLandscapeCoordinates(
+            chatCfg.landscapePosition || 'Top-Left',
+            chatCfg.customOffsetX || 0,
+            chatCfg.customOffsetY || 0,
+            floatingWindow.offsetWidth || 320,
+            floatingWindow.offsetHeight || 190,
+            window.innerWidth,
+            window.innerHeight
+          );
+          setWindowPosition(coords.left, coords.top);
+        }
       } else {
         const rect = floatingWindow.getBoundingClientRect();
         setWindowPosition(rect.left, rect.top);
@@ -2992,8 +3008,19 @@
     const cleanUser = (followerName || nickname || 'Viewer').replace(/^@+/, '').trim();
     if (!cleanUser) return;
 
-    // 1. Play follower notification sound (Default blup.mp3 or streamer-selected sound)
-    playFollowNotificationSound();
+    const isEnabled = masterConfig && masterConfig.overlays && masterConfig.overlays.followerAlertOverlay
+      ? masterConfig.overlays.followerAlertOverlay.enabled !== false
+      : true;
+    if (!isEnabled) return;
+
+    const playSound = masterConfig && masterConfig.overlays && masterConfig.overlays.followerAlertOverlay
+      ? masterConfig.overlays.followerAlertOverlay.playAudioChimeBlupMp3 !== false
+      : true;
+
+    // 1. Play follower notification sound if not muted
+    if (playSound) {
+      playFollowNotificationSound();
+    }
 
     // 2. Physical haptic vibration
     if (window.AndroidNative) {
@@ -3004,7 +3031,39 @@
       }
     }
 
-    // 3. Prominent Follower Dropdown Banner in Chat Window
+    // 3. Standalone Global Follower Alert Popup at configured Layout position
+    const globalPopup = document.getElementById('globalFollowerAlertPopup');
+    const globalPopupUser = document.getElementById('globalFollowerAlertUser');
+    if (globalPopup && globalPopupUser) {
+      globalPopupUser.textContent = `@${cleanUser}`;
+      const folCfg = (masterConfig && masterConfig.overlays && masterConfig.overlays.followerAlertOverlay) || {};
+      const zone = folCfg.landscapePosition || 'Top-Center';
+      const ox = folCfg.customOffsetX || 0;
+      const oy = folCfg.customOffsetY || 0;
+      const popupW = 240;
+      const popupH = 40;
+      const coords = calculateLandscapeCoordinates(zone, ox, oy, popupW, popupH, window.innerWidth, window.innerHeight);
+
+      globalPopup.style.left = `${coords.left}px`;
+      globalPopup.style.top = `${coords.top}px`;
+      globalPopup.classList.remove('hidden');
+
+      requestAnimationFrame(() => {
+        globalPopup.classList.remove('scale-95', 'opacity-0');
+        globalPopup.classList.add('scale-100', 'opacity-100');
+      });
+
+      if (window._globalFollowerTimeout) clearTimeout(window._globalFollowerTimeout);
+      window._globalFollowerTimeout = setTimeout(() => {
+        globalPopup.classList.remove('scale-100', 'opacity-100');
+        globalPopup.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          globalPopup.classList.add('hidden');
+        }, 300);
+      }, 4500);
+    }
+
+    // 4. Prominent Follower Dropdown Banner in Chat Window
     const followerBanner = document.getElementById('followerAlertBanner');
     const followerBannerText = document.getElementById('followerAlertText');
     if (followerBanner && followerBannerText) {
@@ -3016,16 +3075,16 @@
       }, 4500);
     }
 
-    // 4. Inject Follower Notification into Live Chat Feed
+    // 5. Inject Follower Notification into Live Chat Feed
     const followText = 'Started following the streamer!';
     window.addChatMessage(cleanUser, 'FOLLOWER', followText, false, null, 0);
 
-    // 5. Primary Follower Notification: Native System Floating Pill outside chat window
+    // 6. Primary Follower Notification: Native System Floating Pill outside chat window
     if (window.AndroidNative && typeof window.AndroidNative.showNativeFollowerAlert === 'function') {
       window.AndroidNative.showNativeFollowerAlert(cleanUser);
     }
 
-    // 6. Update mini-ticker for landscape/minimized HUD
+    // 7. Update mini-ticker for landscape/minimized HUD
     if (window.AndroidNative && typeof window.AndroidNative.updateLatestChat === 'function') {
       window.AndroidNative.updateLatestChat(cleanUser, followText, 'FOLLOWER', new Date().toLocaleTimeString(), false);
     }
@@ -5236,15 +5295,10 @@
 
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
-        saveMasterConfig();
-        if (masterConfig.overlays && masterConfig.overlays.mainChatBox && window.AndroidNative && typeof window.AndroidNative.updateOverlayPosition === 'function') {
-          window.AndroidNative.updateOverlayPosition(
-            'mainChatBox',
-            masterConfig.overlays.mainChatBox.landscapePosition || 'Top-Left',
-            masterConfig.overlays.mainChatBox.customOffsetX || 0,
-            masterConfig.overlays.mainChatBox.customOffsetY || 0
-          );
+        if (masterConfig.overlays && masterConfig.overlays.mainChatBox) {
+          masterConfig.overlays.mainChatBox.landscapePosition = 'Custom Free-Drag';
         }
+        saveMasterConfig();
         closeEditor();
         showToast('Landscape Layout Saved & Applied');
       });
@@ -5303,6 +5357,39 @@
       const onDragEnd = () => {
         if (!isDragging) return;
         isDragging = false;
+        const modId = box.getAttribute('data-module');
+        if (!modId || !masterConfig.overlays || !masterConfig.overlays[modId] || !canvas) return;
+
+        if (modId === 'mainChatBox') {
+          masterConfig.overlays.mainChatBox.landscapePosition = 'Custom Free-Drag';
+          return;
+        }
+
+        const cw = canvas.clientWidth || 800;
+        const ch = canvas.clientHeight || 450;
+        const centerX = box.offsetLeft + (box.offsetWidth || 100) / 2;
+        const centerY = box.offsetTop + (box.offsetHeight || 30) / 2;
+
+        let col = 'Center';
+        if (centerX < cw / 3) col = 'Left';
+        else if (centerX > (cw * 2) / 3) col = 'Right';
+
+        let row = 'Middle';
+        if (centerY < ch / 3) row = 'Top';
+        else if (centerY > (cw * 2) / 3) row = 'Bottom';
+
+        let zone = `${row}-${col}`;
+        if (row === 'Middle' && col === 'Center') zone = 'Center';
+
+        masterConfig.overlays[modId].landscapePosition = zone;
+        masterConfig.overlays[modId].customOffsetX = 0;
+        masterConfig.overlays[modId].customOffsetY = 0;
+
+        const posIndicator = box.querySelector('[id^="editorPos"]');
+        if (posIndicator) posIndicator.textContent = `Pos: ${zone}`;
+
+        selectModule(modId);
+        showToast(`${MODULE_DISPLAY_NAMES[modId] || modId}: Position set to ${zone}`);
       };
 
       box.addEventListener('touchstart', (e) => {
