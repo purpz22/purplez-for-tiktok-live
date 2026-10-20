@@ -1297,14 +1297,6 @@ textarea {
 }
 
 /* 9-Zone Landscape Layout Editor Styles */
-.zone-anchor-grid {
-  display: grid !important;
-  grid-template-columns: repeat(9, minmax(0, 1fr)) !important;
-  gap: 4px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-
 .zone-anchor-btn {
   display: flex !important;
   align-items: center !important;
@@ -1342,7 +1334,19 @@ textarea {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Landscape Layout Editor Full-Screen Canvas & Dock */
+.editor-draggable-box {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  user-select: none;
+  touch-action: none;
+}
+
+.editor-draggable-box.active-module-box {
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.65) !important;
+  z-index: 25 !important;
+}
+
+/* Landscape Layout Editor Full-Screen Modal & Canvas */
 #landscapeLayoutEditorModal {
   position: fixed !important;
   inset: 0 !important;
@@ -1352,21 +1356,105 @@ textarea {
   flex-direction: column !important;
   overflow: hidden !important;
   z-index: 50 !important;
+  background-color: #000000 !important;
 }
 
-#landscapeEditorCanvas {
-  position: relative !important;
+#landscapeEditorHeader {
+  flex-shrink: 0 !important;
+}
+
+#landscapeEditorCanvasWrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
   width: 100% !important;
   overflow: hidden !important;
+  position: relative !important;
+  background: #050508 !important;
 }
 
-#landscapeEditorBottomDock {
-  flex-shrink: 0 !important;
-  max-height: 90px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
+/* Responsive layout: Portrait and narrow screens */
+@media (max-width: 799px), (orientation: portrait) {
+  #landscapeOrientationNotice {
+    display: flex !important;
+  }
+
+  #landscapeEditorCanvas {
+    width: 800px !important;
+    height: 450px !important;
+    flex: none !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transform-origin: center center !important;
+    transform: scale(min(calc((100vw - 24px) / 800), calc((100vh - 270px) / 450))) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .zone-anchor-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .zone-anchor-btn {
+    height: 32px !important;
+    font-size: 11px !important;
+    padding: 6px 4px !important;
+    white-space: nowrap !important;
+  }
+
+  #landscapeEditorBottomDock {
+    flex-shrink: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 8px 12px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Responsive layout: Landscape widescreen */
+@media (min-width: 800px) and (orientation: landscape) {
+  #landscapeOrientationNotice {
+    display: none !important;
+  }
+
+  #landscapeEditorCanvas {
+    position: relative !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    transform: none !important;
+  }
+
+  .zone-anchor-grid {
+    display: grid !important;
+    grid-template-columns: repeat(9, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .zone-anchor-btn {
+    height: 28px !important;
+    font-size: 10px !important;
+    padding: 5px 2px !important;
+    white-space: nowrap !important;
+  }
+
+  #landscapeEditorBottomDock {
+    flex-shrink: 0 !important;
+    max-height: 90px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 
 /* MOBA and Shooter Game HUD Simulator Canvas */

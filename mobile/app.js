@@ -432,6 +432,14 @@
   }
 
   window.handleBackAction = function() {
+    const editorModal = document.getElementById('landscapeLayoutEditorModal');
+    if (editorModal && !editorModal.classList.contains('hidden')) {
+      editorModal.classList.add('hidden');
+      if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
+        window.AndroidNative.toggleOrientation(false);
+      }
+      return 'handled';
+    }
     if (giftListModal && !giftListModal.classList.contains('hidden')) {
       closeGiftListModal();
       return 'handled';
@@ -5040,8 +5048,75 @@
     const offsetDisplay = document.getElementById('editorOffsetDisplay');
     const offsetXSlider = document.getElementById('editorOffsetXSlider');
     const offsetYSlider = document.getElementById('editorOffsetYSlider');
+    const selectedNameEl = document.getElementById('editorSelectedModuleName');
+    const selectedNameMobileEl = document.getElementById('editorSelectedModuleNameMobile');
+
+    const MODULE_DISPLAY_NAMES = {
+      mainChatBox: 'Main Chat Box',
+      gifterPriorityBanner: 'VIP Gifter Banner',
+      giftAnimationOverlay: 'Gift Animation Alert',
+      followerAlertOverlay: 'Follower Alert',
+      liveLikeCounter: 'Likes & Viewer Counter',
+      smartGameIdBar: 'Smart Game ID Bar'
+    };
 
     let currentSelectedModule = 'mainChatBox';
+
+    function selectModule(moduleId) {
+      if (!moduleId) return;
+      currentSelectedModule = moduleId;
+
+      document.querySelectorAll('.editor-draggable-box').forEach(box => {
+        if (box.getAttribute('data-module') === moduleId) {
+          box.classList.add('active-module-box');
+        } else {
+          box.classList.remove('active-module-box');
+        }
+      });
+
+      const dispName = MODULE_DISPLAY_NAMES[moduleId] || moduleId;
+      if (selectedNameEl) selectedNameEl.textContent = `Selected: ${dispName}`;
+      if (selectedNameMobileEl) selectedNameMobileEl.textContent = dispName;
+
+      const modConfig = masterConfig.overlays && masterConfig.overlays[moduleId];
+      const currentZone = (modConfig && modConfig.landscapePosition) || 'Top-Left';
+      const curX = (modConfig && typeof modConfig.customOffsetX === 'number') ? modConfig.customOffsetX : 0;
+      const curY = (modConfig && typeof modConfig.customOffsetY === 'number') ? modConfig.customOffsetY : 0;
+
+      document.querySelectorAll('.zone-anchor-btn').forEach(btn => {
+        if (btn.getAttribute('data-zone') === currentZone) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      if (offsetXSlider) offsetXSlider.value = curX;
+      if (offsetYSlider) offsetYSlider.value = curY;
+      if (offsetDisplay) offsetDisplay.textContent = `X: ${curX}px | Y: ${curY}px`;
+    }
+
+    function syncAllModulePositions() {
+      if (!canvas) return;
+      const cw = canvas.clientWidth || 800;
+      const ch = canvas.clientHeight || 450;
+
+      document.querySelectorAll('.editor-draggable-box').forEach(box => {
+        const modId = box.getAttribute('data-module');
+        if (modId && masterConfig.overlays && masterConfig.overlays[modId]) {
+          const cfg = masterConfig.overlays[modId];
+          const zone = cfg.landscapePosition || 'Top-Left';
+          const ox = cfg.customOffsetX || 0;
+          const oy = cfg.customOffsetY || 0;
+          const coords = calculateLandscapeCoordinates(zone, ox, oy, box.offsetWidth || 200, box.offsetHeight || 40, cw, ch);
+          box.style.left = `${coords.left}px`;
+          box.style.top = `${coords.top}px`;
+
+          const posIndicator = box.querySelector('[id^="editorPos"]');
+          if (posIndicator) posIndicator.textContent = `Pos: ${zone}`;
+        }
+      });
+    }
 
     if (openBtn && editorModal) {
       openBtn.addEventListener('click', () => {
@@ -5049,6 +5124,10 @@
         if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
           window.AndroidNative.toggleOrientation(true);
         }
+        setTimeout(() => {
+          syncAllModulePositions();
+          selectModule('mainChatBox');
+        }, 50);
         showToast('Landscape Layout Editor Opened');
       });
     }
@@ -5056,6 +5135,9 @@
     if (closeBtn && editorModal) {
       closeBtn.addEventListener('click', () => {
         editorModal.classList.add('hidden');
+        if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
+          window.AndroidNative.toggleOrientation(false);
+        }
       });
     }
 
@@ -5063,48 +5145,137 @@
       saveBtn.addEventListener('click', () => {
         saveMasterConfig();
         editorModal?.classList.add('hidden');
+        if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
+          window.AndroidNative.toggleOrientation(false);
+        }
         showToast('Landscape Layout Saved & Applied');
       });
     }
 
     if (templateSelect && canvas) {
       templateSelect.addEventListener('change', (e) => {
-        canvas.className = `relative flex-1 overflow-hidden hud-template-${e.target.value}`;
+        canvas.className = `relative overflow-hidden hud-template-${e.target.value}`;
       });
     }
+
+    // Click to select module box
+    document.querySelectorAll('.editor-draggable-box').forEach(box => {
+      box.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const modId = box.getAttribute('data-module');
+        if (modId) selectModule(modId);
+      });
+
+      // Touch & Mouse Dragging inside canvas
+      let isDragging = false;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+
+      const onDragStart = (clientX, clientY) => {
+        const modId = box.getAttribute('data-module');
+        if (modId) selectModule(modId);
+        isDragging = true;
+        startX = clientX;
+        startY = clientY;
+        startLeft = box.offsetLeft;
+        startTop = box.offsetTop;
+      };
+
+      const onDragMove = (clientX, clientY) => {
+        if (!isDragging || !canvas) return;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        const newLeft = Math.max(0, Math.min((canvas.clientWidth || 800) - box.offsetWidth, startLeft + dx));
+        const newTop = Math.max(0, Math.min((canvas.clientHeight || 450) - box.offsetHeight, startTop + dy));
+        box.style.left = `${newLeft}px`;
+        box.style.top = `${newTop}px`;
+      };
+
+      const onDragEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+      };
+
+      box.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      box.addEventListener('touchmove', (e) => {
+        if (isDragging && e.touches.length === 1) {
+          onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      box.addEventListener('touchend', onDragEnd);
+
+      box.addEventListener('mousedown', (e) => {
+        onDragStart(e.clientX, e.clientY);
+        const onMouseMove = (ev) => onDragMove(ev.clientX, ev.clientY);
+        const onMouseUp = () => {
+          onDragEnd();
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        };
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+    });
 
     // 9-Zone Anchor Snap Buttons
     document.querySelectorAll('.zone-anchor-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.zone-anchor-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
         const zone = btn.getAttribute('data-zone');
-        if (zone && masterConfig.overlays[currentSelectedModule]) {
+        if (zone && masterConfig.overlays && masterConfig.overlays[currentSelectedModule]) {
           masterConfig.overlays[currentSelectedModule].landscapePosition = zone;
           const box = document.querySelector(`.editor-draggable-box[data-module="${currentSelectedModule}"]`);
-          if (box) {
-            const coords = calculateLandscapeCoordinates(zone, masterConfig.overlays[currentSelectedModule].customOffsetX || 0, masterConfig.overlays[currentSelectedModule].customOffsetY || 0, box.offsetWidth, box.offsetHeight, canvas.clientWidth || 600, canvas.clientHeight || 300);
+          if (box && canvas) {
+            const cw = canvas.clientWidth || 800;
+            const ch = canvas.clientHeight || 450;
+            const coords = calculateLandscapeCoordinates(zone, masterConfig.overlays[currentSelectedModule].customOffsetX || 0, masterConfig.overlays[currentSelectedModule].customOffsetY || 0, box.offsetWidth || 200, box.offsetHeight || 40, cw, ch);
             box.style.left = `${coords.left}px`;
             box.style.top = `${coords.top}px`;
+
+            const posIndicator = box.querySelector('[id^="editorPos"]');
+            if (posIndicator) posIndicator.textContent = `Pos: ${zone}`;
           }
-          showToast(`Snapped ${currentSelectedModule} to ${zone}`);
+          selectModule(currentSelectedModule);
+          showToast(`Snapped ${MODULE_DISPLAY_NAMES[currentSelectedModule] || currentSelectedModule} to ${zone}`);
         }
       });
     });
 
+    // Offset Sliders Fine-Tuning
     if (offsetXSlider && offsetYSlider) {
       offsetXSlider.addEventListener('input', (e) => {
         const val = parseInt(e.target.value, 10);
-        if (masterConfig.overlays[currentSelectedModule]) {
+        if (masterConfig.overlays && masterConfig.overlays[currentSelectedModule]) {
           masterConfig.overlays[currentSelectedModule].customOffsetX = val;
           if (offsetDisplay) offsetDisplay.textContent = `X: ${val}px | Y: ${offsetYSlider.value}px`;
+          const box = document.querySelector(`.editor-draggable-box[data-module="${currentSelectedModule}"]`);
+          if (box && canvas) {
+            const zone = masterConfig.overlays[currentSelectedModule].landscapePosition || 'Top-Left';
+            const coords = calculateLandscapeCoordinates(zone, val, masterConfig.overlays[currentSelectedModule].customOffsetY || 0, box.offsetWidth || 200, box.offsetHeight || 40, canvas.clientWidth || 800, canvas.clientHeight || 450);
+            box.style.left = `${coords.left}px`;
+            box.style.top = `${coords.top}px`;
+          }
         }
       });
       offsetYSlider.addEventListener('input', (e) => {
         const val = parseInt(e.target.value, 10);
-        if (masterConfig.overlays[currentSelectedModule]) {
+        if (masterConfig.overlays && masterConfig.overlays[currentSelectedModule]) {
           masterConfig.overlays[currentSelectedModule].customOffsetY = val;
           if (offsetDisplay) offsetDisplay.textContent = `X: ${offsetXSlider.value}px | Y: ${val}px`;
+          const box = document.querySelector(`.editor-draggable-box[data-module="${currentSelectedModule}"]`);
+          if (box && canvas) {
+            const zone = masterConfig.overlays[currentSelectedModule].landscapePosition || 'Top-Left';
+            const coords = calculateLandscapeCoordinates(zone, masterConfig.overlays[currentSelectedModule].customOffsetX || 0, val, box.offsetWidth || 200, box.offsetHeight || 40, canvas.clientWidth || 800, canvas.clientHeight || 450);
+            box.style.left = `${coords.left}px`;
+            box.style.top = `${coords.top}px`;
+          }
         }
       });
     }

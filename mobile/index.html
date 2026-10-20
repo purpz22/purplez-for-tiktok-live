@@ -1560,18 +1560,18 @@
   <!-- MODAL: INTERACTIVE LANDSCAPE LAYOUT EDITOR -->
   <div class="fixed inset-0 z-50 bg-black flex flex-col select-none overflow-hidden hidden" id="landscapeLayoutEditorModal">
     <!-- Header -->
-    <div class="flex items-center justify-between px-3 py-2 bg-zinc-950 border-b border-zinc-800 font-mono text-xs">
-      <div class="flex items-center space-x-2">
+    <div class="flex items-center justify-between px-3 py-2 bg-zinc-950 border-b border-zinc-800 font-mono text-xs flex-wrap gap-2" id="landscapeEditorHeader">
+      <div class="flex items-center space-x-2 shrink-0">
         <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        <span class="text-white font-bold uppercase tracking-wider">LANDSCAPE LAYOUT EDITOR</span>
-        <span class="text-zinc-600">|</span>
-        <span class="text-zinc-400" id="editorSelectedModuleName">Selected: Main Chat Box</span>
+        <span class="text-white font-bold uppercase tracking-wider text-xs whitespace-nowrap">LANDSCAPE LAYOUT EDITOR</span>
+        <span class="text-zinc-600 hidden md:inline">|</span>
+        <span class="text-zinc-400 text-[11px] hidden md:inline" id="editorSelectedModuleName">Selected: Main Chat Box</span>
       </div>
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 shrink-0">
         <!-- Template selector -->
         <select id="editorHudTemplateSelect" class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-white text-[10px]">
-          <option value="moba">MOBA / MLBB HUD Template</option>
-          <option value="shooter">Shooter HUD Template</option>
+          <option value="moba">MOBA / MLBB HUD</option>
+          <option value="shooter">Shooter HUD</option>
           <option value="dark">Clean Dark Grid</option>
         </select>
         <!-- Save and Close -->
@@ -1584,81 +1584,93 @@
       </div>
     </div>
 
-    <!-- Canvas -->
-    <div class="relative flex-1 overflow-hidden hud-template-moba" id="landscapeEditorCanvas">
-      <!-- Simulated In-Game HUD Elements for Visual Orientation -->
-      <div class="absolute top-2 left-3 p-2 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none" style="width: 120px; height: 100px;">
-        <span class="text-[9px] font-mono text-zinc-400 font-bold block">MINIMAP ZONE</span>
-        <span class="text-[8px] text-zinc-500">Top-Left</span>
-      </div>
-      <div class="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 border border-white/20 text-center pointer-events-none">
-        <span class="text-[9px] font-mono text-zinc-400 font-bold">MATCH SCORE & TIMER [Top-Center]</span>
-      </div>
-      <div class="absolute top-2 right-3 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
-        <span class="text-[9px] font-mono text-zinc-400 font-bold">KDA & SETTINGS [Top-Right]</span>
-      </div>
-      <div class="absolute bottom-3 left-4 w-28 h-28 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
-        <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">JOYSTICK<br>ZONE</span>
-      </div>
-      <div class="absolute bottom-3 right-4 w-36 h-36 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
-        <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">SKILLS & ATTACK<br>ZONE</span>
-      </div>
-      <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
-        <span class="text-[9px] font-mono text-zinc-400 font-bold">RECALL & REGEN [Bottom-Center]</span>
-      </div>
+    <!-- Portrait Orientation Indicator Banner -->
+    <div class="portrait-orientation-warning px-3 py-1 bg-purple-950/80 border-b border-purple-500/40 text-[10px] font-mono text-purple-200 text-center flex items-center justify-center space-x-1.5" id="landscapeOrientationNotice">
+      <svg class="w-3.5 h-3.5 shrink-0 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <span>ROTATE PHONE TO LANDSCAPE FOR FULL-SCREEN HUD</span>
+    </div>
 
-      <!-- Draggable Overlay Boxes on Canvas -->
-      <!-- 1. Main Chat Box -->
-      <div class="absolute rounded-xl border-2 border-purple-500 bg-purple-950/60 p-2 shadow-2xl cursor-move flex flex-col justify-between editor-draggable-box active-module-box" data-module="mainChatBox" id="editorBoxChat" style="width: 260px; height: 150px; top: 30px; left: 160px;">
-        <div class="flex items-center justify-between text-[10px] font-mono font-bold text-white bg-purple-900/80 px-1.5 py-0.5 rounded">
-          <span>MAIN CHAT (DUAL-TAB)</span>
-          <span class="text-[8px] bg-purple-700 px-1 rounded">DRAG</span>
+    <!-- Canvas Wrapper -->
+    <div id="landscapeEditorCanvasWrapper" class="flex-1 min-h-0 flex items-center justify-center overflow-hidden bg-black relative">
+      <!-- Canvas -->
+      <div class="relative overflow-hidden hud-template-moba" id="landscapeEditorCanvas">
+        <!-- Simulated In-Game HUD Elements for Visual Orientation -->
+        <div class="absolute top-2 left-3 p-2 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none" style="width: 120px; height: 95px;">
+          <span class="text-[9px] font-mono text-zinc-400 font-bold block">MINIMAP ZONE</span>
+          <span class="text-[8px] text-zinc-500">Top-Left</span>
         </div>
-        <div class="text-[9px] text-zinc-300 font-mono text-center">Live Chat & Alerts Feed</div>
-        <div class="text-[8px] text-purple-300 font-mono text-right" id="editorPosChat">Pos: Top-Center</div>
-      </div>
+        <div class="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 border border-white/20 text-center pointer-events-none">
+          <span class="text-[9px] font-mono text-zinc-400 font-bold">MATCH SCORE & TIMER [Top-Center]</span>
+        </div>
+        <div class="absolute top-2 right-3 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
+          <span class="text-[9px] font-mono text-zinc-400 font-bold">KDA & SETTINGS [Top-Right]</span>
+        </div>
+        <div class="absolute bottom-3 left-4 w-28 h-28 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
+          <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">JOYSTICK<br>ZONE</span>
+        </div>
+        <div class="absolute bottom-3 right-4 w-36 h-36 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
+          <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">SKILLS & ATTACK<br>ZONE</span>
+        </div>
+        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
+          <span class="text-[9px] font-mono text-zinc-400 font-bold">RECALL & REGEN [Bottom-Center]</span>
+        </div>
 
-      <!-- 2. Gifter Priority Banner -->
-      <div class="absolute rounded-lg border-2 border-amber-400 bg-amber-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="gifterPriorityBanner" id="editorBoxGifter" style="width: 220px; height: 32px; top: 185px; left: 180px;">
-        <span class="text-[9px] font-mono font-bold text-amber-200">VIP BANNER</span>
-        <span class="text-[8px] font-mono text-amber-400" id="editorPosGifter">Top-Center</span>
-      </div>
+        <!-- Draggable Overlay Boxes on Canvas -->
+        <!-- 1. Main Chat Box -->
+        <div class="absolute rounded-xl border-2 border-purple-500 bg-purple-950/60 p-2 shadow-2xl cursor-move flex flex-col justify-between editor-draggable-box active-module-box" data-module="mainChatBox" id="editorBoxChat" style="width: 250px; height: 140px; top: 38px; left: 160px;">
+          <div class="flex items-center justify-between text-[10px] font-mono font-bold text-white bg-purple-900/80 px-1.5 py-0.5 rounded">
+            <span>MAIN CHAT (DUAL-TAB)</span>
+            <span class="text-[8px] bg-purple-700 px-1 rounded">DRAG</span>
+          </div>
+          <div class="text-[9px] text-zinc-300 font-mono text-center">Live Chat & Alerts Feed</div>
+          <div class="text-[8px] text-purple-300 font-mono text-right" id="editorPosChat">Pos: Top-Center</div>
+        </div>
 
-      <!-- 3. Gift Animation Overlay -->
-      <div class="absolute rounded-lg border-2 border-yellow-400 bg-yellow-950/60 p-1.5 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="giftAnimationOverlay" id="editorBoxGift" style="width: 140px; height: 42px; top: 40px; right: 20px;">
-        <span class="text-[9px] font-mono font-bold text-yellow-200">GIFT ALERT (x10)</span>
-        <span class="text-[8px] font-mono text-yellow-400" id="editorPosGift">Top-Right</span>
-      </div>
+        <!-- 2. Gifter Priority Banner -->
+        <div class="absolute rounded-lg border-2 border-amber-400 bg-amber-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="gifterPriorityBanner" id="editorBoxGifter" style="width: 210px; height: 32px; top: 188px; left: 160px;">
+          <span class="text-[9px] font-mono font-bold text-amber-200">VIP BANNER</span>
+          <span class="text-[8px] font-mono text-amber-400" id="editorPosGifter">Top-Center</span>
+        </div>
 
-      <!-- 4. Follower Alert Overlay -->
-      <div class="absolute rounded-lg border-2 border-purple-400 bg-purple-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 180px; height: 32px; top: 8px; left: 180px;">
-        <span class="text-[9px] font-mono font-bold text-purple-200">NEW FOLLOWER</span>
-        <span class="text-[8px] font-mono text-purple-400" id="editorPosFollower">Top-Center</span>
-      </div>
+        <!-- 3. Gift Animation Overlay -->
+        <div class="absolute rounded-lg border-2 border-yellow-400 bg-yellow-950/60 p-1.5 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="giftAnimationOverlay" id="editorBoxGift" style="width: 140px; height: 42px; top: 40px; right: 20px;">
+          <span class="text-[9px] font-mono font-bold text-yellow-200">GIFT ALERT (x10)</span>
+          <span class="text-[8px] font-mono text-yellow-400" id="editorPosGift">Top-Right</span>
+        </div>
 
-      <!-- 5. Like & Viewer Counters -->
-      <div class="absolute rounded-lg border-2 border-rose-400 bg-rose-950/60 px-2 py-1 shadow-xl cursor-move flex items-center space-x-2 editor-draggable-box" data-module="liveLikeCounter" id="editorBoxCounters" style="width: 130px; height: 30px; top: 8px; right: 140px;">
-        <span class="text-[9px] font-mono font-bold text-rose-200">LIKES & VIEWERS</span>
-      </div>
+        <!-- 4. Follower Alert Overlay -->
+        <div class="absolute rounded-lg border-2 border-purple-400 bg-purple-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 170px; height: 32px; top: 8px; left: 160px;">
+          <span class="text-[9px] font-mono font-bold text-purple-200">NEW FOLLOWER</span>
+          <span class="text-[8px] font-mono text-purple-400" id="editorPosFollower">Top-Center</span>
+        </div>
 
-      <!-- 6. Smart Game ID Bar -->
-      <div class="absolute rounded-lg border-2 border-emerald-400 bg-emerald-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="smartGameIdBar" id="editorBoxGameId" style="width: 210px; height: 32px; bottom: 45px; left: 50%; transform: translateX(-50%);">
-        <span class="text-[9px] font-mono font-bold text-emerald-200">GAME ID COPY BAR</span>
-        <span class="text-[8px] font-mono text-emerald-400" id="editorPosGameId">Bottom-Center</span>
+        <!-- 5. Like & Viewer Counters -->
+        <div class="absolute rounded-lg border-2 border-rose-400 bg-rose-950/60 px-2 py-1 shadow-xl cursor-move flex items-center space-x-2 editor-draggable-box" data-module="liveLikeCounter" id="editorBoxCounters" style="width: 130px; height: 30px; top: 8px; right: 140px;">
+          <span class="text-[9px] font-mono font-bold text-rose-200">LIKES & VIEWERS</span>
+        </div>
+
+        <!-- 6. Smart Game ID Bar -->
+        <div class="absolute rounded-lg border-2 border-emerald-400 bg-emerald-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="smartGameIdBar" id="editorBoxGameId" style="width: 200px; height: 32px; bottom: 42px; left: 50%; transform: translateX(-50%);">
+          <span class="text-[9px] font-mono font-bold text-emerald-200">GAME ID COPY BAR</span>
+          <span class="text-[8px] font-mono text-emerald-400" id="editorPosGameId">Bottom-Center</span>
+        </div>
       </div>
     </div>
 
     <!-- Bottom Dock with 9-Zone Snapping Grid & Offset Sliders -->
     <div class="bg-zinc-950 border-t border-zinc-800 p-2 font-mono text-xs flex flex-col space-y-1.5 shrink-0" id="landscapeEditorBottomDock">
       <div class="flex items-center justify-between text-[11px]">
-        <span class="text-zinc-400 font-bold uppercase">SNAP TO 9-ZONE SCREEN ANCHOR:</span>
+        <div class="flex items-center space-x-2">
+          <span class="text-zinc-400 font-bold uppercase">SNAP TO 9-ZONE SCREEN ANCHOR:</span>
+          <span class="text-purple-400 font-bold text-[10px]" id="editorSelectedModuleNameMobile">Main Chat</span>
+        </div>
         <div class="flex items-center space-x-2">
           <span class="text-zinc-500 text-[10px]">OFFSET:</span>
           <span class="text-white font-bold text-[10px]" id="editorOffsetDisplay">X: 0px | Y: 0px</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-9 gap-1 text-center zone-anchor-grid" id="editorZoneAnchorRow">
+      <div class="zone-anchor-grid" id="editorZoneAnchorRow">
         <button type="button" class="zone-anchor-btn" data-zone="Top-Left">Top-Left</button>
         <button type="button" class="zone-anchor-btn active" data-zone="Top-Center">Top-Center</button>
         <button type="button" class="zone-anchor-btn" data-zone="Top-Right">Top-Right</button>
