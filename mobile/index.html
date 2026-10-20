@@ -809,12 +809,12 @@
             </div>
           </div>
 
-          <!-- 3. Live Gift Animation & Streak Overlay -->
+          <!-- 3. Live Gift Alert Overlay & Sound -->
           <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="giftAnimationOverlay">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
-                <span class="text-xs font-bold text-white uppercase">3. LIVE GIFT ANIMATION & STREAK</span>
+                <span class="text-xs font-bold text-white uppercase">3. LIVE GIFT ALERT & SOUND</span>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" class="sr-only peer overlay-toggle" data-module="giftAnimationOverlay" checked>
@@ -822,6 +822,12 @@
               </label>
             </div>
             <p class="text-[10px] text-zinc-400">Animated gift popups, coins, and combo multipliers.</p>
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" class="overlay-subtoggle" id="muteGiftSoundOnlyToggle">
+                <span class="text-[10px] text-zinc-300">Mute Gift Sound Only (Banner ON, Sound OFF)</span>
+              </label>
+            </div>
             <div class="flex items-center justify-between pt-1">
               <label class="flex items-center space-x-1.5 cursor-pointer">
                 <input type="checkbox" class="overlay-lock-touch" data-module="giftAnimationOverlay" checked>
@@ -1133,6 +1139,43 @@
           </div>
         </div>
 
+        <!-- GIFT NOTIFICATION SOUND SETTINGS -->
+        <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="giftSoundSettingsCard">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">GIFT SOUND</span>
+            <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-white font-bold" id="currentGiftSoundBadge">COIN (DEFAULT)</span>
+          </div>
+          <select id="giftSoundSelect" class="w-full bg-black border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:border-white focus:outline-none">
+            <option value="coin">Default (Coin Cha-Ching)</option>
+            <option value="fanfare">Victory Fanfare (Celebration)</option>
+            <option value="arcade">Arcade Power-Up (8-Bit)</option>
+            <option value="crystal">Crystal Diamond (Sparkle)</option>
+            <option value="blup">Pop Blup (blup.mp3)</option>
+            <option value="custom">Custom Audio File...</option>
+          </select>
+          <div class="hidden space-y-1.5" id="customGiftSoundUploadRow">
+            <input type="file" id="customGiftSoundFileInput" accept="audio/*" class="hidden" />
+            <button type="button" class="w-full py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-dashed border-zinc-600 hover:border-white rounded-xl text-xs font-mono text-zinc-300 hover:text-white flex items-center justify-center space-x-2 cursor-pointer transition-all" id="chooseGiftSoundFileBtn">
+              <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+              </svg>
+              <span id="chosenGiftSoundFileName">CHOOSE AUDIO FILE (.MP3 / .WAV)</span>
+            </button>
+          </div>
+          <div class="flex items-center space-x-2 pt-1">
+            <button type="button" class="flex-1 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded-lg text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95" id="testGiftSoundBtn">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>TEST SOUND</span>
+            </button>
+            <button type="button" class="py-2 px-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg font-mono text-xs cursor-pointer" id="resetGiftSoundBtn" title="Reset to Default Coin">
+              RESET
+            </button>
+          </div>
+        </div>
+
         <!-- TEST LIVE NOTIFICATIONS -->
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="testAlertsCard">
           <div class="flex items-center justify-between">
@@ -1192,7 +1235,7 @@
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.27</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.28</span>
           </div>
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-zinc-400">STATUS:</span>
@@ -1211,7 +1254,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.27</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.28</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.
@@ -1448,6 +1491,22 @@
                 <option value="blup">Default (Blup)</option>
                 <option value="crystal">Crystal Chime</option>
                 <option value="pop">Bubble Pop</option>
+                <option value="custom">Custom Audio File...</option>
+              </select>
+            </div>
+
+            <!-- Gift Notification Sound Section -->
+            <div class="space-y-1.5 pt-2 border-t border-zinc-800 mb-2.5">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-zinc-400 uppercase text-[11px]">Gift Sound</span>
+                <span class="text-white font-bold text-[10px]" id="dropdownGiftSoundBadge">COIN</span>
+              </div>
+              <select id="dropdownGiftSoundSelect" class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1 text-[11px] text-white font-mono focus:border-white focus:outline-none">
+                <option value="coin">Default (Coin Cha-Ching)</option>
+                <option value="fanfare">Victory Fanfare</option>
+                <option value="arcade">Arcade Power-Up</option>
+                <option value="crystal">Crystal Diamond</option>
+                <option value="blup">Pop Blup</option>
                 <option value="custom">Custom Audio File...</option>
               </select>
             </div>

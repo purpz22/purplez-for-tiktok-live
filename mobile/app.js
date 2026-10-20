@@ -2749,7 +2749,7 @@
       ? masterConfig.overlays.giftAnimationOverlay.playAudioChimeBlupMp3 !== false
       : true;
     if (playSound) {
-      playFollowNotificationSound();
+      playGiftNotificationSound();
     }
     if (window.AndroidNative) {
       if (typeof window.AndroidNative.triggerHapticFeedback === 'function') {
@@ -2889,6 +2889,321 @@
       osc2.start(now + 0.1);
       osc2.stop(now + 0.6);
     } catch (_) {}
+  }
+
+  function playCoinSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!window._followAudioCtx) {
+        window._followAudioCtx = new AudioCtx();
+      }
+      const ctx = window._followAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+
+      // Primary crisp coin tone (B6 ~ 1975.53 Hz)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(1975.53, now);
+      gain1.gain.setValueAtTime(0.4, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.35);
+
+      // High metallic chime overtone
+      const osc1High = ctx.createOscillator();
+      const gain1High = ctx.createGain();
+      osc1High.type = 'triangle';
+      osc1High.frequency.setValueAtTime(3951.07, now);
+      gain1High.gain.setValueAtTime(0.15, now);
+      gain1High.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc1High.connect(gain1High);
+      gain1High.connect(ctx.destination);
+      osc1High.start(now);
+      osc1High.stop(now + 0.25);
+
+      // Second coin clink (E7 ~ 2637.02 Hz) struck at +0.07s
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(2637.02, now + 0.07);
+      gain2.gain.setValueAtTime(0.35, now + 0.07);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.07);
+      osc2.stop(now + 0.45);
+    } catch (_) {}
+  }
+
+  function playFanfareSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!window._followAudioCtx) {
+        window._followAudioCtx = new AudioCtx();
+      }
+      const ctx = window._followAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const notes = [
+        { f: 523.25, t: 0.00, dur: 0.10, vol: 0.25 },
+        { f: 659.25, t: 0.08, dur: 0.10, vol: 0.25 },
+        { f: 783.99, t: 0.16, dur: 0.12, vol: 0.30 },
+        { f: 1046.50, t: 0.26, dur: 0.45, vol: 0.35 }
+      ];
+      notes.forEach(n => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, now + n.t);
+        gain.gain.setValueAtTime(n.vol, now + n.t);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + n.t);
+        osc.stop(now + n.t + n.dur);
+      });
+    } catch (_) {}
+  }
+
+  function playArcadePowerUpSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!window._followAudioCtx) {
+        window._followAudioCtx = new AudioCtx();
+      }
+      const ctx = window._followAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(330, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.25);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } catch (_) {}
+  }
+
+  function playCrystalDiamondSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!window._followAudioCtx) {
+        window._followAudioCtx = new AudioCtx();
+      }
+      const ctx = window._followAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const sparkle = [1318.51, 1567.98, 2093.00];
+      sparkle.forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now + i * 0.06);
+        gain.gain.setValueAtTime(0.28, now + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.06);
+        osc.stop(now + i * 0.06 + 0.4);
+      });
+    } catch (_) {}
+  }
+
+  function getGiftSoundConfig() {
+    return {
+      type: localStorage.getItem('purplez_gift_sound_type') || 'coin',
+      customData: localStorage.getItem('purplez_gift_sound_custom_data') || '',
+      customName: localStorage.getItem('purplez_gift_sound_custom_name') || ''
+    };
+  }
+
+  function playGiftNotificationSound() {
+    const config = getGiftSoundConfig();
+
+    if (config.type === 'custom' && config.customData) {
+      try {
+        const audio = new Audio(config.customData);
+        audio.volume = 1.0;
+        const p = audio.play();
+        if (p !== undefined) {
+          p.catch(() => playCoinSound());
+        }
+        return;
+      } catch (_) {
+        playCoinSound();
+        return;
+      }
+    }
+
+    if (config.type === 'fanfare') {
+      playFanfareSound();
+      return;
+    }
+
+    if (config.type === 'arcade') {
+      playArcadePowerUpSound();
+      return;
+    }
+
+    if (config.type === 'crystal') {
+      playCrystalDiamondSound();
+      return;
+    }
+
+    if (config.type === 'blup') {
+      try {
+        if (!cachedBlupAudio) {
+          cachedBlupAudio = new Audio('blup.mp3');
+        }
+        cachedBlupAudio.currentTime = 0;
+        cachedBlupAudio.volume = 1.0;
+        const p = cachedBlupAudio.play();
+        if (p !== undefined) {
+          p.catch(() => playCoinSound());
+        }
+        return;
+      } catch (_) {
+        playCoinSound();
+        return;
+      }
+    }
+
+    // Default: 'coin'
+    playCoinSound();
+  }
+
+  function syncGiftSoundUi() {
+    const config = getGiftSoundConfig();
+    const select = document.getElementById('giftSoundSelect');
+    const dropdownSelect = document.getElementById('dropdownGiftSoundSelect');
+    const uploadRow = document.getElementById('customGiftSoundUploadRow');
+    const chosenNameSpan = document.getElementById('chosenGiftSoundFileName');
+    const currentSoundBadge = document.getElementById('currentGiftSoundBadge');
+    const dropdownSoundBadge = document.getElementById('dropdownGiftSoundBadge');
+
+    if (select) select.value = config.type;
+    if (dropdownSelect) dropdownSelect.value = config.type;
+
+    if (uploadRow) {
+      if (config.type === 'custom') {
+        uploadRow.classList.remove('hidden');
+      } else {
+        uploadRow.classList.add('hidden');
+      }
+    }
+
+    let badgeText = 'COIN (DEFAULT)';
+    if (config.type === 'fanfare') badgeText = 'FANFARE';
+    else if (config.type === 'arcade') badgeText = 'ARCADE';
+    else if (config.type === 'crystal') badgeText = 'CRYSTAL';
+    else if (config.type === 'blup') badgeText = 'POP BLUP';
+    else if (config.type === 'custom') {
+      badgeText = config.customName ? config.customName.toUpperCase().slice(0, 16) : 'CUSTOM FILE';
+    }
+
+    if (currentSoundBadge) currentSoundBadge.textContent = badgeText;
+    if (dropdownSoundBadge) dropdownSoundBadge.textContent = badgeText;
+    if (chosenNameSpan) {
+      chosenNameSpan.textContent = config.customName ? config.customName : 'CHOOSE AUDIO FILE (.MP3 / .WAV)';
+    }
+  }
+
+  function setupGiftSoundControls() {
+    const select = document.getElementById('giftSoundSelect');
+    const dropdownSelect = document.getElementById('dropdownGiftSoundSelect');
+    const customFileInput = document.getElementById('customGiftSoundFileInput');
+    const chooseBtn = document.getElementById('chooseGiftSoundFileBtn');
+    const testBtn = document.getElementById('testGiftSoundBtn');
+    const resetBtn = document.getElementById('resetGiftSoundBtn');
+
+    function handleTypeChange(val) {
+      localStorage.setItem('purplez_gift_sound_type', val);
+      syncGiftSoundUi();
+      if (val === 'custom') {
+        const config = getGiftSoundConfig();
+        if (!config.customData && customFileInput) {
+          customFileInput.click();
+        } else {
+          playGiftNotificationSound();
+        }
+      } else {
+        playGiftNotificationSound();
+      }
+    }
+
+    if (select) {
+      select.addEventListener('change', () => handleTypeChange(select.value));
+    }
+    if (dropdownSelect) {
+      dropdownSelect.addEventListener('change', () => handleTypeChange(dropdownSelect.value));
+    }
+    if (chooseBtn && customFileInput) {
+      chooseBtn.addEventListener('click', () => customFileInput.click());
+    }
+    if (customFileInput) {
+      customFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Audio file is too large. Please select a sound file under 5MB.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            const dataUrl = evt.target.result;
+            localStorage.setItem('purplez_gift_sound_type', 'custom');
+            localStorage.setItem('purplez_gift_sound_custom_data', dataUrl);
+            localStorage.setItem('purplez_gift_sound_custom_name', file.name);
+            syncGiftSoundUi();
+            playGiftNotificationSound();
+          } catch (err) {
+            console.error('Failed to save custom audio:', err);
+            alert('Failed to save audio file into app storage.');
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        playGiftNotificationSound();
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        localStorage.setItem('purplez_gift_sound_type', 'coin');
+        localStorage.removeItem('purplez_gift_sound_custom_data');
+        localStorage.removeItem('purplez_gift_sound_custom_name');
+        if (customFileInput) customFileInput.value = '';
+        syncGiftSoundUi();
+        playGiftNotificationSound();
+      });
+    }
+
+    syncGiftSoundUi();
   }
 
   function playFollowNotificationSound() {
@@ -3088,10 +3403,12 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       setupFollowSoundControls();
+      setupGiftSoundControls();
       setupViewerJoinControls();
     });
   } else {
     setupFollowSoundControls();
+    setupGiftSoundControls();
     setupViewerJoinControls();
   }
 
@@ -5723,6 +6040,17 @@
         masterConfig.overlays.followerAlertOverlay.playAudioChimeBlupMp3 = !e.target.checked;
         saveMasterConfig();
         showToast(e.target.checked ? 'Follower Sound: MUTED' : 'Follower Sound: ACTIVE (blup.mp3)');
+      });
+    }
+
+    // Mute Gift Sound Sub-toggle
+    const muteGiftToggle = document.getElementById('muteGiftSoundOnlyToggle');
+    if (muteGiftToggle) {
+      muteGiftToggle.checked = masterConfig.overlays.giftAnimationOverlay.playAudioChimeBlupMp3 === false;
+      muteGiftToggle.addEventListener('change', (e) => {
+        masterConfig.overlays.giftAnimationOverlay.playAudioChimeBlupMp3 = !e.target.checked;
+        saveMasterConfig();
+        showToast(e.target.checked ? 'Gift Sound: MUTED' : 'Gift Sound: ACTIVE');
       });
     }
   }
