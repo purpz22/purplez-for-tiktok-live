@@ -1558,7 +1558,7 @@
   </div>
 
   <!-- MODAL: INTERACTIVE LANDSCAPE LAYOUT EDITOR -->
-  <div class="fixed inset-0 z-50 bg-black flex flex-col select-none overflow-hidden hidden" id="landscapeLayoutEditorModal">
+  <div class="fixed inset-0 z-50 bg-black flex flex-col select-none overflow-hidden hidden" id="landscapeLayoutEditorModal" style="display: none;">
     <!-- Header -->
     <div class="flex items-center justify-between px-3 py-2 bg-zinc-950 border-b border-zinc-800 font-mono text-xs flex-wrap gap-2" id="landscapeEditorHeader">
       <div class="flex items-center space-x-2 shrink-0">
@@ -1595,29 +1595,29 @@
       <!-- Canvas -->
       <div class="relative overflow-hidden hud-template-moba" id="landscapeEditorCanvas">
         <!-- Simulated In-Game HUD Elements for Visual Orientation -->
-        <div class="absolute top-2 left-3 p-2 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none" style="width: 120px; height: 95px;">
-          <span class="text-[9px] font-mono text-zinc-400 font-bold block">MINIMAP ZONE</span>
-          <span class="text-[8px] text-zinc-500">Top-Left</span>
+        <div class="absolute p-2 rounded-xl bg-black/60 border border-white/20 text-center pointer-events-none" style="top: 12px; left: 14px; width: 130px; height: 95px;">
+          <span class="text-[9px] font-mono text-zinc-300 font-bold block">MINIMAP ZONE</span>
+          <span class="text-[8px] text-zinc-400">Top-Left</span>
         </div>
-        <div class="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 border border-white/20 text-center pointer-events-none">
-          <span class="text-[9px] font-mono text-zinc-400 font-bold">MATCH SCORE & TIMER [Top-Center]</span>
+        <div class="absolute px-3 py-1 rounded-full bg-black/60 border border-white/20 text-center pointer-events-none" style="top: 12px; left: 50%; transform: translateX(-50%);">
+          <span class="text-[9px] font-mono text-zinc-300 font-bold">MATCH SCORE & TIMER [Top-Center]</span>
         </div>
-        <div class="absolute top-2 right-3 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
-          <span class="text-[9px] font-mono text-zinc-400 font-bold">KDA & SETTINGS [Top-Right]</span>
+        <div class="absolute px-3 py-1 rounded-xl bg-black/60 border border-white/20 text-center pointer-events-none" style="top: 12px; right: 14px;">
+          <span class="text-[9px] font-mono text-zinc-300 font-bold">KDA & SETTINGS [Top-Right]</span>
         </div>
-        <div class="absolute bottom-3 left-4 w-28 h-28 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
-          <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">JOYSTICK<br>ZONE</span>
+        <div class="absolute rounded-full border-2 border-dashed border-white/30 flex items-center justify-center pointer-events-none bg-black/40" style="bottom: 14px; left: 16px; width: 115px; height: 115px;">
+          <span class="text-[9px] font-mono text-zinc-300 font-bold text-center">JOYSTICK<br>ZONE</span>
         </div>
-        <div class="absolute bottom-3 right-4 w-36 h-36 rounded-full border-2 border-dashed border-white/20 flex items-center justify-center pointer-events-none">
-          <span class="text-[9px] font-mono text-zinc-400 font-bold text-center">SKILLS & ATTACK<br>ZONE</span>
+        <div class="absolute rounded-full border-2 border-dashed border-white/30 flex items-center justify-center pointer-events-none bg-black/40" style="bottom: 14px; right: 16px; width: 140px; height: 140px;">
+          <span class="text-[9px] font-mono text-zinc-300 font-bold text-center">SKILLS & ATTACK<br>ZONE</span>
         </div>
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-xl bg-black/40 border border-white/20 text-center pointer-events-none">
-          <span class="text-[9px] font-mono text-zinc-400 font-bold">RECALL & REGEN [Bottom-Center]</span>
+        <div class="absolute px-3 py-1 rounded-xl bg-black/60 border border-white/20 text-center pointer-events-none" style="bottom: 14px; left: 50%; transform: translateX(-50%);">
+          <span class="text-[9px] font-mono text-zinc-300 font-bold">RECALL & REGEN [Bottom-Center]</span>
         </div>
 
         <!-- Draggable Overlay Boxes on Canvas -->
         <!-- 1. Main Chat Box -->
-        <div class="absolute rounded-xl border-2 border-purple-500 bg-purple-950/60 p-2 shadow-2xl cursor-move flex flex-col justify-between editor-draggable-box active-module-box" data-module="mainChatBox" id="editorBoxChat" style="width: 250px; height: 140px; top: 38px; left: 160px;">
+        <div class="absolute rounded-xl border-2 border-purple-500 bg-purple-950/60 p-2 shadow-2xl cursor-move flex flex-col justify-between editor-draggable-box active-module-box" data-module="mainChatBox" id="editorBoxChat" style="width: 250px; height: 140px; top: 40px; left: 160px;">
           <div class="flex items-center justify-between text-[10px] font-mono font-bold text-white bg-purple-900/80 px-1.5 py-0.5 rounded">
             <span>MAIN CHAT (DUAL-TAB)</span>
             <span class="text-[8px] bg-purple-700 px-1 rounded">DRAG</span>
@@ -1627,7 +1627,7 @@
         </div>
 
         <!-- 2. Gifter Priority Banner -->
-        <div class="absolute rounded-lg border-2 border-amber-400 bg-amber-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="gifterPriorityBanner" id="editorBoxGifter" style="width: 210px; height: 32px; top: 188px; left: 160px;">
+        <div class="absolute rounded-lg border-2 border-amber-400 bg-amber-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="gifterPriorityBanner" id="editorBoxGifter" style="width: 210px; height: 32px; top: 190px; left: 160px;">
           <span class="text-[9px] font-mono font-bold text-amber-200">VIP BANNER</span>
           <span class="text-[8px] font-mono text-amber-400" id="editorPosGifter">Top-Center</span>
         </div>
@@ -1639,13 +1639,13 @@
         </div>
 
         <!-- 4. Follower Alert Overlay -->
-        <div class="absolute rounded-lg border-2 border-purple-400 bg-purple-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 170px; height: 32px; top: 8px; left: 160px;">
+        <div class="absolute rounded-lg border-2 border-purple-400 bg-purple-950/60 px-2 py-1 shadow-xl cursor-move flex items-center justify-between editor-draggable-box" data-module="followerAlertOverlay" id="editorBoxFollower" style="width: 170px; height: 32px; top: 90px; right: 20px;">
           <span class="text-[9px] font-mono font-bold text-purple-200">NEW FOLLOWER</span>
           <span class="text-[8px] font-mono text-purple-400" id="editorPosFollower">Top-Center</span>
         </div>
 
         <!-- 5. Like & Viewer Counters -->
-        <div class="absolute rounded-lg border-2 border-rose-400 bg-rose-950/60 px-2 py-1 shadow-xl cursor-move flex items-center space-x-2 editor-draggable-box" data-module="liveLikeCounter" id="editorBoxCounters" style="width: 130px; height: 30px; top: 8px; right: 140px;">
+        <div class="absolute rounded-lg border-2 border-rose-400 bg-rose-950/60 px-2 py-1 shadow-xl cursor-move flex items-center space-x-2 editor-draggable-box" data-module="liveLikeCounter" id="editorBoxCounters" style="width: 130px; height: 30px; top: 130px; right: 20px;">
           <span class="text-[9px] font-mono font-bold text-rose-200">LIKES & VIEWERS</span>
         </div>
 

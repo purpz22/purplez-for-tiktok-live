@@ -433,8 +433,9 @@
 
   window.handleBackAction = function() {
     const editorModal = document.getElementById('landscapeLayoutEditorModal');
-    if (editorModal && !editorModal.classList.contains('hidden')) {
+    if (editorModal && (!editorModal.classList.contains('hidden') || editorModal.style.display !== 'none')) {
       editorModal.classList.add('hidden');
+      editorModal.style.display = 'none';
       if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
         window.AndroidNative.toggleOrientation(false);
       }
@@ -5121,6 +5122,7 @@
     if (openBtn && editorModal) {
       openBtn.addEventListener('click', () => {
         editorModal.classList.remove('hidden');
+        editorModal.style.display = 'flex';
         if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
           window.AndroidNative.toggleOrientation(true);
         }
@@ -5135,6 +5137,7 @@
     if (closeBtn && editorModal) {
       closeBtn.addEventListener('click', () => {
         editorModal.classList.add('hidden');
+        editorModal.style.display = 'none';
         if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
           window.AndroidNative.toggleOrientation(false);
         }
@@ -5144,7 +5147,10 @@
     if (saveBtn) {
       saveBtn.addEventListener('click', () => {
         saveMasterConfig();
-        editorModal?.classList.add('hidden');
+        if (editorModal) {
+          editorModal.classList.add('hidden');
+          editorModal.style.display = 'none';
+        }
         if (window.AndroidNative && typeof window.AndroidNative.toggleOrientation === 'function') {
           window.AndroidNative.toggleOrientation(false);
         }

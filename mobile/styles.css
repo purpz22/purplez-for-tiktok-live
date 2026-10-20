@@ -1346,17 +1346,32 @@ textarea {
   z-index: 25 !important;
 }
 
+/* Utility coordinates and dimensions */
+.bottom-3 { bottom: 0.75rem !important; }
+.bottom-4 { bottom: 1rem !important; }
+.left-4 { left: 1rem !important; }
+.right-3 { right: 0.75rem !important; }
+.right-4 { right: 1rem !important; }
+.w-28 { width: 7rem !important; }
+.h-28 { height: 7rem !important; }
+.w-36 { width: 9rem !important; }
+.h-36 { height: 9rem !important; }
+
 /* Landscape Layout Editor Full-Screen Modal & Canvas */
 #landscapeLayoutEditorModal {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  z-index: 50 !important;
-  background-color: #000000 !important;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+  background-color: #000000;
+}
+
+#landscapeLayoutEditorModal.hidden {
+  display: none !important;
 }
 
 #landscapeEditorHeader {
