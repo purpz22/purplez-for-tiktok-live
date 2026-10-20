@@ -6538,7 +6538,7 @@
     }
   }
 
-  // Section 7.15: Mobile Interactive PNGTuber Engine (4 Slots: Idle, Idle Blink, Talk, Talk Blink)
+  // Section 7.15: Mobile Interactive PNGTuber Engine (4 Slots: Idle, Idle Blink, Talk, Talk Blink & Mic VAD)
   function setupPngTuberMobileEngine() {
     const avatarEl = document.getElementById('floatingPngTuberAvatar');
     const avatarImg = document.getElementById('floatingPngTuberImg');
@@ -6549,6 +6549,21 @@
     const sizeDownBtn = document.getElementById('pngTuberSizeDownBtn');
     const sizeUpBtn = document.getElementById('pngTuberSizeUpBtn');
     const sizeDisplay = document.getElementById('pngTuberSizeDisplay');
+
+    // Controls & Settings Elements
+    const floatingControls = document.getElementById('floatingPngTuberControls');
+    const micToggleBtn = document.getElementById('pngTuberMicToggleBtn');
+    const micStatusBadge = document.getElementById('pngTuberMicStatusBadge');
+    const micLedDot = document.getElementById('pngTuberMicLedDot');
+    const micMeterBar = document.getElementById('pngTuberMicMeterBar');
+    const micThresholdMarker = document.getElementById('pngTuberMicThresholdMarker');
+    const micVolumeDisplay = document.getElementById('pngTuberMicVolumeDisplay');
+    const micSensitivitySlider = document.getElementById('pngTuberMicSensitivitySlider');
+    const sensitivityVal = document.getElementById('pngTuberSensitivityVal');
+    const avatarSizeSlider = document.getElementById('pngTuberAvatarSizeSlider');
+    const sizeSliderDisplay = document.getElementById('pngTuberSizeSliderDisplay');
+    const resetPosBtn = document.getElementById('resetPngTuberPosBtn');
+    const showControlsBtn = document.getElementById('showPngTuberControlsBtn');
 
     if (!avatarEl || !avatarImg) return;
 
@@ -6564,6 +6579,16 @@
     let isCelebrating = false;
     let speechTimer = null;
     let currentSize = 100;
+    let controlsTimer = null;
+
+    // Microphone VAD State
+    let isMicActive = false;
+    let micSensitivity = 25;
+    let vadAudioCtx = null;
+    let vadAnalyser = null;
+    let vadMediaStream = null;
+    let vadAnimFrame = null;
+    let vadHoldTimer = null;
 
     // Load Saved Size
     try {
@@ -6578,6 +6603,8 @@
       avatarEl.style.width = `${currentSize}px`;
       avatarEl.style.height = `${currentSize}px`;
       if (sizeDisplay) sizeDisplay.textContent = `${currentSize}px`;
+      if (avatarSizeSlider) avatarSizeSlider.value = currentSize;
+      if (sizeSliderDisplay) sizeSliderDisplay.textContent = `${currentSize}px`;
       try {
         localStorage.setItem('purplez_pngtuber_size', currentSize);
       } catch (_) {}
@@ -6672,22 +6699,311 @@
       });
     }
 
+    // ==========================================
+    // ON-SCREEN CONTROLS AUTO-HIDE / REVEAL
+    // ==========================================
+    function showAvatarControls(durationMs = 3500) {
+      if (resizeHandle) {
+        resizeHandle.classList.remove('opacity-0', 'pointer-events-none');
+        resizeHandle.classList.add('opacity-100', 'pointer-events-auto');
+      }
+      if (floatingControls) {
+        floatingControls.classList.remove('opacity-0', 'pointer-events-none');
+        floatingControls.classList.add('opacity-100', 'pointer-events-auto');
+      }
+      if (controlsTimer) clearTimeout(controlsTimer);
+      if (durationMs > 0) {
+        controlsTimer = setTimeout(() => {
+          hideAvatarControls();
+        }, durationMs);
+      }
+    }
+
+    function hideAvatarControls() {
+      if (isDragging || isResizing || isPinching) return;
+      if (resizeHandle) {
+        resizeHandle.classList.add('opacity-0', 'pointer-events-none');
+        resizeHandle.classList.remove('opacity-100', 'pointer-events-auto');
+      }
+      if (floatingControls) {
+        floatingControls.classList.add('opacity-0', 'pointer-events-none');
+        floatingControls.classList.remove('opacity-100', 'pointer-events-auto');
+      }
+    }
+
+    // Tap outside hides controls
+    document.addEventListener('touchstart', (e) => {
+      if (!avatarEl.contains(e.target) && (!showControlsBtn || !showControlsBtn.contains(e.target))) {
+        hideAvatarControls();
+      }
+    }, { passive: true });
+
+    if (showControlsBtn) {
+      showControlsBtn.addEventListener('click', () => {
+        showAvatarControls(5000);
+        showToast('Resize controls visible on avatar');
+      });
+    }
+
+    if (resetPosBtn) {
+      resetPosBtn.addEventListener('click', () => {
+        avatarEl.style.left = 'auto';
+        avatarEl.style.top = 'auto';
+        avatarEl.style.right = '24px';
+        avatarEl.style.bottom = '90px';
+        try {
+          localStorage.removeItem('purplez_pngtuber_pos');
+        } catch (_) {}
+        showAvatarControls(3000);
+        showToast('Avatar position reset to default bottom-right');
+      });
+    }
+
+    if (avatarSizeSlider) {
+      avatarSizeSlider.addEventListener('input', (e) => {
+        applySize(parseInt(e.target.value, 10));
+      });
+    }
+
     // Size Buttons (+ / -)
     if (sizeDownBtn) {
       sizeDownBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         applySize(currentSize - 20);
+        showAvatarControls(3500);
       });
     }
     if (sizeUpBtn) {
       sizeUpBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         applySize(currentSize + 20);
+        showAvatarControls(3500);
       });
     }
 
     // ==========================================
-    // RESIZE LOGIC (Resizable Anytime via Handle)
+    // MICROPHONE VOICE ACTIVITY DETECTION (VAD)
+    // ==========================================
+    try {
+      const savedSens = localStorage.getItem('purplez_pngtuber_mic_sensitivity');
+      if (savedSens) {
+        micSensitivity = Math.max(5, Math.min(90, parseInt(savedSens, 10) || 25));
+      }
+    } catch (_) {}
+    if (micSensitivitySlider) micSensitivitySlider.value = micSensitivity;
+    if (sensitivityVal) sensitivityVal.textContent = `${micSensitivity}%`;
+    if (micThresholdMarker) micThresholdMarker.style.left = `${micSensitivity}%`;
+
+    if (micSensitivitySlider) {
+      micSensitivitySlider.addEventListener('input', (e) => {
+        micSensitivity = parseInt(e.target.value, 10);
+        if (sensitivityVal) sensitivityVal.textContent = `${micSensitivity}%`;
+        if (micThresholdMarker) micThresholdMarker.style.left = `${micSensitivity}%`;
+        if (micVolumeDisplay) {
+          const curVal = micVolumeDisplay.textContent.split(' ')[0] || '0%';
+          micVolumeDisplay.textContent = `${curVal} (Threshold: ${micSensitivity}%)`;
+        }
+        try {
+          localStorage.setItem('purplez_pngtuber_mic_sensitivity', micSensitivity);
+        } catch (_) {}
+      });
+    }
+
+    function updateMicUi(active) {
+      if (micToggleBtn) {
+        if (active) {
+          micToggleBtn.textContent = 'STOP MICROPHONE';
+          micToggleBtn.className = 'flex-1 py-1.5 px-3 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-mono text-[10px] font-bold rounded cursor-pointer transition-colors text-center';
+        } else {
+          micToggleBtn.textContent = 'START MICROPHONE';
+          micToggleBtn.className = 'flex-1 py-1.5 px-3 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-mono text-[10px] font-bold rounded cursor-pointer transition-colors text-center';
+        }
+      }
+      if (micStatusBadge) {
+        micStatusBadge.textContent = active ? 'MIC ACTIVE' : 'MIC OFF';
+        micStatusBadge.className = active
+          ? 'px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-950 text-emerald-400 border border-emerald-600'
+          : 'px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700';
+      }
+      if (micLedDot) {
+        micLedDot.className = active ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse' : 'w-2 h-2 rounded-full bg-zinc-500';
+      }
+      if (!active) {
+        if (micMeterBar) micMeterBar.style.width = '0%';
+        if (micVolumeDisplay) micVolumeDisplay.textContent = `0% (Threshold: ${micSensitivity}%)`;
+      }
+    }
+
+    async function startMicrophone() {
+      try {
+        if (window.AndroidNative && typeof window.AndroidNative.hasMicrophonePermission === 'function') {
+          if (!window.AndroidNative.hasMicrophonePermission()) {
+            if (typeof window.AndroidNative.requestMicrophonePermission === 'function') {
+              window.AndroidNative.requestMicrophonePermission();
+            }
+            return false;
+          }
+        }
+
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+          showToast('Web Audio not supported');
+          return false;
+        }
+
+        if (!vadAudioCtx || vadAudioCtx.state === 'closed') {
+          vadAudioCtx = new AudioCtx();
+        }
+        if (vadAudioCtx.state === 'suspended') {
+          await vadAudioCtx.resume();
+        }
+
+        if (!vadMediaStream) {
+          vadMediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            },
+            video: false
+          });
+        }
+
+        const source = vadAudioCtx.createMediaStreamSource(vadMediaStream);
+        vadAnalyser = vadAudioCtx.createAnalyser();
+        vadAnalyser.fftSize = 512;
+        vadAnalyser.smoothingTimeConstant = 0.25;
+        source.connect(vadAnalyser);
+
+        isMicActive = true;
+        try {
+          localStorage.setItem('purplez_pngtuber_mic_enabled', '1');
+        } catch (_) {}
+        updateMicUi(true);
+        startVadLoop();
+        showToast('Microphone connected: Speak to animate Pop Cat!');
+        return true;
+      } catch (err) {
+        console.warn('Microphone start error:', err);
+        isMicActive = false;
+        updateMicUi(false);
+        if (window.AndroidNative && typeof window.AndroidNative.requestMicrophonePermission === 'function') {
+          window.AndroidNative.requestMicrophonePermission();
+        }
+        return false;
+      }
+    }
+
+    function stopMicrophone() {
+      isMicActive = false;
+      try {
+        localStorage.setItem('purplez_pngtuber_mic_enabled', '0');
+      } catch (_) {}
+      if (vadAnimFrame) {
+        cancelAnimationFrame(vadAnimFrame);
+        vadAnimFrame = null;
+      }
+      if (vadMediaStream) {
+        vadMediaStream.getTracks().forEach(t => t.stop());
+        vadMediaStream = null;
+      }
+      if (vadAudioCtx) {
+        vadAudioCtx.close().catch(() => {});
+        vadAudioCtx = null;
+      }
+      isSpeaking = false;
+      updateState();
+      updateMicUi(false);
+    }
+
+    function startVadLoop() {
+      if (vadAnimFrame) cancelAnimationFrame(vadAnimFrame);
+      if (!vadAnalyser) return;
+      const dataArray = new Uint8Array(vadAnalyser.fftSize);
+
+      function checkAudio() {
+        if (!isMicActive || !vadAnalyser) return;
+
+        vadAnalyser.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const v = (dataArray[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / dataArray.length);
+        const volume = Math.min(100, Math.round(rms * 100 * 4.0));
+
+        if (micMeterBar) {
+          micMeterBar.style.width = `${volume}%`;
+          if (volume >= micSensitivity) {
+            micMeterBar.className = 'h-full bg-amber-400 rounded-full transition-all duration-75';
+          } else {
+            micMeterBar.className = 'h-full bg-emerald-500 rounded-full transition-all duration-75';
+          }
+        }
+        if (micVolumeDisplay) {
+          micVolumeDisplay.textContent = `${volume}% (Threshold: ${micSensitivity}%)`;
+        }
+
+        if (volume >= micSensitivity) {
+          isSpeaking = true;
+          updateState();
+          if (vadHoldTimer) {
+            clearTimeout(vadHoldTimer);
+            vadHoldTimer = null;
+          }
+        } else {
+          if (isSpeaking && !vadHoldTimer && !isCelebrating) {
+            vadHoldTimer = setTimeout(() => {
+              isSpeaking = false;
+              updateState();
+              vadHoldTimer = null;
+            }, 140);
+          }
+        }
+
+        vadAnimFrame = requestAnimationFrame(checkAudio);
+      }
+
+      vadAnimFrame = requestAnimationFrame(checkAudio);
+    }
+
+    if (micToggleBtn) {
+      micToggleBtn.addEventListener('click', () => {
+        if (isMicActive) {
+          stopMicrophone();
+        } else {
+          startMicrophone();
+        }
+      });
+    }
+
+    window.onNativeMicrophonePermissionResult = (granted) => {
+      if (granted) {
+        startMicrophone();
+      } else {
+        stopMicrophone();
+        showToast('Microphone permission was denied.');
+      }
+    };
+
+    // Auto-resume microphone if previously enabled upon user gesture
+    try {
+      const savedMic = localStorage.getItem('purplez_pngtuber_mic_enabled');
+      if (savedMic === '1') {
+        const resumeMic = () => {
+          if (!isMicActive) startMicrophone();
+          window.removeEventListener('click', resumeMic);
+          window.removeEventListener('touchstart', resumeMic);
+        };
+        window.addEventListener('click', resumeMic, { once: true });
+        window.addEventListener('touchstart', resumeMic, { once: true });
+      }
+    } catch (_) {}
+
+    // ==========================================
+    // RESIZE LOGIC (Corner Handle & 2-Finger Pinch)
     // ==========================================
     let isResizing = false;
     let resizeStartX = 0, resizeStartY = 0, resizeStartSize = 100;
@@ -6697,6 +7013,7 @@
       resizeStartX = clientX;
       resizeStartY = clientY;
       resizeStartSize = currentSize;
+      showAvatarControls(5000);
     };
 
     if (resizeHandle) {
@@ -6713,9 +7030,12 @@
     }
 
     // ==========================================
-    // DRAG LOGIC (Movable Anytime Anywhere)
+    // DRAG LOGIC & 2-FINGER PINCH
     // ==========================================
     let isDragging = false;
+    let isPinching = false;
+    let pinchStartDist = 0;
+    let pinchStartSize = 100;
     let dragStartX = 0, dragStartY = 0, initialLeft = 0, initialTop = 0;
     let dragDistance = 0;
 
@@ -6731,12 +7051,25 @@
       avatarEl.style.bottom = 'auto';
       avatarEl.style.left = `${initialLeft}px`;
       avatarEl.style.top = `${initialTop}px`;
+      showAvatarControls(3500);
     };
 
     dragBody.addEventListener('touchstart', (e) => {
       if (e.target.closest('#floatingPngTuberResizeHandle') || e.target.closest('#floatingPngTuberControls')) return;
-      const t = e.touches[0];
-      startDrag(t.clientX, t.clientY);
+      if (e.touches.length === 2) {
+        // Multi-touch Pinch to Zoom
+        isPinching = true;
+        isDragging = false;
+        pinchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        pinchStartSize = currentSize;
+        showAvatarControls(4000);
+      } else if (e.touches.length === 1) {
+        const t = e.touches[0];
+        startDrag(t.clientX, t.clientY);
+      }
     }, { passive: true });
 
     dragBody.addEventListener('mousedown', (e) => {
@@ -6751,6 +7084,7 @@
         const deltaY = clientY - resizeStartY;
         const delta = Math.max(deltaX, deltaY);
         applySize(resizeStartSize + delta);
+        showAvatarControls(4000);
       } else if (isDragging) {
         const dx = clientX - dragStartX;
         const dy = clientY - dragStartY;
@@ -6759,12 +7093,18 @@
         const clampedY = Math.max(0, Math.min(window.innerHeight - currentSize, initialTop + dy));
         avatarEl.style.left = `${clampedX}px`;
         avatarEl.style.top = `${clampedY}px`;
+        showAvatarControls(3500);
       }
     };
 
     const handleEnd = () => {
       if (isResizing) {
         isResizing = false;
+        showAvatarControls(2500);
+      }
+      if (isPinching) {
+        isPinching = false;
+        showAvatarControls(2500);
       }
       if (isDragging) {
         isDragging = false;
@@ -6772,6 +7112,9 @@
         if (dragDistance < 12) {
           triggerVoiceTest('POP POP POP!', 1200);
           if (typeof playCoinSound === 'function') playCoinSound();
+          showAvatarControls(3500);
+        } else {
+          showAvatarControls(2500);
         }
         // Save Position
         try {
@@ -6785,6 +7128,18 @@
     };
 
     window.addEventListener('touchmove', (e) => {
+      if (isPinching && e.touches && e.touches.length === 2) {
+        const curDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        if (pinchStartDist > 0) {
+          const ratio = curDist / pinchStartDist;
+          applySize(Math.round(pinchStartSize * ratio));
+          showAvatarControls(3500);
+        }
+        return;
+      }
       if (!isDragging && !isResizing) return;
       if (e.touches && e.touches[0]) {
         handleMove(e.touches[0].clientX, e.touches[0].clientY);

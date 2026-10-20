@@ -991,7 +991,7 @@
           </div>
 
           <!-- 11. Interactive PNGTuber Pop Cat Avatar Module (4 Slots) -->
-          <div class="control-card space-y-2 bg-zinc-950 border border-zinc-800" data-module="pngTuberAvatar">
+          <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" data-module="pngTuberAvatar">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
@@ -1003,7 +1003,7 @@
               </label>
             </div>
             <p class="text-[10px] text-zinc-400">Reactive Pop Cat avatar floating on screen during MLBB streams with 4 reactive states.</p>
-            <div class="grid grid-cols-4 gap-1.5 pt-1 font-mono text-[8px] text-center">
+            <div class="grid grid-cols-4 gap-1.5 pt-0.5 font-mono text-[8px] text-center">
               <div class="p-1.5 rounded bg-zinc-900 border border-zinc-800">
                 <div class="font-bold text-amber-300">1. IDLE</div>
                 <div class="text-zinc-500">Mouth Close</div>
@@ -1021,10 +1021,68 @@
                 <div class="text-zinc-500">Speak + Blink</div>
               </div>
             </div>
+
+            <!-- Microphone VAD Talk Section -->
+            <div class="p-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-zinc-500" id="pngTuberMicLedDot"></span>
+                  <span class="text-[11px] font-bold text-white tracking-wide">MIC VOICE REACTIVE (VAD)</span>
+                </div>
+                <span id="pngTuberMicStatusBadge" class="px-2 py-0.5 rounded text-[9px] font-mono font-bold bg-zinc-800 text-zinc-400 border border-zinc-700">MIC OFF</span>
+              </div>
+              
+              <div class="flex items-center justify-between space-x-2">
+                <button type="button" id="pngTuberMicToggleBtn" class="flex-1 py-1.5 px-3 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-mono text-[10px] font-bold rounded cursor-pointer transition-colors text-center">
+                  START MICROPHONE
+                </button>
+                <button type="button" id="testMobilePngTuberVoiceBtn" class="py-1.5 px-2.5 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 text-white rounded text-[10px] font-mono font-bold cursor-pointer whitespace-nowrap">
+                  TEST VOICE
+                </button>
+              </div>
+
+              <!-- Live Audio Level Meter -->
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                  <span>INPUT LEVEL</span>
+                  <span id="pngTuberMicVolumeDisplay">0% (Threshold: 25%)</span>
+                </div>
+                <div class="w-full h-2.5 bg-zinc-950 border border-zinc-800 rounded-full overflow-hidden relative">
+                  <div id="pngTuberMicMeterBar" class="h-full bg-emerald-500 rounded-full transition-all duration-75" style="width: 0%;"></div>
+                  <div id="pngTuberMicThresholdMarker" class="absolute top-0 bottom-0 w-0.5 bg-amber-400 z-10" style="left: 25%;"></div>
+                </div>
+              </div>
+
+              <!-- Sensitivity Slider -->
+              <div class="space-y-1 pt-1">
+                <div class="flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                  <span>MIC SENSITIVITY</span>
+                  <span id="pngTuberSensitivityVal" class="text-white font-bold">25%</span>
+                </div>
+                <input type="range" id="pngTuberMicSensitivitySlider" min="5" max="90" value="25" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+              </div>
+            </div>
+
+            <!-- Avatar Size & Positioning Controls -->
+            <div class="p-2.5 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-2">
+              <div class="flex items-center justify-between text-[10px] font-mono text-zinc-300">
+                <span class="font-bold">AVATAR SIZE</span>
+                <span id="pngTuberSizeSliderDisplay" class="font-bold text-purple-400">100px</span>
+              </div>
+              <input type="range" id="pngTuberAvatarSizeSlider" min="60" max="280" value="100" class="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+              
+              <div class="flex items-center justify-between pt-1">
+                <button type="button" id="showPngTuberControlsBtn" class="py-1 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded text-[9px] font-mono cursor-pointer">
+                  SHOW RESIZE CONTROLS (3s)
+                </button>
+                <button type="button" id="resetPngTuberPosBtn" class="py-1 px-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded text-[9px] font-mono cursor-pointer">
+                  RESET POSITION
+                </button>
+              </div>
+            </div>
+
             <div class="flex items-center justify-between pt-1">
-              <button type="button" id="testMobilePngTuberVoiceBtn" class="px-2.5 py-1 bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-white rounded text-[9px] font-mono font-bold cursor-pointer">
-                TEST POP CAT VOICE
-              </button>
+              <span class="text-[9px] text-zinc-500">Pinch avatar on screen to resize anytime</span>
               <label class="flex items-center space-x-1.5 cursor-pointer">
                 <input type="checkbox" class="overlay-lock-touch" data-module="pngTuberAvatar">
                 <span class="text-[10px] text-zinc-400">Click-Through</span>
@@ -1235,7 +1293,7 @@
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.29</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.30</span>
           </div>
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-zinc-400">STATUS:</span>
@@ -1254,7 +1312,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.29</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.30</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.
@@ -2253,15 +2311,15 @@
     <div class="relative w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center" id="floatingPngTuberBody">
       <img id="floatingPngTuberImg" src="pngtuber/popcat_closed.png" class="w-full h-full object-contain pointer-events-none drop-shadow-2xl transition-transform duration-75" alt="PNGTuber Pop Cat" />
 
-      <!-- Quick Size Buttons & Indicator Pill -->
-      <div id="floatingPngTuberControls" class="opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity absolute -top-6 right-0 flex items-center space-x-1 bg-black/95 border border-zinc-700 rounded-md px-1.5 py-0.5 text-[9px] font-mono text-zinc-300 shadow-lg">
+      <!-- Quick Size Buttons & Indicator Pill (Hidden by default, shown on tap/edit) -->
+      <div id="floatingPngTuberControls" class="opacity-0 pointer-events-none transition-opacity duration-200 absolute -top-7 right-0 flex items-center space-x-1 bg-black/95 border border-zinc-700 rounded-md px-1.5 py-0.5 text-[9px] font-mono text-zinc-300 shadow-lg z-30">
         <button type="button" id="pngTuberSizeDownBtn" class="px-1 py-0 hover:text-white cursor-pointer font-bold text-xs" title="Decrease Size">-</button>
         <span id="pngTuberSizeDisplay" class="font-bold text-[9px]">100px</span>
         <button type="button" id="pngTuberSizeUpBtn" class="px-1 py-0 hover:text-white cursor-pointer font-bold text-xs" title="Increase Size">+</button>
       </div>
 
-      <!-- Corner Resize Handle Grip (Movable & Resizable Anytime) -->
-      <div id="floatingPngTuberResizeHandle" class="absolute -bottom-1.5 -right-1.5 w-6 h-6 bg-purple-600 hover:bg-purple-500 active:bg-purple-400 border-2 border-white rounded-full flex items-center justify-center cursor-nwse-resize shadow-xl touch-none z-20" title="Drag to Resize Avatar">
+      <!-- Corner Resize Handle Grip (Hidden by default, shown on tap/edit) -->
+      <div id="floatingPngTuberResizeHandle" class="opacity-0 pointer-events-none transition-opacity duration-200 absolute -bottom-2.5 -right-2.5 w-6 h-6 bg-purple-600 hover:bg-purple-500 active:bg-purple-400 border-2 border-white rounded-full flex items-center justify-center cursor-nwse-resize shadow-xl touch-none z-20" title="Drag to Resize Avatar">
         <svg class="w-3 h-3 text-white pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M21 15v6m0 0h-6m6 0l-7-7M3 9V3m0 0h6M3 3l7 7" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
