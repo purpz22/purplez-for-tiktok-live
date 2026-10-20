@@ -5572,6 +5572,27 @@
         }
       });
     }
+
+    window.applyLiveLayoutUpdate = function(moduleKey, zone, offX, offY) {
+      try {
+        if (!masterConfig || !masterConfig.overlays) return;
+        if (!masterConfig.overlays[moduleKey]) {
+          masterConfig.overlays[moduleKey] = {};
+        }
+        masterConfig.overlays[moduleKey].landscapePosition = zone;
+        masterConfig.overlays[moduleKey].customOffsetX = typeof offX === 'number' ? offX : 0;
+        masterConfig.overlays[moduleKey].customOffsetY = typeof offY === 'number' ? offY : 15;
+
+        saveMasterConfig();
+
+        if (currentSelectedModule === moduleKey) {
+          selectModule(moduleKey);
+        }
+        syncAllModulePositions();
+      } catch (err) {
+        console.warn('[PurplezLiveLayout] Error applying live layout:', err);
+      }
+    };
   }
 
   function setupLayoutProfileControls() {
