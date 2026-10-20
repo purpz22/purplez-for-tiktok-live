@@ -1045,32 +1045,54 @@
 
   // Streamer TikTok Profile Picture (Avatar) Updater
   let streamerAvatarUrl = '';
+  const DEFAULT_APP_LOGO_SVG = `<svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M28 22H58C67 22 74 29 74 38C74 47 67 54 58 54H44V78H28V22Z" fill="white"></path><circle cx="44" cy="38" fill="black" r="7"></circle><circle cx="76" cy="74" fill="white" r="6"></circle><path d="M62 74C62 66.5 67.5 61 75 61" stroke="white" stroke-linecap="round" stroke-width="4"></path></svg>`;
 
   window.updateStreamerAvatar = function(url) {
-    if (!url) return;
-    streamerAvatarUrl = url;
-    try {
-      localStorage.setItem('purplez_streamer_avatar', url);
-    } catch (_) {}
-
-    // Update Floating HUD Logo Button
-    if (logoToggleBtn) {
-      logoToggleBtn.innerHTML = `
-        <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 z-10">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-        </span>
-        <img src="${url}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 36px; max-height: 36px; object-fit: cover;" alt="Streamer" onerror="this.onerror=null; this.src='';" />
-      `;
-    }
-
-    // Update Control Center App Header Logo
     const headerLogo = document.getElementById('appHeaderLogo');
-    if (headerLogo) {
-      headerLogo.innerHTML = `
-        <img src="${url}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 44px; max-height: 44px; object-fit: cover;" alt="Streamer" onerror="this.onerror=null; this.src='';" />
-      `;
+    if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) {
+      if (headerLogo) headerLogo.innerHTML = DEFAULT_APP_LOGO_SVG;
+      if (logoToggleBtn) logoToggleBtn.innerHTML = DEFAULT_APP_LOGO_SVG;
+      return;
     }
+
+    const cleanUrl = url.trim();
+    const testImg = new Image();
+
+    testImg.onload = function() {
+      streamerAvatarUrl = cleanUrl;
+      try {
+        localStorage.setItem('purplez_streamer_avatar', cleanUrl);
+      } catch (_) {}
+
+      // Update Floating HUD Logo Button
+      if (logoToggleBtn) {
+        logoToggleBtn.innerHTML = `
+          <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 z-10">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+          </span>
+          <img src="${cleanUrl}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 36px; max-height: 36px; object-fit: cover;" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='${DEFAULT_APP_LOGO_SVG}';" />
+        `;
+      }
+
+      // Update Control Center App Header Logo
+      if (headerLogo) {
+        headerLogo.innerHTML = `
+          <img src="${cleanUrl}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 44px; max-height: 44px; object-fit: cover;" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='${DEFAULT_APP_LOGO_SVG}';" />
+        `;
+      }
+    };
+
+    testImg.onerror = function() {
+      // Revert to crisp default vector SVG logo on network error or expired CDN token
+      if (headerLogo) headerLogo.innerHTML = DEFAULT_APP_LOGO_SVG;
+      if (logoToggleBtn) logoToggleBtn.innerHTML = DEFAULT_APP_LOGO_SVG;
+      try {
+        localStorage.removeItem('purplez_streamer_avatar');
+      } catch (_) {}
+    };
+
+    testImg.src = cleanUrl;
   };
 
   // Status Listener invoked from Android native TikTokLiveManager
