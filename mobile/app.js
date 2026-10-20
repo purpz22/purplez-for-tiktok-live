@@ -1068,15 +1068,27 @@
   let streamerAvatarUrl = '';
   const DEFAULT_APP_LOGO_SVG = `<svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M28 22H58C67 22 74 29 74 38C74 47 67 54 58 54H44V78H28V22Z" fill="white"></path><circle cx="44" cy="38" fill="black" r="7"></circle><circle cx="76" cy="74" fill="white" r="6"></circle><path d="M62 74C62 66.5 67.5 61 75 61" stroke="white" stroke-linecap="round" stroke-width="4"></path></svg>`;
 
+  function extractAvatarUrlString(val) {
+    if (!val) return '';
+    if (typeof val === 'string') return val.trim();
+    if (typeof val === 'object') {
+      if (Array.isArray(val.url_list) && val.url_list.length > 0) return String(val.url_list[0]).trim();
+      if (Array.isArray(val.urlList) && val.urlList.length > 0) return String(val.urlList[0]).trim();
+    }
+    return '';
+  }
+
   window.updateStreamerAvatar = function(url) {
     const headerLogo = document.getElementById('appHeaderLogo');
-    if (!url || typeof url !== 'string' || !url.trim().startsWith('http')) {
+    const cleanUrl = extractAvatarUrlString(url);
+    const isAllowed = /^(data:image\/|https?:\/\/|file:\/\/)/i.test(cleanUrl);
+
+    if (!isAllowed) {
       if (headerLogo) headerLogo.innerHTML = DEFAULT_APP_LOGO_SVG;
       if (logoToggleBtn) logoToggleBtn.innerHTML = DEFAULT_APP_LOGO_SVG;
       return;
     }
 
-    const cleanUrl = url.trim();
     const testImg = new Image();
 
     testImg.onload = function() {
@@ -1092,25 +1104,22 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
           </span>
-          <img src="${cleanUrl}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 36px; max-height: 36px; object-fit: cover;" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='${DEFAULT_APP_LOGO_SVG}';" />
+          <img src="${cleanUrl}" referrerpolicy="no-referrer" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 36px; max-height: 36px; object-fit: cover;" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='${DEFAULT_APP_LOGO_SVG}';" />
         `;
       }
 
       // Update Control Center App Header Logo
       if (headerLogo) {
         headerLogo.innerHTML = `
-          <img src="${cleanUrl}" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 44px; max-height: 44px; object-fit: cover;" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='${DEFAULT_APP_LOGO_SVG}';" />
+          <img src="${cleanUrl}" referrerpolicy="no-referrer" class="w-full h-full object-cover rounded-xl" style="width: 100%; height: 100%; max-width: 44px; max-height: 44px; object-fit: cover;" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='${DEFAULT_APP_LOGO_SVG}';" />
         `;
       }
     };
 
     testImg.onerror = function() {
-      // Revert to crisp default vector SVG logo on network error or expired CDN token
+      // Revert to crisp default vector SVG logo on image error without wiping saved avatar cache
       if (headerLogo) headerLogo.innerHTML = DEFAULT_APP_LOGO_SVG;
       if (logoToggleBtn) logoToggleBtn.innerHTML = DEFAULT_APP_LOGO_SVG;
-      try {
-        localStorage.removeItem('purplez_streamer_avatar');
-      } catch (_) {}
     };
 
     testImg.src = cleanUrl;
@@ -1129,8 +1138,8 @@
     } else if (status === 'CONNECTING') {
       isConnecting = true;
       if (connectSpinner) connectSpinner.classList.remove('hidden');
-      if (saveStreamerBtnText) saveStreamerBtnText.textContent = 'CONNECTING...';
-      if (saveStreamerUsernameBtn) saveStreamerUsernameBtn.disabled = true;
+      if (saveStreamerBtnText) saveStreamerBtnText.textContent = 'CANCEL';
+      if (saveStreamerUsernameBtn) saveStreamerUsernameBtn.disabled = false;
       if (usernameDot) usernameDot.className = 'w-2 h-2 rounded-full bg-yellow-400 animate-pulse';
       if (usernameStatusText) {
         usernameStatusText.textContent = 'CONNECTING TO TIKTOK LIVE...';
@@ -1210,7 +1219,7 @@
       return;
     }
 
-    if (is100PercentConnected) {
+    if (is100PercentConnected || isConnecting) {
       disconnectTikTokLive();
       return;
     }
@@ -1219,8 +1228,8 @@
 
     isConnecting = true;
     if (connectSpinner) connectSpinner.classList.remove('hidden');
-    if (saveStreamerBtnText) saveStreamerBtnText.textContent = 'CONNECTING...';
-    if (saveStreamerUsernameBtn) saveStreamerUsernameBtn.disabled = true;
+    if (saveStreamerBtnText) saveStreamerBtnText.textContent = 'CANCEL';
+    if (saveStreamerUsernameBtn) saveStreamerUsernameBtn.disabled = false;
 
     if (usernameDot) usernameDot.className = 'w-2 h-2 rounded-full bg-yellow-400 animate-pulse';
     if (usernameStatusText) {
@@ -1276,7 +1285,7 @@
 
         if (parsed && parsed.data && parsed.data.user) {
           const u = parsed.data.user;
-          const avatar = u.avatarMedium || u.avatarThumb || u.avatarLarger;
+          const avatar = extractAvatarUrlString(u.avatarMedium || u.avatarThumb || u.avatarLarger || u.avatar_medium || u.avatar_thumb || u.avatar_larger);
           if (avatar) window.updateStreamerAvatar(avatar);
           const roomId = u.roomId;
           const status = u.status; // 2 = LIVE, 4 = OFFLINE
@@ -1318,7 +1327,7 @@
             const defaultScope = data?.['__DEFAULT_SCOPE__'];
             const liveRoom = defaultScope?.['webapp.live-detail']?.liveRoom || defaultScope?.['webapp.user-detail']?.userInfo?.liveRoom;
             if (liveRoom) {
-              const ownerAvatar = liveRoom.owner?.avatarMedium || liveRoom.owner?.avatarThumb;
+              const ownerAvatar = extractAvatarUrlString(liveRoom.owner?.avatarMedium || liveRoom.owner?.avatarThumb || liveRoom.owner?.avatarLarger || liveRoom.owner?.avatar_medium || liveRoom.owner?.avatar_thumb);
               if (ownerAvatar) window.updateStreamerAvatar(ownerAvatar);
               const status = liveRoom.status;
               const roomId = String(liveRoom.roomId || liveRoom.id || '');
@@ -1666,7 +1675,12 @@
 
   // Load saved streamer avatar on startup
   let initialAvatar = '';
-  if (window.AndroidNative && window.AndroidNative.getStreamerAvatarUrl) {
+  if (window.AndroidNative && window.AndroidNative.getStreamerAvatarBase64) {
+    try {
+      initialAvatar = window.AndroidNative.getStreamerAvatarBase64();
+    } catch (_) {}
+  }
+  if (!initialAvatar && window.AndroidNative && window.AndroidNative.getStreamerAvatarUrl) {
     try {
       initialAvatar = window.AndroidNative.getStreamerAvatarUrl();
     } catch (_) {}
