@@ -30,6 +30,16 @@
     </div>
   </div>
 
+  <!-- GLOBAL FLOATING GIFT ALERT POPUP (Visible across all views & preview) -->
+  <div id="globalGiftAlertPopup" class="hidden fixed z-[99999] pointer-events-none transition-all duration-300 transform scale-95 opacity-0 select-none font-mono">
+    <div class="flex items-center space-x-2 px-3.5 py-2 rounded-2xl bg-zinc-950/95 border-2 border-amber-400 shadow-2xl backdrop-blur-md">
+      <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-400 text-black tracking-wider uppercase shrink-0">GIFT</span>
+      <span class="text-xs font-bold text-white truncate max-w-[150px]" id="globalGiftAlertUser">@Supporter</span>
+      <span class="text-[10.5px] text-amber-200 font-medium shrink-0" id="globalGiftAlertDetails">sent Rose!</span>
+      <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-black/70 border border-amber-400/40 text-amber-300 font-mono shrink-0" id="globalGiftAlertCoins">1 COIN</span>
+    </div>
+  </div>
+
   <!-- VIEW 1: STREAMER CONTROL CENTER (Primary Screen for Mobile Streamers) -->
   <div class="relative w-full h-full flex flex-col justify-start overflow-y-auto overflow-x-hidden bg-black p-3 z-20" id="controlCenterView">
     <div class="max-w-2xl w-full mx-auto space-y-3 pb-28 control-center-scroll-body">
@@ -864,7 +874,7 @@
         <div class="control-card space-y-3 bg-zinc-950 border border-zinc-800" id="otaUpdateCard">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono font-bold tracking-wider uppercase text-zinc-400">HOT UPDATES (OTA)</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.23</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold" id="otaVersionBadge">v1.1.24</span>
           </div>
           <div class="flex items-center justify-between text-xs font-mono">
             <span class="text-zinc-400">STATUS:</span>
@@ -883,7 +893,7 @@
           <div class="p-3 rounded-xl border border-zinc-700 bg-zinc-900/90 space-y-2.5 hidden" id="nativeApkUpdateCard">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-extrabold text-white uppercase tracking-wider">NATIVE ENGINE UPDATE</span>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.23</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white text-black" id="nativeApkVersionBadge">v1.1.24</span>
             </div>
             <div class="text-[11px] font-mono text-zinc-300 leading-tight" id="nativeApkNotes">
               Native Android update available.

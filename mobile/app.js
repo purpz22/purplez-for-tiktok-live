@@ -1816,6 +1816,16 @@
     const testUsers = ['LegendaryGifter', 'DragonKing', 'QueenBee', 'Whale_Supporter'];
     const randomGift = testGifts[Math.floor(Math.random() * testGifts.length)];
     const randomUser = testUsers[Math.floor(Math.random() * testUsers.length)];
+
+    // 1. Immediately trigger on-screen Web Gift Alert Popup
+    triggerGiftAlert(randomUser, randomGift.name, randomGift.coins, randomGift.count);
+
+    // 2. Dispatch to Native Android Floating Window
+    if (window.AndroidNative && typeof window.AndroidNative.simulateGiftAlert === 'function') {
+      window.AndroidNative.simulateGiftAlert(randomUser, randomGift.name, randomGift.count, randomGift.coins);
+    }
+
+    // 3. Inject into chat feed and session history
     handleIncomingRealGift({
       nickname: randomUser,
       uniqueId: randomUser.toLowerCase(),
@@ -1823,6 +1833,8 @@
       repeatCount: randomGift.count,
       diamondCount: Math.round(randomGift.coins / randomGift.count)
     });
+
+    showToast(`Simulated Gift: @${randomUser} sent ${randomGift.name} (${randomGift.coins.toLocaleString()} Coins)`);
   }
 
   if (testJoinAlertBtn) testJoinAlertBtn.addEventListener('click', triggerTestJoin);
@@ -2707,20 +2719,99 @@
     }
   }
 
-  function triggerGiftAlert(gifterName, giftName, coins) {
-    if (!giftAlertBanner || !giftAlertText || !giftAlertCoins) return;
+  function triggerGiftAlert(gifterName, giftName, coins, count = 1) {
+    const cleanUser = (gifterName || 'Supporter').replace(/^@+/, '').trim();
+    const cleanCoins = parseInt(coins || 0, 10) || 0;
+    const cleanCount = parseInt(count || 1, 10) || 1;
 
-    totalGiftCoins += coins;
+    totalGiftCoins += cleanCoins;
     updateTotalGiftsDisplay();
 
-    giftAlertText.textContent = `GIFT ALERT: @${gifterName} sent ${giftName}!`;
-    giftAlertCoins.textContent = `${coins.toLocaleString()} COINS`;
-    giftAlertBanner.classList.remove('hidden');
+    const isEnabled = masterConfig && masterConfig.overlays && masterConfig.overlays.giftAnimationOverlay
+      ? masterConfig.overlays.giftAnimationOverlay.enabled !== false
+      : true;
+    if (!isEnabled) return;
 
-    clearTimeout(window.giftAlertTimer);
-    window.giftAlertTimer = setTimeout(() => {
-      giftAlertBanner.classList.add('hidden');
-    }, 4000);
+    // 1. In-App Preview Chat Window Banner (if present and in app view)
+    if (giftAlertBanner && giftAlertText && giftAlertCoins && !isOverlayMode) {
+      giftAlertText.textContent = `GIFT ALERT: @${cleanUser} sent ${giftName}!`;
+      giftAlertCoins.textContent = `${cleanCoins.toLocaleString()} COINS`;
+      giftAlertBanner.classList.remove('hidden');
+
+      clearTimeout(window.giftAlertTimer);
+      window.giftAlertTimer = setTimeout(() => {
+        giftAlertBanner.classList.add('hidden');
+      }, 4000);
+    }
+
+    // 2. Play Audio Chime & Physical Haptic Vibration
+    const playSound = masterConfig && masterConfig.overlays && masterConfig.overlays.giftAnimationOverlay
+      ? masterConfig.overlays.giftAnimationOverlay.playAudioChimeBlupMp3 !== false
+      : true;
+    if (playSound) {
+      playFollowNotificationSound();
+    }
+    if (window.AndroidNative) {
+      if (typeof window.AndroidNative.triggerHapticFeedback === 'function') {
+        window.AndroidNative.triggerHapticFeedback(120);
+      } else if (typeof window.AndroidNative.vibrate === 'function') {
+        window.AndroidNative.vibrate(120);
+      }
+    }
+
+    // 3. Standalone Global Gift Alert Popup across all views
+    const globalGiftPopup = document.getElementById('globalGiftAlertPopup');
+    const globalGiftUser = document.getElementById('globalGiftAlertUser');
+    const globalGiftDetails = document.getElementById('globalGiftAlertDetails');
+    const globalGiftCoins = document.getElementById('globalGiftAlertCoins');
+
+    if (globalGiftPopup && globalGiftUser && !isOverlayMode) {
+      globalGiftUser.textContent = `@${cleanUser}`;
+      if (globalGiftDetails) {
+        globalGiftDetails.textContent = `sent ${giftName}${cleanCount > 1 ? ` x${cleanCount}` : ''}!`;
+      }
+      if (globalGiftCoins) {
+        globalGiftCoins.textContent = `${cleanCoins.toLocaleString()} COIN${cleanCoins === 1 ? '' : 'S'}`;
+      }
+
+      const giftCfg = (masterConfig && masterConfig.overlays && masterConfig.overlays.giftAnimationOverlay) || {};
+      const zone = giftCfg.landscapePosition || 'Top-Right';
+      const ox = giftCfg.customOffsetX || 0;
+      const oy = giftCfg.customOffsetY || 0;
+      const popupW = 260;
+      const popupH = 44;
+
+      if (window.innerWidth < window.innerHeight) {
+        // Safe horizontal centering for mobile portrait
+        const left = Math.max(8, Math.round((window.innerWidth - popupW) / 2));
+        globalGiftPopup.style.left = `${left}px`;
+        globalGiftPopup.style.top = '16px';
+      } else {
+        const coords = calculateLandscapeCoordinates(zone, ox, oy, popupW, popupH, window.innerWidth, window.innerHeight);
+        globalGiftPopup.style.left = `${coords.left}px`;
+        globalGiftPopup.style.top = `${coords.top}px`;
+      }
+
+      globalGiftPopup.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        globalGiftPopup.classList.remove('scale-95', 'opacity-0');
+        globalGiftPopup.classList.add('scale-100', 'opacity-100');
+      });
+
+      if (window._globalGiftTimeout) clearTimeout(window._globalGiftTimeout);
+      window._globalGiftTimeout = setTimeout(() => {
+        globalGiftPopup.classList.remove('scale-100', 'opacity-100');
+        globalGiftPopup.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          globalGiftPopup.classList.add('hidden');
+        }, 300);
+      }, 4500);
+    }
+
+    // 4. Dispatch to Native Android Floating Window if available
+    if (window.AndroidNative && typeof window.AndroidNative.showNativeGiftAlert === 'function') {
+      window.AndroidNative.showNativeGiftAlert(cleanUser, giftName, cleanCount, cleanCoins);
+    }
   }
 
   // ==========================================
@@ -3034,7 +3125,7 @@
     // 3. Standalone Global Follower Alert Popup at configured Layout position
     const globalPopup = document.getElementById('globalFollowerAlertPopup');
     const globalPopupUser = document.getElementById('globalFollowerAlertUser');
-    if (globalPopup && globalPopupUser) {
+    if (globalPopup && globalPopupUser && !isOverlayMode) {
       globalPopupUser.textContent = `@${cleanUser}`;
       const folCfg = (masterConfig && masterConfig.overlays && masterConfig.overlays.followerAlertOverlay) || {};
       const zone = folCfg.landscapePosition || 'Top-Center';
@@ -3042,10 +3133,18 @@
       const oy = folCfg.customOffsetY || 0;
       const popupW = 240;
       const popupH = 40;
-      const coords = calculateLandscapeCoordinates(zone, ox, oy, popupW, popupH, window.innerWidth, window.innerHeight);
 
-      globalPopup.style.left = `${coords.left}px`;
-      globalPopup.style.top = `${coords.top}px`;
+      if (window.innerWidth < window.innerHeight) {
+        // Safe horizontal centering for portrait mode so it never overflows or breaks page layout
+        const left = Math.max(8, Math.round((window.innerWidth - popupW) / 2));
+        globalPopup.style.left = `${left}px`;
+        globalPopup.style.top = '16px';
+      } else {
+        const coords = calculateLandscapeCoordinates(zone, ox, oy, popupW, popupH, window.innerWidth, window.innerHeight);
+        globalPopup.style.left = `${coords.left}px`;
+        globalPopup.style.top = `${coords.top}px`;
+      }
+
       globalPopup.classList.remove('hidden');
 
       requestAnimationFrame(() => {
@@ -3063,10 +3162,10 @@
       }, 4500);
     }
 
-    // 4. Prominent Follower Dropdown Banner in Chat Window
+    // 4. Prominent Follower Dropdown Banner in Chat Window (in-app preview only)
     const followerBanner = document.getElementById('followerAlertBanner');
     const followerBannerText = document.getElementById('followerAlertText');
-    if (followerBanner && followerBannerText) {
+    if (followerBanner && followerBannerText && !isOverlayMode) {
       followerBannerText.textContent = `NEW FOLLOWER: @${cleanUser}`;
       followerBanner.classList.remove('hidden');
       if (window.followerAlertTimeout) clearTimeout(window.followerAlertTimeout);
@@ -3610,7 +3709,7 @@
     const simTestGiftBtn = document.getElementById('simTestGiftBtn');
     if (simTestGiftBtn) {
       simTestGiftBtn.addEventListener('click', () => {
-        window.addChatMessage('StarSupporter', 'VIP', 'Sent Rose x1! (1 Coins)', true, 'Rose', 1);
+        triggerTestGift();
       });
     }
   }
@@ -4621,15 +4720,15 @@
       giftAnimationOverlay: {
         enabled: true,
         landscapePosition: 'Top-Right',
-        customOffsetX: -20,
-        customOffsetY: 45,
+        customOffsetX: 0,
+        customOffsetY: 15,
         lockedTouchPassThrough: true
       },
       followerAlertOverlay: {
         enabled: true,
         playAudioChimeBlupMp3: true,
         landscapePosition: 'Top-Center',
-        customOffsetX: 140,
+        customOffsetX: 0,
         customOffsetY: 15,
         lockedTouchPassThrough: true
       },
@@ -5376,7 +5475,7 @@
 
         let row = 'Middle';
         if (centerY < ch / 3) row = 'Top';
-        else if (centerY > (cw * 2) / 3) row = 'Bottom';
+        else if (centerY > (ch * 2) / 3) row = 'Bottom';
 
         let zone = `${row}-${col}`;
         if (row === 'Middle' && col === 'Center') zone = 'Center';
