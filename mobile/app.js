@@ -4128,6 +4128,21 @@
       });
     }
 
+    const headerSettingsShortcutBtn = document.getElementById('headerSettingsShortcutBtn');
+    if (headerSettingsShortcutBtn) {
+      headerSettingsShortcutBtn.addEventListener('click', () => {
+        switchNavTab('navViewSettings');
+      });
+    }
+
+    const modalOpenSettingsBtn = document.getElementById('modalOpenSettingsBtn');
+    if (modalOpenSettingsBtn) {
+      modalOpenSettingsBtn.addEventListener('click', () => {
+        if (accountDetailsModal) accountDetailsModal.classList.add('hidden');
+        switchNavTab('navViewSettings');
+      });
+    }
+
     if (refreshAccountStatusBtn) {
       refreshAccountStatusBtn.addEventListener('click', async () => {
         showToast('Syncing status with server...');
@@ -5154,11 +5169,33 @@
   function setupBottomNavigation() {
     const navItems = document.querySelectorAll('.bottom-nav-item');
     navItems.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.getAttribute('data-target');
-        switchNavTab(targetId);
-      });
+      const handleNavSwitch = (e) => {
+        if (e && e.type === 'touchend') {
+          try { e.preventDefault(); } catch (_) {}
+        }
+        const targetId = btn.getAttribute('data-target') || (e.currentTarget && e.currentTarget.getAttribute('data-target'));
+        if (targetId) {
+          switchNavTab(targetId);
+        }
+      };
+      btn.addEventListener('click', handleNavSwitch);
+      btn.addEventListener('touchend', handleNavSwitch, { passive: false });
     });
+
+    const headerSettingsBtn = document.getElementById('headerSettingsShortcutBtn');
+    if (headerSettingsBtn) {
+      headerSettingsBtn.addEventListener('click', () => switchNavTab('navViewSettings'));
+      headerSettingsBtn.addEventListener('touchend', (e) => {
+        try { e.preventDefault(); } catch (_) {}
+        switchNavTab('navViewSettings');
+      }, { passive: false });
+    }
+
+    const appHeaderLogo = document.getElementById('appHeaderLogo');
+    if (appHeaderLogo) {
+      appHeaderLogo.addEventListener('click', () => switchNavTab('navViewSettings'));
+      appHeaderLogo.style.cursor = 'pointer';
+    }
 
     const settingsSyncBtn = document.getElementById('settingsSyncBtn');
     if (settingsSyncBtn) {
